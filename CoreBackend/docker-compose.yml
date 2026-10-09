@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: corebackend_db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourPassword123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: corebackend_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=CoreDB;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - Jwt__Key=CoreBackendSuperSecretSecurityKey_DotNet10_EnterpriseAuth_2026_!
+      - Jwt__Issuer=CoreBackend
+      - Jwt__Audience=CoreBackendClients
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sqlserver
+
+volumes:
+  sqlserver_data:
