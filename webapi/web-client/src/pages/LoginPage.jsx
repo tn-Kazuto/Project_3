@@ -69,10 +69,10 @@ export const LoginPage = () => {
     }
   };
 
-  // One-click demo login helper
+  // One-click demo login helper (Khớp tài khoản seed mặc định của CoreBackend)
   const handleDemoFill = () => {
-    setEmail('khachhang.vip@novatech.vn');
-    setPassword('novatech2026');
+    setEmail('admin');
+    setPassword('Admin@123456');
     setError('');
   };
 

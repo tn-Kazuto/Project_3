@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../services/authApi';
 
 const AuthContext = createContext();
 
@@ -14,6 +15,10 @@ export const AuthProvider = ({ children }) => {
 
   const [token, setToken] = useState(() => {
     return localStorage.getItem('novatech_token') || null;
+  });
+
+  const [refreshToken, setRefreshToken] = useState(() => {
+    return localStorage.getItem('novatech_refresh_token') || null;
   });
 
   useEffect(() => {
@@ -32,49 +37,74 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = async (email, password) => {
-    // Sẵn sàng kết nối API Backend .NET 10: /api/auth/login
-    // Tạm thời mô phỏng đăng nhập thành công
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (email && password) {
-      const mockUser = {
-        id: 'usr_10293',
-        fullName: email.split('@')[0],
-        email: email,
-        role: 'Customer',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-        phone: '0901 234 567'
-      };
-      const mockToken = 'mock_jwt_token_for_dotnet_api_' + Date.now();
-      setUser(mockUser);
-      setToken(mockToken);
-      return { success: true, user: mockUser };
+  useEffect(() => {
+    if (refreshToken) {
+      localStorage.setItem('novatech_refresh_token', refreshToken);
+    } else {
+      localStorage.removeItem('novatech_refresh_token');
     }
-    return { success: false, error: 'Vui lòng nhập email và mật khẩu' };
-  };
+  }, [refreshToken]);
 
-  const register = async (fullName, email, _password) => {
-    // Sẵn sàng kết nối API Backend .NET 10: /api/auth/register
-    await new Promise(resolve => setTimeout(resolve, 600));
+  /**
+   * Gọi API thật sang CoreBackend: POST /api/auth/login
+   */
+  const login = async (usernameOrEmail, password) => {
+    const result = await authApi.login(usernameOrEmail, password);
 
-    const newUser = {
-      id: 'usr_' + Date.now(),
-      fullName: fullName,
-      email: email,
-      role: 'Customer',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      phone: ''
+    if (result.success) {
+      setUser(result.user);
+      setToken(result.accessToken);
+      if (result.refreshToken) {
+        setRefreshToken(result.refreshToken);
+      }
+      return { success: true, user: result.user };
+    }
+
+    return {
+      success: false,
+      error: result.error,
+      isNetworkError: result.isNetworkError
     };
-    const mockToken = 'mock_jwt_token_for_dotnet_api_' + Date.now();
-    setUser(newUser);
-    setToken(mockToken);
-    return { success: true, user: newUser };
   };
 
-  const logout = () => {
+  /**
+   * Gọi API thật sang CoreBackend: POST /api/auth/register
+   */
+  const register = async (fullName, email, password, username, phone) => {
+    const result = await authApi.register({
+      fullName,
+      email,
+      password,
+      username,
+      phone
+    });
+
+    if (result.success) {
+      setUser(result.user);
+      setToken(result.accessToken);
+      if (result.refreshToken) {
+        setRefreshToken(result.refreshToken);
+      }
+      return { success: true, user: result.user };
+    }
+
+    return {
+      success: false,
+      error: result.error,
+      isNetworkError: result.isNetworkError
+    };
+  };
+
+  /**
+   * Đăng xuất và thu hồi Refresh Token trên CoreBackend
+   */
+  const logout = async () => {
+    if (refreshToken || token) {
+      await authApi.logout(refreshToken, token);
+    }
     setUser(null);
     setToken(null);
+    setRefreshToken(null);
   };
 
   return (
@@ -82,6 +112,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         token,
+        refreshToken,
         isAuthenticated: !!user,
         login,
         register,
