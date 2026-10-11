@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đang chuyển hướng...</title>
+  <script src="/js/auth.js"></script>
+  <script>
+    if (Auth.isAuthenticated()) {
+      window.location.replace('/admin/index.html');
+    } else {
+      window.location.replace('/login.html');
+    }
+  </script>
+</head>
+<body style="background:#0b0f19; color:#94a3b8; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
+  <p>Đang chuyển hướng đến trang quản trị...</p>
+</body>
+</html>

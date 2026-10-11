@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Điều Khiển Quản Trị | Admin Portal</title>
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Backdrop for mobile drawer -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <!-- ====================================================================
+         SIDEBAR NAVIGATION
+         ==================================================================== -->
+    <aside id="adminSidebar" class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="sidebar-brand-text">Admin<span>Hub</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Section: Tổng quan -->
+        <div class="nav-section-title">Tổng quan</div>
+        <a href="#dashboard" class="nav-item active" data-view="dashboard" data-title="Tổng quan">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </span>
+          <span>Dashboard</span>
+        </a>
+
+        <!-- Section: Quản lý nghiệp vụ -->
+        <div class="nav-section-title">Quản lý hệ thống</div>
+        <a href="#users" class="nav-item" data-view="users" data-title="Quản lý Người dùng">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </span>
+          <span>Người dùng</span>
+          <span class="nav-badge">Users</span>
+        </a>
+
+        <a href="#roles" class="nav-item" data-view="roles" data-title="Phân quyền & Vai trò">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </span>
+          <span>Phân quyền</span>
+        </a>
+
+        <a href="#products" class="nav-item" data-view="products" data-title="Sản phẩm & Danh mục">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </span>
+          <span>Sản phẩm</span>
+        </a>
+
+        <a href="#orders" class="nav-item" data-view="orders" data-title="Quản lý Đơn hàng">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+          </span>
+          <span>Đơn hàng</span>
+        </a>
+
+        <!-- Section: Báo cáo & Cấu hình -->
+        <div class="nav-section-title">Thống kê & Cấu hình</div>
+        <a href="#reports" class="nav-item" data-view="reports" data-title="Báo cáo & Thống kê">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          </span>
+          <span>Báo cáo</span>
+        </a>
+
+        <a href="#logs" class="nav-item" data-view="logs" data-title="Nhật ký hệ thống (Audit Logs)">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </span>
+          <span>Nhật ký (Logs)</span>
+        </a>
+
+        <a href="#settings" class="nav-item" data-view="settings" data-title="Cài đặt hệ thống">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </span>
+          <span>Cài đặt</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer (User info & Quick logout) -->
+      <div class="sidebar-footer">
+        <div class="user-mini-avatar" id="userAvatar">AD</div>
+        <div class="user-mini-info">
+          <div class="user-mini-name" id="userName">Đang tải...</div>
+          <div class="user-mini-role" id="userRole">Admin</div>
+        </div>
+        <button class="btn-action-icon btn-logout" title="Đăng xuất" style="width:32px;height:32px;padding:0;border:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         MAIN APP CONTAINER
+         ==================================================================== -->
+    <div class="admin-main">
+      <!-- TOP HEADER -->
+      <header class="admin-header">
+        <div class="header-left">
+          <button id="btnToggleSidebar" class="btn-toggle-sidebar" title="Đóng/mở Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <nav class="header-breadcrumbs">
+            <span>Admin</span>
+            <span class="breadcrumb-separator">/</span>
+            <span id="currentBreadcrumb" class="breadcrumb-current">Tổng quan</span>
+          </nav>
+        </div>
+
+        <div class="header-right">
+          <!-- Direct Swagger API Link -->
+          <a href="/swagger" target="_blank" class="btn-swagger" title="Xem tài liệu Swagger API">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>Swagger API</span>
+          </a>
+
+          <!-- Dark / Light Theme Toggle -->
+          <button id="btnToggleTheme" class="btn-action-icon" title="Chuyển chế độ sáng/tối">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+
+          <!-- Notifications Bell -->
+          <button class="btn-action-icon" title="Thông báo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span style="position:absolute; top:8px; right:8px; width:7px; height:7px; background:#f43f5e; border-radius:50%;"></span>
+          </button>
+
+          <!-- Logout Button -->
+          <button class="btn-logout" title="Đăng xuất khỏi hệ thống">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Đăng xuất</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ====================================================================
+           DYNAMIC CONTENT VIEWS (SKELETON PAGES)
+           ==================================================================== -->
+      <main class="admin-content">
+
+        <!-- 1. VIEW: DASHBOARD (TỔNG QUAN) -->
+        <section id="view-dashboard" class="admin-view active">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">
+                Tổng Quan Hệ Thống
+              </h1>
+              <p class="page-subtitle">Thống kê thời gian thực từ cơ sở dữ liệu SQL Server</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-secondary" onclick="loadDashboardStats()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>Làm mới</span>
+              </button>
+              <button class="btn-primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Tạo báo cáo nhanh</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Real KPI Cards fetched via JWT Auth -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div>
+                <div class="metric-label">Tổng người dùng (SQL Server)</div>
+                <div class="metric-value" id="statTotalUsers">--</div>
+                <div class="metric-trend">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </svg>
+                  <span>Cập nhật qua JWT API</span>
+                </div>
+              </div>
+              <div class="metric-icon-box icon-box-primary">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                </svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div>
+                <div class="metric-label">Quản trị viên (Admins)</div>
+                <div class="metric-value" id="statTotalAdmins">--</div>
+                <div class="metric-trend" style="color:#818cf8;">
+                  <span>Quyền hạn cao nhất</span>
+                </div>
+              </div>
+              <div class="metric-icon-box icon-box-violet">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div>
+                <div class="metric-label">Đơn hàng trong tháng (Khung)</div>
+                <div class="metric-value" id="statTotalOrders">128</div>
+                <div class="metric-trend">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </svg>
+                  <span>+14.2% so với tháng trước</span>
+                </div>
+              </div>
+              <div class="metric-icon-box icon-box-cyan">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div>
+                <div class="metric-label">Doanh thu tạm tính (Khung)</div>
+                <div class="metric-value" id="statTotalRevenue">45.280.000 đ</div>
+                <div class="metric-trend">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </svg>
+                  <span>Tăng trưởng ổn định</span>
+                </div>
+              </div>
+              <div class="metric-icon-box icon-box-emerald">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skeleton Chart & Activities Section -->
+          <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom: 24px;">
+            <div class="skeleton-card" style="margin-bottom:0;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+                <h3 style="font-size:16px; font-weight:600;">Biểu đồ phân tích doanh thu & tăng trưởng</h3>
+                <div class="skeleton" style="width:120px; height:24px;"></div>
+              </div>
+              <div class="skeleton" style="width:100%; height:260px; border-radius:var(--radius-md);"></div>
+              <div class="skeleton-placeholder-notice" style="margin-top:14px; padding:16px;">
+                <span class="badge-khung">Khung Biểu Đồ Placeholder</span>
+                <span>Vị trí sẵn sàng để tích hợp Chart.js hoặc ApexCharts khi hoàn thiện giao diện sâu</span>
+              </div>
+            </div>
+
+            <div class="skeleton-card" style="margin-bottom:0;">
+              <h3 style="font-size:16px; font-weight:600; margin-bottom:16px;">Hoạt động gần đây</h3>
+              <div style="display:flex; flex-direction:column; gap:14px;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <div class="skeleton" style="width:36px; height:36px; border-radius:50%;"></div>
+                  <div style="flex:1;">
+                    <div class="skeleton" style="width:70%; height:14px; margin-bottom:6px;"></div>
+                    <div class="skeleton" style="width:40%; height:10px;"></div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <div class="skeleton" style="width:36px; height:36px; border-radius:50%;"></div>
+                  <div style="flex:1;">
+                    <div class="skeleton" style="width:85%; height:14px; margin-bottom:6px;"></div>
+                    <div class="skeleton" style="width:50%; height:10px;"></div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <div class="skeleton" style="width:36px; height:36px; border-radius:50%;"></div>
+                  <div style="flex:1;">
+                    <div class="skeleton" style="width:65%; height:14px; margin-bottom:6px;"></div>
+                    <div class="skeleton" style="width:35%; height:10px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. VIEW: USERS (QUẢN LÝ NGƯỜI DÙNG) -->
+        <section id="view-users" class="admin-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Quản Lý Người Dùng</h1>
+              <p class="page-subtitle">Danh sách tài khoản trong cơ sở dữ liệu SQL Server</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-secondary" onclick="loadUsersTable()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>Tải lại</span>
+              </button>
+              <button class="btn-primary" onclick="window.location.href='/register.html'">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Thêm người dùng mới</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="skeleton-card">
+            <!-- Toolbar khung lọc & tìm kiếm -->
+            <div class="skeleton-toolbar">
+              <div class="skeleton-filters">
+                <input type="text" class="form-input" placeholder="Tìm theo tên, email hoặc username..." style="max-width:320px;">
+                <select class="form-input" style="max-width:160px;">
+                  <option>Tất cả vai trò</option>
+                  <option>Admin</option>
+                  <option>User</option>
+                </select>
+              </div>
+              <button class="btn-secondary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Xuất Excel</span>
+              </button>
+            </div>
+
+            <!-- Real users table with live API data -->
+            <div style="overflow-x:auto;">
+              <table class="skeleton-table">
+                <thead>
+                  <tr>
+                    <th style="width:70px;">ID</th>
+                    <th>Họ & Tên</th>
+                    <th>Username</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th style="width:100px;">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <!-- Auto populated from /api/admin/users -->
+                  <tr>
+                    <td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">
+                      Đang tải danh sách người dùng từ SQL Server...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. VIEW: ROLES & PERMISSIONS (PHÂN QUYỀN) - KHUNG PLACEHOLDER -->
+        <section id="view-roles" class="admin-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Vai Trò & Phân Quyền</h1>
+              <p class="page-subtitle">Quản lý quyền hạn truy cập tài nguyên cho các nhóm người dùng</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Thêm vai trò mới</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="skeleton-card">
+            <div class="skeleton-placeholder-notice">
+              <span class="badge-khung">Khung Quản Lý Phân Quyền (Roles & Permissions)</span>
+              <p>Trang này đã có khung cấu trúc sẵn sàng. Chưa triển khai giao diện ma trận quyền chi tiết theo yêu cầu.</p>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:20px;">
+              <div class="skeleton" style="height:120px; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:120px; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:120px; border-radius:var(--radius-md);"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. VIEW: PRODUCTS & CATALOG (SẢN PHẨM) - KHUNG PLACEHOLDER -->
+        <section id="view-products" class="admin-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Quản Lý Sản Phẩm & Danh Mục</h1>
+              <p class="page-subtitle">Quản lý danh mục hàng hóa, kho bãi và bảng giá</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Thêm sản phẩm</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="skeleton-card">
+            <div class="skeleton-toolbar">
+              <div class="skeleton-filters">
+                <div class="skeleton skeleton-bar" style="width:260px;"></div>
+                <div class="skeleton skeleton-bar" style="width:160px;"></div>
+              </div>
+              <div class="skeleton skeleton-bar" style="width:120px;"></div>
+            </div>
+
+            <div class="skeleton-placeholder-notice">
+              <span class="badge-khung">Khung Quản Lý Sản Phẩm (Catalog / Products)</span>
+              <p>Khung trang sẵn sàng để cấy mã CRUD sản phẩm theo dự án.</p>
+            </div>
+
+            <!-- Table Skeleton Shimmer -->
+            <table class="skeleton-table" style="margin-top:20px;">
+              <thead>
+                <tr>
+                  <th style="width:60px;">Mã</th>
+                  <th>Tên sản phẩm</th>
+                  <th>Danh mục</th>
+                  <th>Đơn giá</th>
+                  <th>Tồn kho</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="skeleton" style="height:16px; width:40px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:70%;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:50%;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:60px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:40px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:80px; border-radius:99px;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton" style="height:16px; width:40px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:80%;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:50%;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:60px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:40px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:80px; border-radius:99px;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton" style="height:16px; width:40px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:65%;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:50%;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:60px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:40px;"></div></td>
+                  <td><div class="skeleton" style="height:16px; width:80px; border-radius:99px;"></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 5. VIEW: ORDERS (ĐƠN HÀNG) - KHUNG PLACEHOLDER -->
+        <section id="view-orders" class="admin-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Quản Lý Đơn Hàng</h1>
+              <p class="page-subtitle">Theo dõi quy trình đặt hàng, thanh toán và vận chuyển</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-secondary">Xuất hóa đơn</button>
+            </div>
+          </div>
+
+          <div class="skeleton-card">
+            <div class="skeleton-placeholder-notice">
+              <span class="badge-khung">Khung Quản Lý Đơn Hàng (Orders)</span>
+              <p>Khung trang sẵn sàng để hiển thị chi tiết các hóa đơn và giao dịch.</p>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
+              <div class="skeleton" style="height:50px; width:100%; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:50px; width:100%; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:50px; width:100%; border-radius:var(--radius-md);"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. VIEW: REPORTS & ANALYTICS (BÁO CÁO) - KHUNG PLACEHOLDER -->
+        <section id="view-reports" class="admin-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Báo Cáo & Thống Kê</h1>
+              <p class="page-subtitle">Tổng hợp chỉ số tài chính, doanh thu và hành vi người dùng</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-primary">Xuất PDF</button>
+            </div>
+          </div>
+
+          <div class="skeleton-card">
+            <div class="skeleton-placeholder-notice">
+              <span class="badge-khung">Khung Báo Cáo & Thống Kê (Reports & Analytics)</span>
+              <p>Khung sẵn sàng để tích hợp các bộ lọc theo khoảng ngày (Date Range Picker) và báo cáo tài chính.</p>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px;">
+              <div class="skeleton" style="height:200px; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:200px; border-radius:var(--radius-md);"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. VIEW: AUDIT LOGS (NHẬT KÝ HỆ THỐNG) - KHUNG PLACEHOLDER -->
+        <section id="view-logs" class="admin-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Nhật Ký Hệ Thống (Audit Logs)</h1>
+              <p class="page-subtitle">Ghi nhận các hoạt động truy cập, thay đổi dữ liệu và lỗi bảo mật</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-secondary">Xóa nhật ký cũ</button>
+            </div>
+          </div>
+
+          <div class="skeleton-card">
+            <div class="skeleton-placeholder-notice">
+              <span class="badge-khung">Khung Nhật Ký Hệ Thống (Audit Logs)</span>
+              <p>Khung thời gian (Timeline) sẵn sàng để gắn các bản ghi sự kiện từ máy chủ.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:14px; margin-top:20px;">
+              <div class="skeleton" style="height:44px; width:100%; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:44px; width:100%; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:44px; width:100%; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:44px; width:100%; border-radius:var(--radius-md);"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. VIEW: SETTINGS (CÀI ĐẶT HỆ THỐNG) - KHUNG PLACEHOLDER -->
+        <section id="view-settings" class="admin-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Cài Đặt Hệ Thống</h1>
+              <p class="page-subtitle">Cấu hình tham số, kết nối API và thiết lập bảo mật</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-primary">Lưu thay đổi</button>
+            </div>
+          </div>
+
+          <div class="skeleton-card">
+            <div class="skeleton-placeholder-notice">
+              <span class="badge-khung">Khung Cài Đặt Hệ Thống (Settings)</span>
+              <p>Khung tab cấu hình (Chung, Bảo mật JWT, Gửi Email SMTP, Tích hợp Cloud Azure).</p>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
+              <div class="skeleton" style="height:90px; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:90px; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:90px; border-radius:var(--radius-md);"></div>
+              <div class="skeleton" style="height:90px; border-radius:var(--radius-md);"></div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

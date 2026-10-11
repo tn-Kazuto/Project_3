@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập | Hệ Thống Quản Trị eProject</title>
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <div class="auth-wrapper">
+    <!-- Ambient glowing orbs -->
+    <div class="auth-bg-blob auth-bg-blob-1"></div>
+    <div class="auth-bg-blob auth-bg-blob-2"></div>
+
+    <div class="auth-card">
+      <div class="auth-header">
+        <a href="#" class="auth-brand">
+          <div class="auth-logo-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="auth-brand-text">ADMIN PORTAL</span>
+        </a>
+        <h1 class="auth-title">Chào mừng trở lại!</h1>
+        <p class="auth-subtitle">Đăng nhập để truy cập trang quản trị hệ thống</p>
+      </div>
+
+      <!-- Alert Message Box -->
+      <div id="authAlert" class="auth-alert">
+        <svg id="alertIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span id="alertText"></span>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="usernameOrEmail">Tên đăng nhập hoặc Email</label>
+          <div class="input-wrapper">
+            <span class="input-icon-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <input type="text" id="usernameOrEmail" class="form-input" placeholder="admin hoặc email@domain.com" required autofocus autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Mật khẩu</label>
+          <div class="input-wrapper">
+            <span class="input-icon-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <input type="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="input-toggle-password" id="btnTogglePassword" title="Hiện/ẩn mật khẩu">
+              <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <label class="checkbox-label">
+            <input type="checkbox" id="rememberMe" checked>
+            <span>Ghi nhớ đăng nhập</span>
+          </label>
+          <a href="#" class="form-link" onclick="alert('Vui lòng liên hệ Quản trị viên để đặt lại mật khẩu.')">Quên mật khẩu?</a>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">
+          <span id="btnText">Đăng Nhập</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Quick demo helper -->
+      <div class="demo-badge-container">
+        <span>Tài khoản mặc định:</span>
+        <strong>admin / Admin@123456</strong>
+        <a href="javascript:void(0)" class="demo-btn-click" id="btnFillDemo">Điền nhanh</a>
+      </div>
+
+      <div class="auth-footer">
+        Chưa có tài khoản?
+        <a href="/register.html" class="form-link">Đăng ký tài khoản mới</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // If already authenticated, redirect directly to admin
+      if (Auth.isAuthenticated()) {
+        window.location.href = '/admin/index.html';
+        return;
+      }
+
+      const loginForm = document.getElementById('loginForm');
+      const authAlert = document.getElementById('authAlert');
+      const alertText = document.getElementById('alertText');
+      const btnSubmit = document.getElementById('btnSubmit');
+      const btnText = document.getElementById('btnText');
+      const btnFillDemo = document.getElementById('btnFillDemo');
+      const btnTogglePassword = document.getElementById('btnTogglePassword');
+      const passwordInput = document.getElementById('password');
+
+      // Autofill demo credentials
+      btnFillDemo.addEventListener('click', () => {
+        document.getElementById('usernameOrEmail').value = 'admin';
+        document.getElementById('password').value = 'Admin@123456';
+      });
+
+      // Show/Hide password toggle
+      btnTogglePassword.addEventListener('click', () => {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      });
+
+      function showAlert(msg, isError = true) {
+        authAlert.className = isError ? 'auth-alert auth-alert-error show' : 'auth-alert auth-alert-success show';
+        alertText.textContent = msg;
+      }
+
+      function hideAlert() {
+        authAlert.classList.remove('show');
+      }
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const usernameOrEmail = document.getElementById('usernameOrEmail').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!usernameOrEmail || !password) {
+          showAlert('Vui lòng điền đầy đủ tên đăng nhập và mật khẩu.');
+          return;
+        }
+
+        btnSubmit.disabled = true;
+        btnText.textContent = 'Đang xác thực...';
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usernameOrEmail, password })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            showAlert(data.message || 'Đăng nhập không thành công.');
+            btnSubmit.disabled = false;
+            btnText.textContent = 'Đăng Nhập';
+            return;
+          }
+
+          showAlert('Đăng nhập thành công! Đang chuyển hướng...', false);
+          Auth.setAuth(data.token, data.user);
+
+          setTimeout(() => {
+            window.location.href = '/admin/index.html';
+          }, 600);
+
+        } catch (err) {
+          console.error(err);
+          showAlert('Không thể kết nối đến máy chủ API. Vui lòng kiểm tra dịch vụ.');
+          btnSubmit.disabled = false;
+          btnText.textContent = 'Đăng Nhập';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
