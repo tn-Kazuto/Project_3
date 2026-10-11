@@ -25,11 +25,12 @@ function App() {
                 <Route path="product/:slug" element={<ProductDetailPage />} />
                 <Route path="cart" element={<CartPage />} />
                 <Route path="wishlist" element={<WishlistPage />} />
-                <Route path="login" element={<LoginPage />} />
-                <Route path="register" element={<RegisterPage />} />
-                {/* Fallback route */}
-                <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
+              {/* Trang đăng nhập và đăng ký riêng biệt với layout độc lập hiện đại */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </CartProvider>
         </WishlistProvider>
