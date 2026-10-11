@@ -1,0 +1,145 @@
+/* ==========================================================================
+   Products Catalog Page Styles
+   ========================================================================== */
+
+.products-page {
+  padding-bottom: 60px;
+}
+
+.products-layout-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+/* Toolbar */
+.products-toolbar {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.result-count {
+  font-size: 0.9375rem;
+  color: var(--text-body);
+}
+
+.result-count strong {
+  color: var(--text-main);
+}
+
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sort-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+
+.sort-select {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  outline: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sort-select:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+/* Active filter tags */
+.active-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.filter-tag-remove {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* Empty search result */
+.no-products-found {
+  background: #ffffff;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Mobile Filter Trigger Button */
+.mobile-filter-btn {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .products-layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-filter-btn {
+    display: inline-flex;
+  }
+
+  .filter-sidebar-wrapper {
+    display: none;
+  }
+
+  .filter-sidebar-wrapper.mobile-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 2000;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .filter-sidebar-wrapper.mobile-open .filter-sidebar {
+    max-width: 360px;
+    margin: 40px auto;
+  }
+}
