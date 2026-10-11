@@ -41,7 +41,7 @@ Dự án này bao gồm việc xây dựng một hệ thống hoàn chỉnh vớ
   - [ ] Tìm và tích hợp Admin Template (Khuyến khích sử dụng template có sẵn để tiết kiệm thời gian).
   - [ ] Ghép API quản lý dữ liệu, phân quyền admin.
 - [ ] **Trang Khách hàng (Web Client):**
-  - [ ] Xây dựng khung giao diện: Header, Footer, Sidebar, Layout chính (Nên dùng template).
+  - [x] Xây dựng khung giao diện: Header, Footer, Sidebar, Layout chính (Nên dùng template).
   - [ ] Ghép các API hiển thị dữ liệu người dùng, luồng đăng nhập/đăng ký trên web.
 
 ### Giai đoạn 4: Phát triển Ứng dụng Mobile (Tuần 4 - 5)
