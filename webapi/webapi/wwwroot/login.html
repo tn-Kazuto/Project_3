@@ -47,7 +47,7 @@
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </span>
-            <input type="text" id="usernameOrEmail" class="form-input" placeholder="admin hoặc email@domain.com" required autofocus autocomplete="username">
+            <input type="text" id="usernameOrEmail" class="form-input" placeholder="Nhập tên đăng nhập hoặc email" required autofocus autocomplete="username">
           </div>
         </div>
 
@@ -87,13 +87,6 @@
         </button>
       </form>
 
-      <!-- Quick demo helper -->
-      <div class="demo-badge-container">
-        <span>Tài khoản mặc định:</span>
-        <strong>admin / Admin@123456</strong>
-        <a href="javascript:void(0)" class="demo-btn-click" id="btnFillDemo">Điền nhanh</a>
-      </div>
-
       <div class="auth-footer">
         Chưa có tài khoản?
         <a href="/register.html" class="form-link">Đăng ký tài khoản mới</a>
@@ -115,15 +108,8 @@
       const alertText = document.getElementById('alertText');
       const btnSubmit = document.getElementById('btnSubmit');
       const btnText = document.getElementById('btnText');
-      const btnFillDemo = document.getElementById('btnFillDemo');
       const btnTogglePassword = document.getElementById('btnTogglePassword');
       const passwordInput = document.getElementById('password');
-
-      // Autofill demo credentials
-      btnFillDemo.addEventListener('click', () => {
-        document.getElementById('usernameOrEmail').value = 'admin';
-        document.getElementById('password').value = 'Admin@123456';
-      });
 
       // Show/Hide password toggle
       btnTogglePassword.addEventListener('click', () => {

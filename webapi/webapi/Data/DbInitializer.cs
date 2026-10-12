@@ -22,7 +22,7 @@ public static class DbInitializer
                     Email = "admin@project.local",
                     FullName = "Quản Trị Viên Hệ Thống",
                     Role = "Admin",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456"),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -41,7 +41,18 @@ public static class DbInitializer
                 context.Users.AddRange(adminUser, demoUser);
                 context.SaveChanges();
 
-                logger.LogInformation("Khởi tạo tài khoản quản trị thành công: admin / Admin@123456");
+                logger.LogInformation("Khởi tạo tài khoản quản trị thành công: admin / admin123");
+            }
+            else
+            {
+                // Đảm bảo tài khoản admin luôn có mật khẩu mới: admin123
+                var existingAdmin = context.Users.FirstOrDefault(u => u.Username == "admin");
+                if (existingAdmin != null)
+                {
+                    existingAdmin.PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123");
+                    context.SaveChanges();
+                    logger.LogInformation("Đã cập nhật mật khẩu tài khoản admin thành: admin123");
+                }
             }
         }
         catch (Exception ex)
