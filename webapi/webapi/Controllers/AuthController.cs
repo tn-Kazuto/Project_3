@@ -1,197 +1,191 @@
 using System.Security.Claims;
+using CoreBackend.DTOs;
+using CoreBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using webapi.Data;
-using webapi.DTOs;
-using webapi.Models;
-using webapi.Services;
 
-namespace webapi.Controllers;
+namespace CoreBackend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly IJwtService _jwtService;
-    private readonly ILogger<AuthController> _logger;
+    private readonly IAuthService _authService;
 
-    public AuthController(AppDbContext context, IJwtService jwtService, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService)
     {
-        _context = context;
-        _jwtService = jwtService;
-        _logger = logger;
+        _authService = authService;
     }
 
     /// <summary>
-    /// Đăng ký tài khoản mới
+    /// Đăng ký tài khoản Người dùng (Client / User)
+    /// Tự động lưu vào bảng Users, UserProfiles, gán role User, tạo UserSessions và AuditLogs
     /// </summary>
     [HttpPost("register")]
-    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    public async Task<IActionResult> RegisterUser([FromBody] RegisterRequest request)
     {
-        if (!ModelState.IsValid)
+        var result = await _authService.RegisterAsync(request);
+        if (!result.Success) return BadRequest(result);
+
+        if (result.Data != null)
         {
-            return BadRequest(new { message = "Dữ liệu không hợp lệ", errors = ModelState });
+            SetRefreshTokenCookie(result.Data.RefreshToken, result.Data.ExpiresAt);
         }
-
-        var normalizedUsername = request.Username.Trim().ToLower();
-        var normalizedEmail = request.Email.Trim().ToLower();
-
-        // Kiểm tra xem username hoặc email đã tồn tại chưa
-        var existsUsername = await _context.Users.AnyAsync(u => u.Username.ToLower() == normalizedUsername);
-        if (existsUsername)
-        {
-            return BadRequest(new { message = "Tên đăng nhập này đã được sử dụng." });
-        }
-
-        var existsEmail = await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail);
-        if (existsEmail)
-        {
-            return BadRequest(new { message = "Email này đã được sử dụng." });
-        }
-
-        // Tạo người dùng mới với mật khẩu được mã hóa BCrypt
-        var newUser = new User
-        {
-            Username = request.Username.Trim(),
-            Email = request.Email.Trim(),
-            FullName = string.IsNullOrWhiteSpace(request.FullName) ? request.Username.Trim() : request.FullName.Trim(),
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = "User", // Mặc định là User
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.Users.Add(newUser);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Người dùng mới đã đăng ký: {Username}", newUser.Username);
-
-        // Tạo JWT Token cho người dùng mới đăng ký
-        var token = _jwtService.GenerateToken(newUser, out var expiresAt);
-
-        var response = new AuthResponseDto
-        {
-            Token = token,
-            TokenType = "Bearer",
-            ExpiresAt = expiresAt,
-            User = new UserProfileDto
-            {
-                Id = newUser.Id,
-                Username = newUser.Username,
-                Email = newUser.Email,
-                FullName = newUser.FullName,
-                Role = newUser.Role,
-                CreatedAt = newUser.CreatedAt
-            }
-        };
-
-        return Ok(response);
+        return Ok(result);
     }
 
     /// <summary>
-    /// Đăng nhập hệ thống (bằng Username hoặc Email)
+    /// Đăng ký tài khoản Quản trị viên (Admin / Manager)
+    /// Yêu cầu Secret Key để xác thực quyền quản trị hệ thống
+    /// </summary>
+    [HttpPost("admin/register")]
+    public async Task<IActionResult> RegisterAdmin([FromBody] AdminRegisterRequest request)
+    {
+        var result = await _authService.RegisterAdminAsync(request);
+        if (!result.Success) return BadRequest(result);
+
+        if (result.Data != null)
+        {
+            SetRefreshTokenCookie(result.Data.RefreshToken, result.Data.ExpiresAt);
+        }
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Đăng nhập Cổng Người dùng thông thường (Client Portal)
     /// </summary>
     [HttpPost("login")]
-    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    public async Task<IActionResult> LoginUser([FromBody] LoginRequest request)
     {
-        if (!ModelState.IsValid)
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = Request.Headers.UserAgent.ToString();
+        var result = await _authService.LoginAsync(request, ip, userAgent, requireAdminRole: false);
+        if (!result.Success) return BadRequest(result);
+
+        if (result.Data != null)
         {
-            return BadRequest(new { message = "Dữ liệu không hợp lệ" });
+            SetRefreshTokenCookie(result.Data.RefreshToken, result.Data.ExpiresAt);
         }
-
-        var query = request.UsernameOrEmail.Trim().ToLower();
-
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username.ToLower() == query || u.Email.ToLower() == query);
-
-        if (user == null)
-        {
-            return Unauthorized(new { message = "Tên đăng nhập / Email hoặc mật khẩu không chính xác." });
-        }
-
-        if (!user.IsActive)
-        {
-            return Unauthorized(new { message = "Tài khoản này đã bị tạm khóa. Vui lòng liên hệ quản trị viên." });
-        }
-
-        // Xác thực mật khẩu
-        bool isPasswordValid = false;
-        try
-        {
-            isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Lỗi khi kiểm tra mật khẩu cho người dùng {Username}", user.Username);
-        }
-
-        if (!isPasswordValid)
-        {
-            return Unauthorized(new { message = "Tên đăng nhập / Email hoặc mật khẩu không chính xác." });
-        }
-
-        // Cập nhật thời gian đăng nhập lần cuối
-        user.LastLoginAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        // Tạo JWT token
-        var token = _jwtService.GenerateToken(user, out var expiresAt);
-
-        var response = new AuthResponseDto
-        {
-            Token = token,
-            TokenType = "Bearer",
-            ExpiresAt = expiresAt,
-            User = new UserProfileDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                FullName = user.FullName,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt
-            }
-        };
-
-        return Ok(response);
+        return Ok(result);
     }
 
     /// <summary>
-    /// Lấy thông tin tài khoản hiện tại từ JWT Token (yêu cầu Authorization: Bearer {token})
+    /// Đăng nhập Cổng Quản trị viên (Admin Portal)
+    /// Kiểm tra nghiêm ngặt: Tài khoản bắt buộc phải có Role là Admin hoặc Manager
     /// </summary>
-    [HttpGet("me")]
-    [Authorize]
-    [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetCurrentUser()
+    [HttpPost("admin/login")]
+    public async Task<IActionResult> LoginAdmin([FromBody] LoginRequest request)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = Request.Headers.UserAgent.ToString();
+        var result = await _authService.LoginAsync(request, ip, userAgent, requireAdminRole: true);
+        if (!result.Success) return BadRequest(result);
+
+        if (result.Data != null)
         {
-            return Unauthorized(new { message = "Token không hợp lệ hoặc đã hết hạn." });
+            SetRefreshTokenCookie(result.Data.RefreshToken, result.Data.ExpiresAt);
+        }
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Cấp lại Access Token mới bằng Refresh Token (Token Rotation)
+    /// Tự động đọc từ HttpOnly Cookie (nếu duyệt Web) hoặc từ Request Body (nếu Mobile App)
+    /// </summary>
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest? request)
+    {
+        var token = request?.RefreshToken;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            token = Request.Cookies["refreshToken"];
         }
 
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null || !user.IsActive)
+        if (string.IsNullOrWhiteSpace(token))
         {
-            return Unauthorized(new { message = "Người dùng không tồn tại hoặc đã bị khóa." });
+            return BadRequest(ApiResponse<AuthResponse>.Fail("Vui lòng cung cấp Refresh Token (qua Request Body hoặc HttpOnly Cookie)."));
         }
 
-        return Ok(new UserProfileDto
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = Request.Headers.UserAgent.ToString();
+        var result = await _authService.RefreshTokenAsync(new RefreshTokenRequest { RefreshToken = token }, ip, userAgent);
+        if (!result.Success) return BadRequest(result);
+
+        if (result.Data != null)
         {
-            Id = user.Id,
-            Username = user.Username,
-            Email = user.Email,
-            FullName = user.FullName,
-            Role = user.Role,
-            CreatedAt = user.CreatedAt
-        });
+            SetRefreshTokenCookie(result.Data.RefreshToken, result.Data.ExpiresAt);
+        }
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Đăng xuất / Thu hồi phiên đăng nhập trong bảng UserSessions
+    /// </summary>
+    [Authorize]
+    [HttpPost("revoke-token")]
+    public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenRequest? request)
+    {
+        var token = request?.RefreshToken ?? Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(token)) return BadRequest(ApiResponse<bool>.Fail("RefreshToken is required."));
+        var result = await _authService.RevokeTokenAsync(token);
+        Response.Cookies.Delete("refreshToken");
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Đổi mật khẩu tài khoản
+    /// </summary>
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _authService.ChangePasswordAsync(userId, request);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Xem thông tin hồ sơ tài khoản hiện tại (khớp đầy đủ bảng Users và UserProfiles)
+    /// </summary>
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userId = GetCurrentUserId();
+        var result = await _authService.GetCurrentUserProfileAsync(userId);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Cập nhật thông tin hồ sơ tài khoản cá nhân
+    /// </summary>
+    [Authorize]
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _authService.UpdateCurrentUserProfileAsync(userId, request);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    private void SetRefreshTokenCookie(string refreshToken, DateTime expiresAt)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Expires = expiresAt,
+            SameSite = SameSiteMode.Lax,
+            Secure = Request.IsHttps
+        };
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+    }
+
+    private int GetCurrentUserId()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(claim, out var id) ? id : 0;
     }
 }
