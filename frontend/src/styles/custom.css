@@ -1,0 +1,544 @@
+@import './luxury-tokens.css';
+
+/* ── Base Reset & Architectural Grounds ── */
+body {
+  font-family: var(--dp-typography-sans);
+  background-color: var(--dp-color-ground);
+  color: var(--dp-color-ink);
+  line-height: var(--dp-typography-leading);
+  font-size: var(--dp-typography-body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--dp-color-ground);
+}
+
+/* ── Headings & Display Typography ── */
+h1, h2, h3, h4, h5, h6,
+.brand-font,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: var(--dp-typography-serif);
+  font-weight: 500;
+  color: var(--dp-color-ink);
+  letter-spacing: -0.015em;
+}
+
+h1, .display-4, .display-5, .display-6 {
+  line-height: 1.05;
+}
+
+p {
+  color: var(--dp-color-ink-2);
+}
+
+/* ── Strict Square Corners & Hairline Elements ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.card,
+.modal-content,
+.alert,
+.badge,
+.dropdown-menu,
+.accordion-item,
+.input-group-text,
+.form-control,
+.form-select,
+.btn,
+.rounded,
+.rounded-1,
+.rounded-2,
+.rounded-3,
+.rounded-4,
+.rounded-5,
+.rounded-top,
+.rounded-end,
+.rounded-bottom,
+.rounded-start,
+.rounded-circle,
+.rounded-pill {
+  border-radius: var(--dp-radius-control) !important;
+}
+
+/* Eliminate all drop shadows in Luxury style */
+.shadow,
+.shadow-sm,
+.shadow-lg,
+.shadow-none {
+  box-shadow: none !important;
+}
+
+/* ── Luxury Bootstrap Palette Overrides (Eliminate electric blues and garish defaults) ── */
+.bg-primary {
+  background-color: var(--dp-color-field) !important;
+  color: var(--dp-color-on-field) !important;
+}
+
+.text-primary {
+  color: var(--dp-color-accent-text) !important;
+}
+
+.border-primary {
+  border-color: var(--dp-color-field) !important;
+}
+
+.bg-info,
+.bg-info-subtle {
+  background-color: var(--dp-color-ground-2) !important;
+  color: var(--dp-color-ink) !important;
+}
+
+.text-info {
+  color: var(--dp-color-accent) !important;
+}
+
+.border-info,
+.border-info-subtle {
+  border-color: var(--dp-color-rule) !important;
+}
+
+.bg-warning-subtle,
+.border-warning-subtle {
+  background-color: var(--dp-color-ground-2) !important;
+  border-color: var(--dp-color-rule) !important;
+}
+
+/* ── Luxury Buttons Specification ── */
+/* Rectangular buttons at least 3rem high, tracked uppercase sans */
+.btn {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  letter-spacing: var(--dp-typography-label-tracking);
+  font-size: var(--dp-typography-label);
+  font-weight: 600;
+  min-height: 3rem;
+  padding: 0.75rem 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color var(--dp-motion-interaction),
+              border-color var(--dp-motion-interaction),
+              color var(--dp-motion-interaction);
+  box-shadow: none !important;
+  border: var(--dp-border-hairline) solid transparent;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: var(--dp-border-focus-width) solid var(--dp-color-accent);
+  outline-offset: 2px;
+}
+
+/* Primary Button: Charcoal on pale ground */
+.btn-primary,
+.btn-danger {
+  background-color: var(--dp-color-field) !important;
+  color: var(--dp-color-on-field) !important;
+  border-color: var(--dp-color-field) !important;
+}
+
+.btn-primary:hover,
+.btn-danger:hover {
+  background-color: var(--dp-color-field-deep) !important;
+  border-color: var(--dp-color-accent) !important;
+  color: var(--dp-color-on-field) !important;
+}
+
+/* Secondary Button: Outlined with hairline gold/rule */
+.btn-outline-secondary,
+.btn-outline-dark {
+  background-color: transparent !important;
+  color: var(--dp-color-ink) !important;
+  border-color: var(--dp-color-rule) !important;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-dark:hover {
+  background-color: var(--dp-color-field) !important;
+  color: var(--dp-color-on-field) !important;
+  border-color: var(--dp-color-field) !important;
+}
+
+/* Gold / Accent Button */
+.btn-warning,
+.btn-gold {
+  background-color: var(--dp-color-accent) !important;
+  color: #ffffff !important;
+  border-color: var(--dp-color-accent) !important;
+}
+
+.btn-warning:hover,
+.btn-gold:hover {
+  background-color: var(--dp-color-accent-text) !important;
+  border-color: var(--dp-color-accent-text) !important;
+  color: #ffffff !important;
+}
+
+/* Compact button variation where required */
+.btn-sm {
+  min-height: 2.25rem !important;
+  padding: 0.35rem 1rem !important;
+  font-size: 0.7rem !important;
+}
+
+.btn-lg {
+  min-height: 3.5rem !important;
+  padding: 1rem 2.25rem !important;
+  font-size: 0.85rem !important;
+}
+
+/* ── Form Inputs & Controls ── */
+.form-control,
+.form-select {
+  border: var(--dp-border-hairline) solid var(--dp-color-rule);
+  background-color: #ffffff;
+  color: var(--dp-color-ink);
+  font-family: var(--dp-typography-sans);
+  font-size: var(--dp-typography-reading-small);
+  padding: 0.75rem 1rem;
+  box-shadow: none !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--dp-color-accent);
+  outline: var(--dp-border-focus-width) solid var(--dp-color-accent);
+  outline-offset: 1px;
+}
+
+.form-label {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  font-size: var(--dp-typography-label);
+  letter-spacing: var(--dp-typography-label-tracking);
+  color: var(--dp-color-ink-2);
+  margin-bottom: 0.4rem;
+}
+
+/* ── Cards & Panels ── */
+.card {
+  background-color: #ffffff;
+  border: var(--dp-border-hairline) solid var(--dp-color-rule) !important;
+  box-shadow: none !important;
+}
+
+.card-header,
+.modal-header {
+  background-color: var(--dp-color-ground-2);
+  border-bottom: var(--dp-border-hairline) solid var(--dp-color-rule);
+  font-family: var(--dp-typography-serif);
+}
+
+/* ── Badges ── */
+.badge {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  letter-spacing: var(--dp-typography-label-tracking);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.35em 0.75em;
+  border: var(--dp-border-hairline) solid transparent;
+}
+
+.badge.bg-primary,
+.badge.bg-dark {
+  background-color: var(--dp-color-field) !important;
+  color: var(--dp-color-on-field) !important;
+}
+
+.badge.bg-success {
+  background-color: #1b4d3e !important;
+  color: #ffffff !important;
+}
+
+.badge.bg-warning {
+  background-color: var(--dp-color-accent) !important;
+  color: #ffffff !important;
+}
+
+.badge.bg-light {
+  background-color: var(--dp-color-ground-2) !important;
+  color: var(--dp-color-ink) !important;
+  border-color: var(--dp-color-rule) !important;
+}
+
+/* ── Luxury Architectural Fields & Spine ── */
+.field-charcoal,
+.bg-dark,
+.hero-banner {
+  background-color: var(--dp-color-field) !important;
+  color: var(--dp-color-on-field) !important;
+  border: var(--dp-border-hairline) solid var(--dp-color-field-line) !important;
+}
+
+.field-charcoal h1,
+.field-charcoal h2,
+.field-charcoal h3,
+.field-charcoal h4,
+.field-charcoal h5,
+.bg-dark h1,
+.bg-dark h2,
+.bg-dark h3 {
+  color: var(--dp-color-on-field) !important;
+}
+
+.field-charcoal p,
+.bg-dark p {
+  color: var(--dp-color-on-field-2) !important;
+}
+
+.field-taupe,
+.bg-light {
+  background-color: var(--dp-color-ground-2) !important;
+  color: var(--dp-color-ink) !important;
+  border: var(--dp-border-hairline) solid var(--dp-color-panel-line) !important;
+}
+
+.field-alabaster {
+  background-color: var(--dp-color-ground) !important;
+  color: var(--dp-color-ink) !important;
+}
+
+/* Fine Gold Spine */
+.gold-spine {
+  position: relative;
+}
+
+.gold-spine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background-color: var(--dp-color-accent);
+}
+
+/* Roman Numeral Labels */
+.roman-numeral {
+  font-family: var(--dp-typography-serif);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--dp-color-accent);
+  letter-spacing: 0.1em;
+}
+
+/* Ruled Rows */
+.ruled-row {
+  border-bottom: var(--dp-border-hairline) solid var(--dp-color-rule);
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.ruled-row:first-child {
+  border-top: var(--dp-border-hairline) solid var(--dp-color-rule);
+}
+
+/* Fine Gold Accent Underline */
+.gold-underline {
+  text-decoration: none;
+  border-bottom: 1px solid var(--dp-color-accent);
+  padding-bottom: 2px;
+  color: inherit;
+  transition: border-color var(--dp-motion-interaction);
+}
+
+.gold-underline:hover {
+  border-bottom-color: var(--dp-color-ink);
+  color: inherit;
+}
+
+/* Navbar */
+.luxury-navbar {
+  background-color: var(--dp-color-ground) !important;
+  border-bottom: var(--dp-border-hairline) solid var(--dp-color-rule) !important;
+  box-shadow: none !important;
+}
+
+.navbar-brand-title {
+  font-family: var(--dp-typography-serif);
+  font-weight: 600;
+  font-size: 1.45rem;
+  letter-spacing: 0.03em;
+  color: var(--dp-color-ink) !important;
+}
+
+.nav-link {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  letter-spacing: var(--dp-typography-label-tracking);
+  font-size: var(--dp-typography-label);
+  font-weight: 600;
+  color: var(--dp-color-ink-2) !important;
+  transition: color var(--dp-motion-interaction);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--dp-color-accent-text) !important;
+}
+
+/* Luxury Footer */
+.luxury-footer {
+  background-color: var(--dp-color-field) !important;
+  border-top: 1px solid var(--dp-color-accent) !important;
+  color: var(--dp-color-on-field) !important;
+}
+
+.luxury-footer h4,
+.luxury-footer .brand-font {
+  font-family: var(--dp-typography-serif);
+  color: var(--dp-color-on-field) !important;
+}
+
+.luxury-footer h6 {
+  color: var(--dp-color-accent) !important;
+  letter-spacing: var(--dp-typography-label-tracking);
+  font-size: var(--dp-typography-label);
+}
+
+.luxury-footer p,
+.luxury-footer .footer-text {
+  color: var(--dp-color-on-field-2) !important;
+}
+
+.luxury-footer a.footer-link {
+  color: var(--dp-color-on-field-2) !important;
+  text-decoration: none;
+  transition: color var(--dp-motion-interaction);
+}
+
+.luxury-footer a.footer-link:hover {
+  color: var(--dp-color-on-field) !important;
+  text-decoration: underline;
+  text-decoration-color: var(--dp-color-accent);
+}
+
+.luxury-gold-icon {
+  color: var(--dp-color-accent) !important;
+}
+
+/* Table Clean Styling */
+.table {
+  --bs-table-bg: transparent;
+  color: var(--dp-color-ink);
+  border-color: var(--dp-color-rule);
+}
+
+.table th {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  letter-spacing: var(--dp-typography-label-tracking);
+  font-size: var(--dp-typography-label);
+  font-weight: 600;
+  color: var(--dp-color-ink-2);
+  border-bottom: var(--dp-border-hairline) solid var(--dp-color-accent);
+  padding: 1rem 0.75rem;
+}
+
+.table td {
+  padding: 1rem 0.75rem;
+  border-bottom: var(--dp-border-hairline) solid var(--dp-color-rule);
+}
+
+/* ── Accessibility & Focus Rings ── */
+*:focus-visible {
+  outline: var(--dp-border-focus-width) solid var(--dp-color-accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Responsive Refinements (Mobile, Tablet, Desktop) ── */
+@media (max-width: 720px) {
+  .gold-spine::before {
+    left: 10px;
+  }
+
+  .btn {
+    min-height: 2.75rem;
+    padding: 0.65rem 1.25rem;
+  }
+
+  .display-4, .display-5, .display-6 {
+    line-height: 1.1;
+  }
+
+  .ruled-row {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1100px) {
+  .container {
+    max-width: 95%;
+  }
+}
+
+/* ── Reduced Motion Respect ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .btn:active {
+    transform: none !important;
+  }
+}
+
+/* ── 5-Star Architectural Print Dossier System ── */
+@media print {
+  /* Hide non-printable navigation, chrome, actions and interactive controls */
+  .luxury-navbar,
+  .luxury-footer,
+  nav,
+  footer,
+  .btn,
+  .print-hide,
+  form,
+  .alert,
+  .gold-underline {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #121110 !important;
+    font-size: 11pt !important;
+  }
+
+  .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .luxury-recipe-detail {
+    padding: 0 !important;
+  }
+
+  .card, div {
+    box-shadow: none !important;
+  }
+
+  /* Force page breaks cleanly if needed */
+  .recipe-print-watermark {
+    display: block !important;
+  }
+}

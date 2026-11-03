@@ -1,0 +1,70 @@
+/**
+ * Luxury Design System - Authoritative Design Tokens
+ * Chef James Thew 5-Star Culinary Platform
+ */
+
+/* Bind token aliases 'Luxury Garamond' and 'Luxury Sans' */
+@font-face {
+  font-family: 'Luxury Garamond';
+  src: local('EB Garamond'), local('EBGaramond-Regular');
+}
+
+@font-face {
+  font-family: 'Luxury Sans';
+  src: local('Instrument Sans'), local('InstrumentSans-Regular');
+}
+
+:root {
+  /* Color and surfaces */
+  --dp-color-ground: #f3eee4;
+  --dp-color-ground-2: #e4dbcc;
+  --dp-color-ink: #262321;
+  --dp-color-ink-2: #5f5750;
+  --dp-color-field: #262321;
+  --dp-color-field-deep: #302c29;
+  --dp-color-field-line: #46403a;
+  --dp-color-on-field: #f3eee4;
+  --dp-color-on-field-2: #c6bdb0;
+  --dp-color-panel: #e4dbcc;
+  --dp-color-panel-line: #c6b89f;
+  --dp-color-accent: #b69355;
+  --dp-color-accent-text: #76591f;
+  --dp-color-accent-light: #d2b071;
+  --dp-color-rule: #d5cab8;
+
+  /* Typography */
+  --dp-typography-serif: "Luxury Garamond", "EB Garamond", Georgia, "Times New Roman", serif;
+  --dp-typography-sans: "Luxury Sans", "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --dp-typography-body: 1rem;
+  --dp-typography-leading: 1.55;
+  --dp-typography-serif-fallback: Georgia, "Times New Roman", serif;
+  --dp-typography-label: 0.75rem;
+  --dp-typography-label-tracking: 0.16em;
+  --dp-typography-reading-small: 0.9375rem;
+  --dp-typography-caption: 0.875rem;
+  --dp-typography-attribution: 0.8125rem;
+  --dp-typography-item-title: 1.375rem;
+  --dp-typography-item-leading: 1.15;
+  --dp-typography-item-tracking: -0.01em;
+
+  /* Spacing */
+  --dp-spacing-pad: 3rem;
+  --dp-spacing-gap: 1.5rem;
+  --dp-spacing-pad-mid: 2rem;
+  --dp-spacing-pad-narrow: 1.25rem;
+  --dp-spacing-gap-compact: 1rem;
+  --dp-spacing-section-block: 6rem;
+  --dp-spacing-section-roomy: 7rem;
+
+  /* Shape & Borders */
+  --dp-radius-control: 0px;
+  --dp-border-focus-width: 2px;
+  --dp-border-hairline: 1px;
+
+  /* Motion */
+  --dp-motion-interaction: 150ms;
+  --dp-motion-door-content: 600ms;
+  --dp-motion-door-delay: 450ms;
+  --dp-motion-door-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
