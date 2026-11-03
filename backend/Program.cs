@@ -3,6 +3,7 @@ using backend.Data;
 using backend.Middlewares;
 using backend.Repositories;
 using backend.Services;
+using backend.Services.EventBus;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -35,6 +36,13 @@ builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+
+// RabbitMQ Event Bus & Background Worker
+builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHostedService<RabbitMqConsumerWorker>();
+}
 
 // 3. Authentication & JWT Bearer Configuration
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -145,6 +153,7 @@ if (app.Environment.IsDevelopment() || true)
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
+app.UseMiddleware<IdentityPropagationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

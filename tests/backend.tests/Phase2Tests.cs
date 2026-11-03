@@ -554,5 +554,60 @@ namespace backend.tests
             Assert.Contains(bodyPaid!.Data!, r => r.Title == paidTitle);
             Assert.DoesNotContain(bodyPaid.Data!, r => r.Title == freeTitle);
         }
+
+        [Fact]
+        public async Task TC_2_15_ExpiredMember_CannotAccess_PaidRecipe_Returns403WithSubscriptionExpiredMessage()
+        {
+            var (adminToken, _) = await GetAdminTokenAsync();
+            var catId = await GetFirstCategoryIdAsync();
+            var uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
+
+            // 1. Admin creates a paid recipe
+            var reqPaid = new HttpRequestMessage(HttpMethod.Post, "/api/recipes")
+            {
+                Content = JsonContent.Create(new CreateRecipeRequest
+                {
+                    CategoryId = catId,
+                    Title = $"Exclusive Soufflé {uniqueId}",
+                    Ingredients = "Egg whites, dark chocolate, sugar",
+                    CookingProcedure = "Bake at 190C for 14 minutes.",
+                    IsFree = false
+                })
+            };
+            reqPaid.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            var resPaid = await _client.SendAsync(reqPaid);
+            var createdRecipe = (await resPaid.Content.ReadFromJsonAsync<ApiResponse<RecipeDto>>())!.Data!;
+
+            // 2. Register a new member
+            var (memberToken, memberUserId) = await CreateMemberAsync($"exp_{uniqueId}");
+
+            // 3. Simulate subscription expiration by setting SubscriptionEnd to the past
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<backend.Data.ApplicationDbContext>();
+                var user = await db.Users.FindAsync(memberUserId);
+                if (user != null)
+                {
+                    user.SubscriptionEnd = DateTime.UtcNow.AddDays(-2);
+                    await db.SaveChangesAsync();
+                }
+            }
+
+            // 4. Expired member attempts to view paid recipe
+            var getPaidReq = new HttpRequestMessage(HttpMethod.Get, $"/api/recipes/{createdRecipe.RecipeId}");
+            getPaidReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", memberToken);
+            var getPaidRes = await _client.SendAsync(getPaidReq);
+
+            Assert.Equal(HttpStatusCode.Forbidden, getPaidRes.StatusCode);
+            var errBody = await getPaidRes.Content.ReadFromJsonAsync<ApiResponse<RecipeDto>>();
+            Assert.False(errBody!.Success);
+            Assert.Contains("SUBSCRIPTION_EXPIRED", errBody.Message);
+
+            // 5. Admin can still view paid recipe
+            var adminGetReq = new HttpRequestMessage(HttpMethod.Get, $"/api/recipes/{createdRecipe.RecipeId}");
+            adminGetReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            var adminGetRes = await _client.SendAsync(adminGetReq);
+            Assert.Equal(HttpStatusCode.OK, adminGetRes.StatusCode);
+        }
     }
 }

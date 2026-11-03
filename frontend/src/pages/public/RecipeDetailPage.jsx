@@ -72,7 +72,7 @@ export const RecipeDetailPage = () => {
       }
     } catch (err) {
       if (err.response?.status === 403) {
-        setError('This recipe is exclusive to registered members. Please subscribe or log in to view.');
+        setError(err.response?.data?.message || 'This recipe is exclusive to registered members. Please subscribe or log in to view.');
       } else {
         setError('Failed to load recipe details.');
       }

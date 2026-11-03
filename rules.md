@@ -196,7 +196,7 @@ File `Views/Shared/_Layout.cshtml` phải kiểm tra trạng thái đăng nhập
 > Tài liệu quy tắc kiến trúc **bắt buộc** cho toàn bộ thành viên và công cụ AI hỗ trợ code.
 > Từ khóa: **PHẢI** (bắt buộc) · **KHÔNG ĐƯỢC** (cấm) · **NÊN** (khuyến nghị, cần lý do nếu bỏ qua).
 > Có thể sao chép nội dung thành `CLAUDE.md` / `.cursorrules` / `AGENTS.md` ở gốc repo để AI tự đọc.
-> Tham chiếu: `01-SRS-Core` (BR-xx), `04-SRS-Security`, `07-ERD`, `08-Algorithms`.
+> Tham chiếu: [srsdetails/files/00-srs-core.md](./srsdetails/files/00-srs-core.md) (Quy tắc BR-01..11), [srsdetails/files/03-srs-security.md](./srsdetails/files/03-srs-security.md) (Chuẩn bảo mật SEC-xx), [srsdetails/files/01-srs-functional.md](./srsdetails/files/01-srs-functional.md) (Yêu cầu chức năng FR-xx), và [srs.md](./srs.md).
 
 ---
 
@@ -219,15 +219,35 @@ File `Views/Shared/_Layout.cshtml` phải kiểm tra trạng thái đăng nhập
 
 | Tầng | Công nghệ | Ghi chú |
 | :--- | :--- | :--- |
-| Backend | ASP.NET Core Web API (.NET LTS) | REST + JSON |
-| ORM | Entity Framework Core (Code First) | Migrations bắt buộc |
-| CSDL | SQL Server | UTF-8/Unicode (`NVARCHAR`) |
-| Xác thực | JWT hoặc Cookie Authentication | Xem mục 7 |
-| Frontend | React SPA (Vite) + React Router | Hàm component + hooks |
-| Gọi API | axios (một instance dùng chung) + TanStack Query | |
-| Validate | FluentValidation (backend), thư viện form (frontend) | Server luôn là chốt chặn cuối |
-| Test | xUnit/NUnit, Jest/Vitest | |
-| Mapping | AutoMapper hoặc mapping thủ công | Chọn một, dùng nhất quán |
+| Backend | ASP.NET Core Web API (.NET 10 LTS - `net10.0`) | RESTful JSON APIs + C# 14 |
+| Kiến trúc Backend | Microservices + Modular Clean Architecture | API Gateway (YARP) + Event-Driven Messaging |
+| Containerization | **Docker & Docker Compose** | Multi-stage builds, Alpine/Chiseled base images |
+| ORM | Entity Framework Core 10 (Code First) | Migrations bắt buộc, Database-per-service |
+| CSDL & Cache | Microsoft SQL Server + Redis Cache | Polyglot Persistence, Redis cho Read Cache & Vote |
+| Event Broker | RabbitMQ / Apache Kafka (MassTransit) | Choreography Saga, Transactional Outbox Pattern |
+| Xác thực & Phân quyền | JWT Bearer Authentication + Gateway Claims | Claim-based RBAC (`ADMIN`, `MEMBER`, `GUEST`) |
+| Frontend | React 19 SPA (Vite 8) + React Router v7 | Modern Hooks, Functional Components, Strict Mode |
+| Thiết kế UI | Luxury Architectural Theme (Bootstrap 5.3 + CSS) | Gam màu 5 sao: Alabaster, Charcoal, Gold `#b69355` |
+| Gọi API | Axios (Instance dùng chung có JWT Interceptor) | Giao tiếp tập trung qua API Gateway (Port 8000) |
+| Validate | FluentValidation / DataAnnotations (Backend) | Client form validation, Server là chốt chặn cuối |
+| Test | xUnit 10, Vitest 5, React Testing Library | 100% Pass rate bắt buộc trước khi commit |
+| Mapping | AutoMapper hoặc Manual DTO Mapping Profiles | Dùng nhất quán theo từng service |
+
+### 1.1. QUY TẮC CONTAINERIZATION VỚI DOCKER & DOCKER COMPOSE
+
+1. **Multi-Stage Build Bắt Buộc:**
+   - Mọi service backend .NET 10 phải dùng multi-stage Dockerfile (`mcr.microsoft.com/dotnet/sdk:10.0-alpine` để build và `mcr.microsoft.com/dotnet/aspnet:10.0-alpine` để run) nhằm đảm bảo image siêu nhẹ (< 120MB).
+   - Frontend React 19 phải dùng `node:20-alpine` để build và đóng gói vào `nginx:alpine` để serve file tĩnh.
+2. **Bảo Mật Container (Non-root Execution):**
+   - Container runtime của .NET phải chạy dưới quyền user không có đặc quyền (`USER app`).
+   - Tuyệt đối không mount file bí mật hay ghi hardcode `appsettings.Production.json` vào Docker image; toàn bộ cấu hình nhạy cảm (JWT Secret, Connection Strings) **PHẢI** nạp qua biến môi trường (`environment` trong `docker-compose.yml`).
+3. **Mạng & Cách Ly Cổng (Network Isolation & Port Mapping):**
+   - Chỉ duy nhất **API Gateway** (Port `8000`) và **Frontend Nginx** (Port `3000`) được phép map port ra Host (`ports: - "8000:8000"`).
+   - Toàn bộ Microservices nghiệp vụ (Identity, Subscription, Catalog, Contest, Community, Media, Notification), SQL Server, Redis và RabbitMQ **CHỈ** được giao tiếp nội bộ trong mạng ảo Docker `jamesthew-internal-net` qua tên service (Docker DNS).
+4. **Tính Bền Vững của Dữ Liệu (Data Persistence):**
+   - Toàn bộ dữ liệu của SQL Server, Redis, RabbitMQ và Media Assets **PHẢI** gắn với Named Volumes (VD: `sqlserver_data:/var/opt/mssql/data`) để ngăn ngừa mất dữ liệu khi restart container.
+5. **Cơ Chế Health Check & Dependency Ordering:**
+   - Các container service nghiệp vụ phải có `depends_on` với điều kiện `service_healthy` của SQL Server / RabbitMQ trước khi khởi động.
 
 **KHÔNG ĐƯỢC** thêm framework/thư viện lớn mới nếu chưa thống nhất cả nhóm.
 

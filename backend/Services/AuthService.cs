@@ -1,6 +1,8 @@
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
+using backend.Services.EventBus;
+using JamesThew.Shared.Contracts.Events;
 
 namespace backend.Services
 {
@@ -18,17 +20,20 @@ namespace backend.Services
         private readonly ITokenService _tokenService;
         private readonly INotificationService? _notificationService;
         private readonly IEmailService? _emailService;
+        private readonly IEventBus? _eventBus;
 
         public AuthService(
             IUnitOfWork uow, 
             ITokenService tokenService,
             INotificationService? notificationService = null,
-            IEmailService? emailService = null)
+            IEmailService? emailService = null,
+            IEventBus? eventBus = null)
         {
             _uow = uow;
             _tokenService = tokenService;
             _notificationService = notificationService;
             _emailService = emailService;
+            _eventBus = eventBus;
         }
 
         public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterRequest request)
@@ -125,6 +130,22 @@ namespace backend.Services
                     if (_emailService != null)
                     {
                         _ = _emailService.SendWelcomeMembershipEmailAsync(user.Email, user.FullName, planUpper, amount);
+                    }
+
+                    if (_eventBus != null)
+                    {
+                        _ = _eventBus.PublishAsync(
+                            "jamesthew.events",
+                            "subscription.activated",
+                            new SubscriptionActivatedEvent(
+                                user.UserId,
+                                user.Email,
+                                planUpper,
+                                amount,
+                                now,
+                                subscriptionEnd,
+                                now
+                            ));
                     }
                 }
                 catch

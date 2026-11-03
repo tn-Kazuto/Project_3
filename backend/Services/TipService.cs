@@ -64,6 +64,22 @@ namespace backend.Services
                     "MEMBERS_ONLY: This tip is exclusive to registered members. Please login or subscribe to access.");
             }
 
+            // Subscription expiration check for MEMBER role:
+            if (!tip.IsFree && currentUserId != null)
+            {
+                var normalizedRole = userRole?.Trim().ToUpperInvariant();
+                if (normalizedRole == "MEMBER")
+                {
+                    var user = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
+                    var subscriptionEnd = user?.SubscriptionEnd;
+                    if (subscriptionEnd == null || subscriptionEnd < DateTime.UtcNow)
+                    {
+                        return ApiResponse<TipDto>.Fail(
+                            "SUBSCRIPTION_EXPIRED: Please renew your pass to view secret tips.");
+                    }
+                }
+            }
+
             return ApiResponse<TipDto>.Ok(MapToDto(tip));
         }
 

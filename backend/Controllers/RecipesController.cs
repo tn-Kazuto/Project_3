@@ -64,7 +64,8 @@ namespace backend.Controllers
 
             if (!result.Success)
             {
-                if (result.Message.Contains("MEMBERS_ONLY", StringComparison.OrdinalIgnoreCase))
+                if (result.Message.Contains("MEMBERS_ONLY", StringComparison.OrdinalIgnoreCase) ||
+                    result.Message.Contains("SUBSCRIPTION_EXPIRED", StringComparison.OrdinalIgnoreCase))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, result);
                 }

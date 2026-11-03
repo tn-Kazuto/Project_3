@@ -32,7 +32,17 @@ namespace backend.Services
                 .AsQueryable();
 
             // 1. Content gatekeeping & Tier filtering
-            if (currentUserId == null || (isFreeOnly.HasValue && isFreeOnly.Value))
+            bool isExpiredMember = false;
+            if (currentUserId != null && userRole?.Trim().ToUpperInvariant() == "MEMBER")
+            {
+                var currentUser = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
+                if (currentUser?.SubscriptionEnd == null || currentUser.SubscriptionEnd < DateTime.UtcNow)
+                {
+                    isExpiredMember = true;
+                }
+            }
+
+            if (currentUserId == null || isExpiredMember || (isFreeOnly.HasValue && isFreeOnly.Value))
             {
                 query = query.Where(r => r.IsFree);
             }
@@ -88,6 +98,22 @@ namespace backend.Services
             {
                 return ApiResponse<RecipeDto>.Fail(
                     "MEMBERS_ONLY: This recipe is exclusive to registered members. Please login or subscribe to access.");
+            }
+
+            // Membership subscription validity check:
+            if (!recipe.IsFree && currentUserId != null)
+            {
+                var normalizedRole = userRole?.Trim().ToUpperInvariant();
+                if (normalizedRole == "MEMBER")
+                {
+                    var user = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
+                    var subscriptionEnd = user?.SubscriptionEnd;
+                    if (subscriptionEnd == null || subscriptionEnd < DateTime.UtcNow)
+                    {
+                        return ApiResponse<RecipeDto>.Fail(
+                            "SUBSCRIPTION_EXPIRED: Please renew your pass to view secret recipes.");
+                    }
+                }
             }
 
             return ApiResponse<RecipeDto>.Ok(MapToDto(recipe));

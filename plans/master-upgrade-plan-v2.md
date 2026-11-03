@@ -180,12 +180,18 @@ Theo đúng quy chuẩn tại Mục 8 của `SRS v2.0`:
 
 ---
 
-## ✅ V. KẾT LUẬN & ĐỀ XUẤT HÀNH ĐỘNG TIẾP THEO
+## ✅ V. KẾT LUẬN & ĐỊNH HƯỚNG MỞ RỘNG MICROSERVICES
 
 Bản kế hoạch **Master Upgrade Plan v2.0** đã đồng bộ hóa trọn vẹn giữa:
 1. **Đề bài gốc của Aptech (`srs.md`)**.
 2. **Các điểm mở và quy chuẩn báo cáo (`Tìm hiểu bài toán.md`)**.
 3. **Nội dung bổ sung mang tính đột phá của Giảng viên (`SRS v2.0 Bảng trắng`)**.
+4. **Quy chuẩn phát triển & 10 Luật vàng kiến trúc (`rules.md`)**.
 
-Sau khi anh/chị phê duyệt bản kế hoạch này, chúng ta sẽ bắt đầu ngay với **Phase U1 (Tiến hóa Cơ sở Dữ liệu & Kiến trúc Thực thể)** để bổ sung các bảng và trường dữ liệu mới một cách an toàn và chuyên nghiệp nhất!
+> [!IMPORTANT]
+> **Chiến lược Nâng cấp Dài hạn (Enterprise Microservices Roadmap):**  
+> Song song với kiến trúc Monolith phục vụ bảo vệ đồ án Aptech, toàn bộ đặc tả phân rã nghiệp vụ theo Domain-Driven Design (DDD), phân chia Bounded Contexts, cơ chế phân tán Saga, và lộ trình Strangler Fig đã được quy hoạch chi tiết tại:
+> - **Đặc tả Yêu cầu Phần mềm (SRS):** [srs.md (Phần 6: Đặc Tả Kiến Trúc Vi Dịch Vụ)](../srs.md#phần-6-đặc-tả-kiến-trúc-vi-dịch-vụ-microservices-architecture-specification)
+> - **Kế hoạch Triển khai Vi Dịch Vụ:** [microservices-architecture-plan.md](./microservices-architecture-plan.md)
+
 

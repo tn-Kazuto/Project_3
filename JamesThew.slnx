@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/gateway/">
+    <Project Path="gateway/JamesThew.Gateway.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <Project Path="shared/JamesThew.Shared.Contracts/JamesThew.Shared.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/backend.tests/backend.tests.csproj" />
+  </Folder>
+  <Project Path="backend/backend.csproj" />
+</Solution>

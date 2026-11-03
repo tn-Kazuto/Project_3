@@ -1,6 +1,8 @@
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
+using backend.Services.EventBus;
+using JamesThew.Shared.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
@@ -14,10 +16,12 @@ namespace backend.Services
     public class AnnouncementService : IAnnouncementService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IEventBus? _eventBus;
 
-        public AnnouncementService(IUnitOfWork uow)
+        public AnnouncementService(IUnitOfWork uow, IEventBus? eventBus = null)
         {
             _uow = uow;
+            _eventBus = eventBus;
         }
 
         public async Task<ApiResponse<IEnumerable<AnnouncementDto>>> GetAllAsync()
@@ -82,6 +86,46 @@ namespace backend.Services
 
             await _uow.Repository<Announcement>().AddAsync(announcement);
             await _uow.SaveChangesAsync();
+
+            // Publish ContestWinnerAnnouncedEvent to RabbitMQ
+            if (_eventBus != null && request.WinnerEntryId.HasValue)
+            {
+                try
+                {
+                    var entry = await _uow.Repository<ContestEntry>().Query()
+                        .Include(e => e.User)
+                        .Include(e => e.Contest)
+                        .FirstOrDefaultAsync(e => e.EntryId == request.WinnerEntryId.Value);
+
+                    if (entry != null)
+                    {
+                        var winnerName = entry.UserId != null
+                            ? (entry.User?.FullName ?? entry.User?.Username ?? "Member")
+                            : (entry.GuestName ?? "Guest");
+                        var winnerEmail = entry.UserId != null
+                            ? (entry.User?.Email ?? "")
+                            : (entry.GuestEmail ?? "");
+
+                        _ = _eventBus.PublishAsync(
+                            "jamesthew.events",
+                            "contest.announced",
+                            new ContestWinnerAnnouncedEvent(
+                                entry.ContestId,
+                                entry.Contest?.Title ?? announcement.Title,
+                                entry.EntryId,
+                                winnerName,
+                                winnerEmail,
+                                "Official Grand Champion Prize",
+                                announcement.Content,
+                                announcement.PublishedAt
+                            ));
+                    }
+                }
+                catch
+                {
+                    // Non-blocking event publish
+                }
+            }
 
             return await GetByIdAsync(announcement.AnnouncementId);
         }

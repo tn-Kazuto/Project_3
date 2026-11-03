@@ -1,6 +1,17 @@
 # TÀI LIỆU ĐẶC TẢ YÊU CẦU PHẦN MỀM (SRS) & PHÂN TÍCH KỸ THUẬT
 **Dự án:** Website Chia Sẻ Công Thức Nấu Ăn & Cuộc Thi Ẩm Thực - **James Thew**  
-**Chương trình:** Aptech eProject  
+**Chương trình:** Aptech eProject Semester 3 (HDSE / ADSE)  
+
+> [!NOTE]
+> **Bộ Hồ Sơ Đặc Tả Chi Tiết Phân Hệ (SRS Details Suite):**  
+> Bản SRS tổng thể này được phân rã kỹ thuật chi tiết theo chuẩn IEEE 830 tại thư mục **[`srsdetails/files/`](./srsdetails/files/README.md)** gồm 7 chuyên đề chuyên sâu:
+> 1. [`00-srs-core.md`](./srsdetails/files/00-srs-core.md): Thực thể CSDL, 11 Quy tắc nghiệp vụ cốt lõi (`BR-01` – `BR-11`), và giải quyết dứt điểm 8 điểm mở (`OQ-01` – `OQ-08`).
+> 2. [`01-srs-functional.md`](./srsdetails/files/01-srs-functional.md): Yêu cầu chức năng chi tiết cho 9 modules (`FR-AUTH`, `FR-HOME`, `FR-RCP`, `FR-TIP`, `FR-CON`, `FR-ANN`, `FR-FBK`, `FR-PRF`, `FR-FAQ`) kèm Acceptance Criteria.
+> 3. [`02-srs-non-functional.md`](./srsdetails/files/02-srs-non-functional.md): Bộ chỉ số NFRs (`NFR-AVL-01` đến `NFR-DEL-01`) về độ tin cậy, bảo trì, quốc tế hóa và bàn giao.
+> 4. [`03-srs-security.md`](./srsdetails/files/03-srs-security.md): Ma trận đe dọa STRIDE, chuẩn OWASP Top 10, phân quyền Server-side và bảo mật giao dịch PCI-DSS.
+> 5. [`04-srs-performance.md`](./srsdetails/files/04-srs-performance.md): Chỉ số hiệu năng $P_{95} \le 500\text{ ms}$, chiến lược Redis Caching và kịch bản Load test bằng k6.
+> 6. [`05-srs-ui-ux.md`](./srsdetails/files/05-srs-ui-ux.md): Sitemap các route, tiêu chuẩn thiết kế Luxury 5 sao và khả năng tiếp cận WCAG 2.1 AA.
+> 7. [`06-test-case-checklist.md`](./srsdetails/files/06-test-case-checklist.md): Danh mục 50+ Test Cases chi tiết và ma trận truy vết yêu cầu (Traceability Matrix).
 
 ---
 
@@ -325,27 +336,120 @@ Trang FAQ cần hiển thị đầy đủ các câu hỏi sau cùng câu trả l
   * Hệ điều hành: Windows 98 (hoặc cao hơn).
   * Môi trường: Java Virtual Machine (JVM).
 * **Phần mềm (Sử dụng một hoặc kết hợp các công cụ sau):**
-  * Trình soạn thảo: Notepad / HTML editor / Java editor / Dreamweaver / JavaScript.
-  * Nền tảng phát triển: `j2sdk1.4.1_02` (hoặc mới hơn) / `.Net` / `J2EE`.
-  * Công nghệ Web/Middleware: `JSP / Servlets`, `EJB / Struts`, `JDBC`.
-  * Hệ quản trị CSDL: `SQL Server 2000` (hoặc mới hơn) / `Oracle 9i` / `MS Access` + `JDBC Driver`.
-  Triển khai dự án website ẩm thực James Thew bằng ASP.NET Core MVC kết hợp Entity Framework Core và SQL Server là hướng đi tối ưu nhất cho đồ án eProject. Cấu trúc MVC giúp tách biệt rõ ràng phần giao diện (Razor Views), luồng điều hướng (Controllers) và xử lý dữ liệu/phân quyền (Models & Services).   1. Kiến trúc & Cấu trúc Thư mục (ASP.NET Core MVC)Dự án nên được chia thành 2 phân khu (Areas/Modules) chính: giao diện người dùng (Public & Member) và trang quản trị (Admin dành cho Mr. James Thew).   PlaintextJamesThewWebApp/
-├── Areas/
-│   └── Admin/                      # Khu vực quản trị của Mr. James Thew
-│       ├── Controllers/            # Dashboard, RecipeManage, TipManage, ContestManage, AnnouncementManage, FeedbackManage
-│       └── Views/
-├── Controllers/                    # Khu vực của Guest & Registered Member
-│   ├── HomeController.cs           # Trang chủ (Giới thiệu James Thew), Announcements, FAQs
-│   ├── AccountController.cs        # Login, Register + Thanh toán ($10/tháng, $100/năm), User Profile
-│   ├── RecipeController.cs         # Xem/Tìm kiếm công thức, Đăng/Sửa/Xóa công thức của Member
-│   ├── TipController.cs            # Xem/Tìm kiếm mẹo nấu ăn, Đăng/Sửa/Xóa mẹo của Member
-│   ├── ContestController.cs        # Xem danh sách cuộc thi, Gửi bài dự thi (Hỗ trợ cả Guest & Member)
-│   └── FeedbackController.cs       # Gửi đánh giá cho công thức hoặc website
-├── Data/
-│   ├── ApplicationDbContext.cs     # EF Core DbContext
-│   └── DbInitializer.cs            # Seed tài khoản Admin (James Thew), Danh mục & 7 câu hỏi FAQ
-├── Models/
-│   ├── Entities/                   # Các class ánh xạ bảng SQL Server
-│   └── ViewModels/                 # DTOs cho Form Register, Payment, Search, Contest Submission
-└── Views/                          # Razor Views (.cshtml) dùng chung Layout
-2. Thiết kế Cơ sở Dữ liệu (SQL Server & EF Core Entities)Hệ thống cần 9 bảng cốt lõi để đáp ứng trọn vẹn các yêu cầu nghiệp vụ trong tài liệu SRS:   Tên Bảng (Entity)Các trường chính (Columns)Mô tả & Ràng buộc nghiệp vụUsersUserId (PK), FullName, Email, PasswordHash, Role, SubscriptionPlan, SubscriptionExpiryDate, CreatedAtLưu thông tin tài khoản. Role gồm Admin (James Thew) và Member. Kiểm tra SubscriptionExpiryDate để cấp quyền xem bài trả phí.   PaymentsPaymentId (PK), UserId (FK), PlanType, Amount, PaymentDate, StatusLưu lịch sử đóng phí thành viên khi đăng ký: Monthly ($10) hoặc Yearly ($100).   CategoriesCategoryId (PK), CategoryName, DescriptionPhân loại công thức: Juices, Vegetarian, Non-Vegetarian, Italian....   RecipesRecipeId (PK), CategoryId (FK), AuthorId (FK), Title, Ingredients, CookingProcedure, ImageUrl, IsFree, CreatedAtLưu công thức kèm nguyên liệu và cách chế biến. Chỉ Admin mới được chỉnh IsFree (true: miễn phí, false: chỉ dành cho Member).   TipsTipId (PK), AuthorId (FK), Title, Content, IsFree, CreatedAtLưu mẹo nấu ăn. Hỗ trợ đánh dấu miễn phí (IsFree = true) hoặc chỉ cho Member (IsFree = false).   ContestsContestId (PK), Title, Description, ContestType, StartDate, EndDate, IsActiveCuộc thi do James Thew tạo. ContestType xác định cuộc thi yêu cầu nộp Recipe hay Tip.   ContestEntriesEntryId (PK), ContestId (FK), UserId (FK - Nullable), GuestName, GuestEmail, Title, Ingredients, CookingProcedure, TipContent, SubmittedAtBài dự thi. UserId cho phép NULL vì khách vãng lai (General User) không cần đăng ký vẫn được tham gia thi.   AnnouncementsAnnouncementId (PK), ContestId (FK), WinnerEntryId (FK), Title, Message, PublishedAtThông báo người chiến thắng cuộc thi sau khi James Thew chấm bài. Hiển thị công khai trên menu chính.   FeedbacksFeedbackId (PK), RecipeId (FK - Nullable), UserId (FK - Nullable), GuestName, GuestEmail, Comment, CreatedAtLưu phản hồi cho từng công thức cụ thể hoặc góp ý chung cho website từ cả Member lẫn khách vãng lai.   FaqsFaqId (PK), Question, Answer, DisplayOrderLưu cố định 7 câu hỏi thường gặp và câu trả lời theo chuẩn SRS.   3. Phân quyền & Ma trận Chức năng trên ASP.NET CoreSử dụng Cookie Authentication (hoặc ASP.NET Core Identity) kết hợp [Authorize(Roles = "...")] trên các Controllers/Actions:A. Luồng của Khách vãng lai (General User - [AllowAnonymous])Home & Info: Xem trang chủ giới thiệu về đầu bếp James Thew, các lớp học cuối tuần của ông, danh sách thông báo thắng giải (Announcements) và 7 câu hỏi FAQs.   Free Recipes & Tips: Xem và tìm kiếm công thức/mẹo có cờ IsFree == true. Nếu bấm vào bài IsFree == false, hệ thống điều hướng sang trang yêu cầu Đăng nhập/Đăng ký gói thành viên.   Contests: Xem danh sách cuộc thi đang mở (IsActive == true) và điền form gửi bài dự thi (nhập Tên, Email, Tên món/Mẹo, Nguyên liệu, Cách làm) mà không cần đăng nhập.   Feedback: Gửi phản hồi trực tiếp dưới mỗi công thức miễn phí hoặc phản hồi về website.   B. Luồng của Thành viên trả phí (Registered Member - [Authorize(Roles = "Member,Admin")])Đăng ký & Thanh toán (Register Flow): Tại trang Đăng ký, người dùng điền thông tin cá nhân, chọn gói Monthly ($10) hoặc Yearly ($100) và xác nhận thanh toán giả lập (Mock Payment Gateway) trước khi tài khoản được kích hoạt.   Truy cập toàn diện: Xem và tìm kiếm toàn bộ Recipes và Tips trên hệ thống (cả bài của James Thew lẫn bài do các thành viên khác đóng góp).   Đóng góp nội dung (CRUD cá nhân): Đăng tải Recipe (kèm nguyên liệu, quy trình nấu) và Tip mới; chỉ được quyền sửa hoặc xóa những bài do chính mình đăng (AuthorId == CurrentUserId).   User Profile: Xem và cập nhật thông tin hồ sơ cá nhân ngay trên cùng một trang.   C. Luồng của Quản trị viên (Mr. James Thew - [Area("Admin")][Authorize(Roles = "Admin")])Quản lý Recipes & Tips: Đăng công thức/mẹo mới kèm tùy chọn đánh dấu Free hoặc Members Only; chỉnh sửa hoặc xóa các bài ông đã đăng. Xem toàn bộ bài viết của mọi thành viên.   Quản lý Contests & Chấm giải: Tạo cuộc thi mới, xóa cuộc thi cũ, xem danh sách tất cả bài dự thi (ContestEntries) theo từng cuộc thi, chọn người thắng cuộc và xuất bản lên trang Announcements.   Quản lý Feedback: Xem danh sách toàn bộ phản hồi của người dùng gửi về cho các công thức nấu ăn.   4. Các Điểm Kỹ Thuật Cần Chú Ý Khi Chấm Đồ Án AptechXử lý điều kiện đăng ký kèm thanh toán: Tài liệu yêu cầu rõ "customer can register with the site provided he makes the payment". Do đó, trong AccountController.Register, bạn nên thiết kế form 2 bước (hoặc tích hợp chọn gói $10/$100 + nhập thông tin thẻ giả lập ngay trên form đăng ký). Khi Submit thành công, tạo bản ghi User và Payment trong cùng một Database Transaction (BeginTransactionAsync).   Logic lọc dữ liệu Tìm kiếm (Search Action): Trong RecipeController.Index(string searchString, int? categoryId):Nếu User.Identity.IsAuthenticated (Member/Admin): Truy vấn toàn bộ bảng Recipes.   Nếu chưa đăng nhập (Guest): Bắt buộc nối thêm .Where(r => r.IsFree == true) vào câu lệnh LINQ.   Seed sẵn 7 câu hỏi FAQ: Trong file DbInitializer (hoặc OnModelCreating trong ApplicationDbContext), seed sẵn chính xác 7 câu hỏi tiếng Anh trong SRS (từ "How to become the member of this site?" đến "How can I know who is the winner?") để giảng viên kiểm tra giao diện khớp 100% với đề bài.   Comment code & Backup: Đề bài yêu cầu mọi khối code (Class/Method) đều phải có comment giải thích logic rõ ràng. Hãy dùng XML Documentation Comments (/// <summary>...) của C# trên các Controller và Service. 
+  * Trình soạn thảo: Visual Studio / VS Code / Cursor / JetBrains Rider.
+  * Nền tảng phát triển: .NET 10 LTS (`net10.0`, C# 14).
+  * Công nghệ Web/Middleware: ASP.NET Core Web API / Minimal APIs.
+  * Hệ quản trị CSDL: Microsoft SQL Server, Redis Cache, PostgreSQL / MongoDB (nếu áp dụng Polyglot Persistence cho Microservices).
+
+---
+
+## PHẦN 6: ĐẶC TẢ KIẾN TRÚC VI DỊCH VỤ (MICROSERVICES ARCHITECTURE SPECIFICATION)
+*Căn cứ quy chuẩn phát triển Spec-Driven Development tại `rules.md` và Yêu cầu Mở rộng Hệ sinh thái Ẩm thực Toàn cầu James Thew.*
+
+### 6.1. Bối cảnh & Lý do Chuyển đổi sang Microservices (Business Justification)
+1. **Đặc thù Tải lệch pha (Disproportionate Traffic Profile):**
+   - Lưu lượng đọc công thức miễn phí và xem livestream có thể tăng đột biến gấp 20–50 lần vào các khung giờ vàng (giờ chuẩn bị bữa tối, khi Chef James Thew lên sóng Live show ẩm thực).
+   - Lưu lượng bình chọn bài thi (*Contest Voting*) có tính chất tập trung cao điểm vào các ngày áp chót của cuộc thi.
+   - Luồng mua gói hội viên (*Subscription Payment: $10/tháng hoặc $100/năm*) đòi hỏi tính toán toàn vẹn dữ liệu tài chính (ACID) độc lập với áp lực tải của mạng xã hội/cộng đồng.
+2. **Cách ly Sự cố (Fault Isolation & Resiliency):**
+   - Sự cố ở phân hệ tương tác cộng đồng (Upload video món ăn, gửi bình luận, bình chọn cuộc thi) **tuyệt đối không được gây sập** luồng xem công thức ẩm thực độc quyền hoặc luồng thanh toán hội viên.
+3. **Mở rộng độc lập (Autonomous Scalability):**
+   - Phân hệ Media Streaming và Notification Worker có thể scale linh hoạt theo nhu cầu mà không tốn tài nguyên nhân bản toàn bộ monolith backend.
+
+---
+
+### 6.2. Phân rã Bounded Contexts theo Domain-Driven Design (DDD)
+
+Hệ thống được phân tách thành **7 Microservices chuyên biệt**, áp dụng triệt để nguyên tắc **Database-per-Service** (cấm mọi truy vấn chéo database / cross-DB join theo `rules.md`):
+
+| STT | Microservice | Bounded Context & Trách nhiệm Nghiệp vụ | Database / Storage Độc quyền | Cơ chế Giao tiếp Chính |
+| :---: | :--- | :--- | :--- | :--- |
+| **1** | **Identity & Profile Service** | Quản lý tài khoản người dùng, hồ sơ Chef James Thew & Member, cấp phát JWT Claims, phân quyền Role (`ADMIN`, `MEMBER`, `GUEST`). | SQL Database (`UserAccounts`, `Profiles`, `Roles`) | Sync REST (Auth) + Async Events |
+| **2** | **Subscription & Billing Service** | Quản lý gói cước ($10/tháng, $100/năm), xử lý thanh toán, lịch sử giao dịch, tính hạn hội viên. | SQL Database (`Subscriptions`, `PaymentTransactions`) | Sync REST (Checkout) + Saga Events |
+| **3** | **Culinary Catalog Service** | Danh mục ẩm thực (Juices, Vegetarian, Non-Vegetarian, Italian), công thức nấu ăn (`Recipe`), mẹo làm bếp (`Tip`), 7 câu hỏi cố định `FAQ`. | SQL Database + Redis Read Cache (`Recipes`, `Tips`, `Categories`, `Faqs`) | Sync REST (Cached Reads) |
+| **4** | **Contest & Gamification Service** | Tạo/quản lý cuộc thi ẩm thực, tiếp nhận bài thi (từ Member và Guest không login), cơ chế bình chọn chống gian lận (`ContestVote`), chấm giải & công bố (`Announcements`). | SQL Database + Redis Vote Counter (`Contests`, `ContestEntries`, `Votes`, `Announcements`) | Sync REST + Async Message Queue |
+| **5** | **Community & Feedback Service** | Đánh giá món ăn, bình luận kèm ảnh/video thực hành món (`MediaUrl`), xếp hạng 1-5 sao, gửi góp ý về website, đếm lượt share Facebook. | Document DB / SQL Database (`Feedbacks`, `RecipeComments`, `MediaShares`) | Sync REST + Async Push |
+| **6** | **Media & Streaming Service** | Quản lý tài nguyên đa phương tiện: cấp pre-signed upload URL cho video/hình ảnh công thức, phát livestream Talkshow và Live cooking sessions qua CDN. | Cloud Object Storage (S3 / Cloudinary) + Metadata DB | Sync REST (Upload Tickets) + CDN Streams |
+| **7** | **Notification & Messaging Service** | Nhận các sự kiện từ Event Bus để gửi Email tự động (hóa đơn, chúc mừng thắng giải, bản tin) và bắn Web In-App Notification (Chuông thông báo thời gian thực qua SignalR). | Queue Store + Push Logs (`NotificationLogs`, `InAppBells`) | Async Event Consumer + SignalR Hub |
+
+---
+
+### 6.3. Kiến trúc Cổng Biên (API Gateway & Backend-For-Frontend - BFF)
+Theo `rules.md`, mọi client (Guest, Member, Admin) đều đi qua tầng cổng biên tập trung:
+* **Công nghệ Gateway:** YARP (Yet Another Reverse Proxy - chuẩn .NET LTS) hoặc Kong Gateway.
+* **Nhiệm vụ của Gateway:**
+  1. **Routing & Reverse Proxy:** Chuyển tiếp request đến đúng cụm service backend tương ứng.
+  2. **Token Introspection & Identity Propagation:** Giải mã JWT Token từ Client, trích xuất `UserId` và `Role`, đính kèm vào HTTP Header chuyển tiếp nội bộ:
+     - `X-User-Id: {guid/int}`
+     - `X-User-Role: ADMIN | MEMBER | GUEST`
+     - `X-Subscription-Active: true | false`
+  3. **Content Gatekeeping Enforcement (Tuân thủ Rule 3 - `rules.md`):**
+     - Khi Client là `GUEST` (không có token hoặc hết hạn gói): Gateway hoặc Catalog Service tự động thực thi điều kiện lọc `.Where(x => x.IsFree == true)`.
+     - Chặn các request xem bài `IsFree == false` của Guest ngay từ tầng Gateway, trả về `401 Unauthorized` hoặc `403 Forbidden` kèm gợi ý đăng ký gói cước.
+  4. **Rate Limiting & DDoS Protection:** Bảo vệ API Vote và Search khỏi hành vi spam.
+
+---
+
+### 6.4. Giao tiếp Bất đồng bộ & Xử lý Giao dịch Phân tán (Saga Pattern)
+
+Hệ thống không sử dụng 2PC (Two-Phase Commit) vì gây nghẽn hiệu năng. Thay vào đó, áp dụng **Choreography-based Saga** phối hợp với **Transactional Outbox Pattern** trên Message Broker (RabbitMQ / Apache Kafka):
+
+#### A. Luồng Đăng ký Hội viên & Thanh toán ($10/$100)
+1. **Client** gọi `POST /api/v1/subscriptions/checkout` vào **Subscription & Billing Service** (chọn gói Monthly $10 hoặc Yearly $100).
+2. **Subscription Service** thực hiện thanh toán qua cổng thanh toán / thẻ giả lập.
+3. Khi thanh toán thành công, Subscription Service ghi dữ liệu và bắn sự kiện `SubscriptionActivatedEvent` `{ UserId, PlanType, StartDate, EndDate }` vào Message Broker.
+4. **Identity & Profile Service** tiêu thụ (consume) sự kiện: Nâng cấp Role từ `GUEST` thành `MEMBER`, gia hạn `SubscriptionExpiryDate`.
+5. **Notification Service** tiêu thụ sự kiện: Tạo hóa đơn điện tử, gửi Email biên lai xác nhận và kích hoạt chuông thông báo In-App.
+
+#### B. Luồng Chấm giải & Công bố Quán quân Cuộc thi
+1. **Admin (Chef James Thew)** chọn bài dự thi thắng giải tại **Contest & Gamification Service**.
+2. Service cập nhật `IsWinner = true` cho bài thi, tạo bản ghi `Announcement`, đồng thời publish sự kiện `ContestWinnerAnnouncedEvent` `{ ContestId, ContestTitle, WinnerEntryId, WinnerName, WinnerEmail }`.
+3. **Notification Service** tiêu thụ sự kiện:
+   - Gửi Email chúc mừng riêng tới `WinnerEmail` (hỗ trợ cả Email của Guest và Member theo Rule 5 của `rules.md`).
+   - Gửi Broadcast In-App Notification qua SignalR Hub tới toàn bộ người dùng đang online trên website: *"Chef James Thew đã công bố Quán quân cuộc thi [Tên Cuộc Thi]!"*.
+
+---
+
+### 6.5. Tuân thủ 10 Luật Vàng Kiến trúc (`rules.md` Compliance Matrix)
+
+| Luật Vàng (`rules.md`) | Cách áp dụng trong Thiết kế Microservices |
+| :--- | :--- |
+| **1. Phụ thuộc một chiều** | Controller → Service → Repository → DbContext trong từng Service độc lập. Tuyệt đối không gọi ngược. |
+| **2. Controller mỏng** | Controller của từng Microservice chỉ validate schema DTO, đọc Claims từ Gateway và chuyển tiếp xuống Domain Service. |
+| **3. Nghiệp vụ nằm ở Service** | Mọi logic kiểm tra quyền sở hữu bài viết (`AuthorId == currentUserId`), kiểm tra hạn gói cước, tính lượt vote nằm trọn vẹn trong Service Layer của Microservice đó. |
+| **4. Quyền kiểm tra ở API** | Gateway và từng Microservice đều độc lập kiểm tra claims (`X-User-Role`). Ẩn nút trên React chỉ là trải nghiệm UI, không thay thế cho bảo mật API. |
+| **5. Không trả Entity ra ngoài API** | 100% Microservice endpoints trả về DTO/Response Model chuyên biệt (PagedResult, RecipeSummaryDto, ContestEntryDetailDto). |
+| **6. Danh tính lấy từ Token** | Microservice lấy `UserId` và `Role` từ Claims Token / Header Gateway được tin cậy, cấm nhận `userId` từ Body, Query string hay Form URL. |
+| **7. Server quyết định giá cước & cờ IsFree** | Gói cước ($10/$100) và cờ `IsFree` chỉ do Admin hoặc Logic Subscription Server quyết định; bỏ qua mọi giá trị Client gửi lên. |
+| **8. Multi-write trong Transaction / Saga** | Thao tác nội bộ 1 service dùng Local DB Transaction (`BeginTransactionAsync`). Thao tác liên service dùng Outbox Pattern + Saga Event. |
+| **9. Không lưu dữ liệu nhạy cảm** | Mật khẩu hash bằng BCrypt; thẻ thanh toán chỉ lưu `CardLast4`; tuyệt đối không lưu CVV/số thẻ đầy đủ. |
+| **10. XML Comments đầy đủ** | Toàn bộ Interface, DTO, Event Model, Controller Action trong từng Microservice bắt buộc có thẻ `/// <summary>`. |
+
+---
+
+### 6.6. Tiêu chí Phi chức năng (Non-Functional Requirements - NFRs)
+1. **Khả năng chịu tải (Scalability):** Catalog Service chịu được **10,000 Concurrent Readers** với thời gian phản hồi $P_{99} < 100\text{ ms}$ nhờ Redis Cache.
+2. **Tính sẵn sàng (Availability):** Cam kết **99.9% Uptime**. Cơ chế Circuit Breaker (Polly trong .NET) ngắt kết nối an toàn khi một service phụ (như Notification hay Feedback) gặp gián đoạn.
+3. **Tính nhất quán dữ liệu (Data Consistency):** Đạt tính nhất quán cuối cùng (*Eventual Consistency*) với độ trễ truyền tin $T_{\text{sync}} < 2\text{ giây}$ trên toàn bộ các service.
+
+---
+
+### 6.7. Quy Chuẩn Đóng Gói Container & Triển Khai Docker (Docker & Containerization Standards)
+
+Nhằm đáp ứng yêu cầu vận hành chuẩn Microservices và phòng chống triệt để rủi ro sập hệ thống (*System failure* theo đề bài Aptech), toàn bộ hệ sinh thái backend và frontend được container hóa bằng Docker và điều phối qua Docker Compose:
+
+1. **Kiến trúc Multi-Stage Dockerfile (.NET 10 LTS):**
+   - *Stage 1 (Build):* Sử dụng SDK `mcr.microsoft.com/dotnet/sdk:10.0-alpine` để restore và compile source code với cờ tối ưu `-c Release -o /app/publish`.
+   - *Stage 2 (Runtime):* Sử dụng ASP.NET Runtime `mcr.microsoft.com/dotnet/aspnet:10.0-alpine` (hoặc Chiseled container). Loại bỏ toàn bộ trình biên dịch và công cụ thừa để giảm dung lượng image (< 110MB) và triệt tiêu lỗ hổng bảo mật.
+   - Chạy container dưới tài khoản **non-root user** (`USER app`).
+2. **Kiến trúc Multi-Stage Dockerfile (React 19 SPA):**
+   - *Stage 1 (Build):* Node.js 20-alpine build production bundle qua Vite (`npm run build`).
+   - *Stage 2 (Serve):* Nginx alpine phân phối file tĩnh (SPA routing hỗ trợ fallback `/index.html`) kèm cấu hình nén Gzip và bảo mật Header.
+3. **Mạng & Điều phối Docker Compose (`docker-compose.yml`):**
+   - **Internal Bridge Network:** Các Microservices chỉ giao tiếp nội bộ trong mạng ảo `jamesthew-internal-net`.
+   - **Cổng Đối Ngoại Duy Nhất:** Chỉ có `gateway` (YARP - Port `8000`) và `frontend` (Nginx - Port `3000`) được mở port ra ngoài Host OS. Toàn bộ các service nghiệp vụ (Ports 5001 - 5007), SQL Server (1433), Redis (6379) và RabbitMQ (5672) được bảo vệ an toàn bên trong container network.
+   - **Persistence Data Volumes:** Khởi tạo Named Volumes độc lập:
+     - `sqlserver_data:/var/opt/mssql/data` (Lưu trữ dữ liệu quan hệ).
+     - `redis_data:/data` (Lưu cache và counter).
+     - `rabbitmq_data:/var/lib/rabbitmq` (Lưu message queue).
+   - **Health Checks & Dependency Ordering:** Các service phụ thuộc được cấu hình `depends_on` với điều kiện `service_healthy` trước khi khởi động. 
