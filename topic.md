@@ -2,7 +2,7 @@
 ## Dự án: Nền Tảng Ẩm Thực & Đấu Trường Nấu Ăn James Thew (James Thew Culinary Portal)
 ### Chương trình: Aptech Computer Education — eProject Semester 3 (HDSE / ADSE)
 > **Chuyên viên Phân tích Nghiệp vụ (Senior Business Analyst):** Lead Systems & Requirements Architect  
-> **Căn cứ gốc:** `topic.md` (Đề tài gốc Aptech) · `srs.md` (SRS v2.0 & Microservices Extension) · `rules.md` (10 Luật vàng Kiến trúc) · `c_t_y_u_c_u_h_th_ng_srs_d_n_james_thew_b_n_n_ng_c_p.md` (Review Bảng trắng)  
+> **Căn cứ gốc:** `topic.md` (Đề tài gốc Aptech) · `srs.md` (SRS v2.0 & Microservices Extension) · `rules.md` (10 Luật vàng Kiến trúc) · `docs/whiteboard-review.md` (Review Bảng trắng)  
 > **Định hướng Công nghệ Hiện đại:** **Frontend React 19 SPA** + **Backend .NET 10 Microservices** + **Docker & Docker Compose Containerization**.
 
 ---

@@ -170,19 +170,32 @@ npm test -- --run
 
 ---
 
-## 📁 8. Cấu Trúc Thư Mục Dự Án (Directory Structure)
+## 📁 8. Cấu Trúc Thư Mục Dự Án Chuẩn SOLID & Enterprise Architecture
 
-```text
+`	ext
 Project_3/
 ├── backend/                       # ASP.NET Core 10 Web API & Microservices Core
 │   ├── Controllers/               # 9 API Controllers đầy đủ XML Documentation
 │   ├── Data/                      # ApplicationDbContext & DbInitializer (Seeding 11 Entities)
 │   ├── DTOs/                      # Data Transfer Objects & Validation Attributes
-│   ├── Entities/                  # 11 Domain Entities (Hỗ trợ Voting, Multimedia, Notifications)
+│   ├── Entities/                  # 12 Domain Entities theo chuẩn SRP (Tách riêng từng class)
 │   ├── Middlewares/               # Global Exception & Gatekeeping Middleware
-│   ├── Repositories/              # GenericRepository & UnitOfWork
-│   ├── Services/                  # Business Logic Layer (Auth, Recipe, Tip, Contest, Vote, Notification)
+│   ├── Repositories/              # GenericRepository & UnitOfWork (Interfaces/ riêng biệt - DIP)
+│   │   └── Interfaces/            # IGenericRepository & IUnitOfWork contracts
+│   ├── Services/                  # Business Logic Layer (Interfaces/ riêng biệt - ISP/DIP)
+│   │   ├── Interfaces/            # 12 Service Contracts
+│   │   └── EventBus/              # InMemoryMessageBus & Integration Events
 │   └── Program.cs                 # Configuration, JWT Bearer, Swagger & DI Setup
+│
+├── gateway/                       # YARP API Reverse Gateway (Port 8000)
+│   ├── appsettings.json           # Reverse Proxy Route Config & Cluster Rules
+│   └── Program.cs                 # YARP Middleware & Header Forwarding
+│
+├── shared/                        # Shared Class Libraries & DTOs
+│   └── JamesThew.Shared.Contracts/# Domain Contracts, Integration Events, Common DTOs
+│
+├── database/                      # Database Initialization & Seed Scripts
+│   └── seed-data.sql              # Raw SQL Seed Data cho SQL Server / Docker
 │
 ├── frontend/                      # React 19 + Vite 8 SPA
 │   ├── src/
@@ -200,9 +213,13 @@ Project_3/
 │   └── nginx.conf                 # Cấu hình Nginx Reverse Proxy & Client Routing
 │
 ├── tests/
-│   └── backend.tests/             # 61 xUnit Integration Tests (.NET 10 LTS - 100% PASS)
+│   └── backend.tests/             # 62 xUnit Integration Tests (.NET 10 LTS - 100% PASS)
 │
-├── docs/                          # Hồ sơ 13 Đề mục Báo cáo eProject Aptech (APTECH_PROJECT_REPORT_DOSSIER.md)
+├── docs/                          # Hồ sơ Tài Liệu Dự Án & Báo Cáo Aptech
+│   ├── APTECH_PROJECT_REPORT_DOSSIER.md # 13 Đề mục Báo cáo Toàn diện eProject Aptech
+│   ├── whiteboard-review.md       # Tổng hợp yêu cầu SRS & nâng cấp hệ thống
+│   ├── problem-analysis.md        # Phân tích bài toán kinh doanh chi tiết
+│   └── đềbài.md                   # Đề bài gốc Aptech
 │
 ├── srsdetails/                    # Bộ Đặc Tả Chi Tiết Phân Hệ (00-Core, 01-Functional, 02-NFR, 03-Security, 04-Perf, 05-UIUX, 06-TestCases)
 │   └── files/                     # 7 Chuyên đề đặc tả chuẩn IEEE 830 và ma trận truy vết
@@ -221,7 +238,7 @@ Project_3/
 ├── srs.md                         # Đặc tả yêu cầu phần mềm chuẩn & Microservices Extension
 ├── rules.md                       # Tiêu chuẩn chất lượng, 10 Luật vàng & Docker Standards
 └── README.md                      # Tài liệu tổng quan dự án
-```
+`
 
 ---
 *© 2026 Chef James Thew Culinary Excellence Platform. All Rights Reserved.*
