@@ -62,3 +62,4 @@ namespace backend.Entities
         public ContestEntry? WinnerEntry { get; set; }
     }
 }
+

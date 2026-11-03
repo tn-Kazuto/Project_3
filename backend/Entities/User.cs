@@ -95,3 +95,4 @@ namespace backend.Entities
         public ICollection<ContestVote> ContestVotes { get; set; } = new List<ContestVote>();
     }
 }
+

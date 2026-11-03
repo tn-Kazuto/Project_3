@@ -29,3 +29,4 @@ namespace backend.Entities
         public ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
     }
 }
+

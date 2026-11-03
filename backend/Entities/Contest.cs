@@ -67,3 +67,4 @@ namespace backend.Entities
         public ICollection<Announcement> Announcements { get; set; } = new List<Announcement>();
     }
 }
+

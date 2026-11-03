@@ -72,3 +72,4 @@ namespace backend.Entities
         public User? User { get; set; }
     }
 }
+

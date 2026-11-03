@@ -95,3 +95,4 @@ namespace backend.Entities
         public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     }
 }
+
