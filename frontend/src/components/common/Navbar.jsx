@@ -1,25 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { notificationApi } from '../../services/api';
-import {
-  ChefHat,
-  User,
-  LogOut,
-  Shield,
-  Bell,
-  Crown,
-  Trophy,
-  Sparkles,
-  Clock,
-  CheckCheck,
-  ChevronRight,
-  ArrowRight,
-  X,
-} from 'lucide-react';
 
 /**
- * Intelligent categorization for 5-star culinary notifications
+ * Intelligent categorization for 5-star culinary notifications (pure typography, zero icons)
  */
 const getNotificationMeta = (title = '', message = '') => {
   const text = `${title} ${message}`.toLowerCase();
@@ -31,7 +16,6 @@ const getNotificationMeta = (title = '', message = '') => {
     text.includes('plan')
   ) {
     return {
-      icon: Crown,
       tag: 'VIP PRIVILEGE',
       iconClass: 'notif-icon-vip',
       ctaText: 'Access VIP Privileges',
@@ -46,7 +30,6 @@ const getNotificationMeta = (title = '', message = '') => {
     text.includes('competition')
   ) {
     return {
-      icon: Trophy,
       tag: 'CONTEST & AWARDS',
       iconClass: 'notif-icon-contest',
       ctaText: 'View Contest Results',
@@ -62,7 +45,6 @@ const getNotificationMeta = (title = '', message = '') => {
     text.includes('masterclass')
   ) {
     return {
-      icon: ChefHat,
       tag: "CHEF'S SELECTION",
       iconClass: 'notif-icon-culinary',
       ctaText: 'View Recipe & Notes',
@@ -70,7 +52,6 @@ const getNotificationMeta = (title = '', message = '') => {
     };
   }
   return {
-    icon: Sparkles,
     tag: 'CONCIERGE ALERT',
     iconClass: 'notif-icon-general',
     ctaText: 'View Details',
@@ -107,10 +88,9 @@ const formatNotificationTime = (dateStr) => {
 };
 
 /**
- * Dynamic Architectural Navigation strictly following SRS Section 2.1 matrix:
- * - Guest: Home, Login, Register, Recipes & Tips, Contests, Announcements, Feedback, FAQs
- * - Member: Home, User Profile, Recipes & Tips, My Recipes & Tips, Contests, Announcements, Feedback, FAQs, Logout (Hide Login/Register)
- * - Admin: Home, User Profile, Recipes & Tips, Upload Recipes & Tips, Contests, Announcements, Feedback, FAQs, Admin Dashboard, Logout
+ * Dynamic Architectural Navigation:
+ * - Pure typographic aesthetic (Zero icons across the navigation bar)
+ * - Streamlined Executive layout on Admin pages to prevent horizontal overflow and clutter
  */
 export const Navbar = () => {
   const { user, isAuthenticated, isAdmin, isMember, logout } = useAuth();
@@ -121,6 +101,9 @@ export const Navbar = () => {
   const [notifFilter, setNotifFilter] = useState('all');
   const notifRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -214,12 +197,26 @@ export const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-light luxury-navbar sticky-top">
       <div className="container-fluid px-3 px-md-4 px-xl-5">
-        {/* Brand Logo in EB Garamond */}
+        {/* Brand Logo in EB Garamond with Typographic Monogram */}
         <Link to="/" className="navbar-brand d-flex align-items-center gap-2 text-decoration-none" onClick={handleNavClick}>
-          <div className="luxury-brand-badge">
-            <ChefHat className="luxury-gold-icon" size={20} />
+          <div className="luxury-brand-badge font-monospace fw-bold" style={{ fontSize: '0.8rem', letterSpacing: '0.05em' }}>
+            JT
           </div>
           <span className="navbar-brand-title">James Thew</span>
+          {isAdminPage && (
+            <span
+              className="badge font-monospace text-uppercase ms-1 px-2 py-1"
+              style={{
+                backgroundColor: 'var(--dp-color-field, #1a1a1a)',
+                color: 'var(--dp-color-accent, #b69355)',
+                fontSize: '0.62rem',
+                letterSpacing: '0.12em',
+                borderRadius: 0,
+              }}
+            >
+              Executive Nexus
+            </span>
+          )}
         </Link>
 
         {/* Mobile Toggle Button */}
@@ -236,68 +233,94 @@ export const Navbar = () => {
 
         {/* Navigation Links */}
         <div className={`navbar-collapse ${isNavCollapsed ? 'collapse' : 'show'}`} id="mainNavbar">
-          <ul className="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-1 gap-xl-2" onClick={handleNavClick}>
-            {/* 1. Home Page (Guest, Member, Admin) */}
-            <li className="nav-item">
-              <NavLink to="/" className="nav-link" end>
-                Home
-              </NavLink>
-            </li>
-
-            {/* 2. Recipes & Tips (Guest, Member, Admin) */}
-            <li className="nav-item">
-              <NavLink to="/recipes" className="nav-link">
-                Recipes & Tips
-              </NavLink>
-            </li>
-
-            {/* 3. My Recipes & Tips / Upload (Member or Admin) */}
-            {isAuthenticated && (
+          {isAdminPage ? (
+            /* Streamlined Executive Navigation when viewing Admin pages */
+            <ul className="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-2 gap-xl-3" onClick={handleNavClick}>
               <li className="nav-item">
-                <NavLink to="/my-recipes" className="nav-link">
-                  {isAdmin ? 'Upload & Manage Recipes' : 'My Recipes & Tips'}
+                <NavLink to="/admin" className="nav-link nav-link-admin" end>
+                  Admin Dashboard
                 </NavLink>
               </li>
-            )}
-
-            {/* 4. Contests (Guest, Member, Admin) */}
-            <li className="nav-item">
-              <NavLink to="/contests" className="nav-link">
-                Contests
-              </NavLink>
-            </li>
-
-            {/* 5. Announcements (Guest, Member, Admin) */}
-            <li className="nav-item">
-              <NavLink to="/announcements" className="nav-link">
-                Announcements
-              </NavLink>
-            </li>
-
-            {/* 6. Feedback (Guest, Member, Admin) */}
-            <li className="nav-item">
-              <NavLink to="/feedback" className="nav-link">
-                Feedback
-              </NavLink>
-            </li>
-
-            {/* 7. FAQs (Guest, Member, Admin) */}
-            <li className="nav-item">
-              <NavLink to="/faqs" className="nav-link">
-                FAQ's
-              </NavLink>
-            </li>
-
-            {/* 8. Admin Dashboard (Admin only) */}
-            {isAdmin && (
               <li className="nav-item">
-                <NavLink to="/admin" className="nav-link nav-link-admin d-flex align-items-center gap-1">
-                  <Shield size={14} />
-                  <span>Admin Dashboard</span>
+                <NavLink to="/" className="nav-link">
+                  View Public Site
                 </NavLink>
               </li>
-            )}
-          </ul>
+              <li className="nav-item">
+                <NavLink to="/recipes" className="nav-link">
+                  Recipes & Tips
+                </NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to="/contests" className="nav-link">
+                  Contests
+                </NavLink>
+              </li>
+            </ul>
+          ) : (
+            /* Standard Architectural Navigation for Public & Member Pages */
+            <ul className="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-1 gap-xl-2" onClick={handleNavClick}>
+              {/* 1. Home Page (Guest, Member, Admin) */}
+              <li className="nav-item">
+                <NavLink to="/" className="nav-link" end>
+                  Home
+                </NavLink>
+              </li>
+
+              {/* 2. Recipes & Tips (Guest, Member, Admin) */}
+              <li className="nav-item">
+                <NavLink to="/recipes" className="nav-link">
+                  Recipes & Tips
+                </NavLink>
+              </li>
+
+              {/* 3. My Recipes & Tips (Member only; Admin manages recipes via Admin Dashboard) */}
+              {isAuthenticated && !isAdmin && (
+                <li className="nav-item">
+                  <NavLink to="/my-recipes" className="nav-link">
+                    My Recipes & Tips
+                  </NavLink>
+                </li>
+              )}
+
+              {/* 4. Contests (Guest, Member, Admin) */}
+              <li className="nav-item">
+                <NavLink to="/contests" className="nav-link">
+                  Contests
+                </NavLink>
+              </li>
+
+              {/* 5. Announcements (Guest, Member, Admin) */}
+              <li className="nav-item">
+                <NavLink to="/announcements" className="nav-link">
+                  Announcements
+                </NavLink>
+              </li>
+
+              {/* 6. Feedback (Guest, Member, Admin) */}
+              <li className="nav-item">
+                <NavLink to="/feedback" className="nav-link">
+                  Feedback
+                </NavLink>
+              </li>
+
+              {/* 7. FAQs (Guest, Member, Admin) */}
+              <li className="nav-item">
+                <NavLink to="/faqs" className="nav-link">
+                  FAQ's
+                </NavLink>
+              </li>
+
+              {/* 8. Admin Dashboard (Admin only) */}
+              {isAdmin && (
+                <li className="nav-item">
+                  <NavLink to="/admin" className="nav-link nav-link-admin">
+                    Admin Dashboard
+                  </NavLink>
+                </li>
+              )}
+            </ul>
+          )}
 
           {/* Right Action / Auth Buttons */}
           <div className="luxury-navbar-actions d-flex align-items-center gap-2 gap-xl-3">
@@ -312,7 +335,7 @@ export const Navbar = () => {
               </div>
             ) : (
               <div className="d-flex align-items-center gap-2 gap-xl-3 w-100 justify-content-between justify-content-lg-end">
-                {/* In-App Notification Bell */}
+                {/* In-App Notification Trigger (Zero Icons, Pure Typography) */}
                 <div className="position-relative" ref={notifRef}>
                   <button
                     type="button"
@@ -321,8 +344,11 @@ export const Navbar = () => {
                     aria-label="Notifications"
                     aria-expanded={showNotifDropdown}
                     title="In-App Notifications"
+                    style={{ width: 'auto', minWidth: '42px', padding: '0.35rem 0.65rem' }}
                   >
-                    <Bell size={18} className="luxury-gold-icon" />
+                    <span className="font-monospace fw-semibold" style={{ fontSize: '0.72rem', letterSpacing: '0.08em' }}>
+                      NOTICES
+                    </span>
                     {unreadCount > 0 && (
                       <span
                         className="luxury-notif-badge position-absolute top-0 start-100 translate-middle"
@@ -373,8 +399,7 @@ export const Navbar = () => {
                                   className="btn luxury-notif-mark-all"
                                   onClick={handleMarkAllAsRead}
                                 >
-                                  <CheckCheck size={13} className="me-1" />
-                                  <span>Mark all as read</span>
+                                  Mark all as read
                                 </button>
                               )}
                               <button
@@ -384,7 +409,7 @@ export const Navbar = () => {
                                 aria-label="Close notifications"
                                 title="Close (Esc)"
                               >
-                                <X size={16} />
+                                ✕
                               </button>
                             </div>
                           </div>
@@ -421,8 +446,8 @@ export const Navbar = () => {
                             : notifications
                           ).length === 0 ? (
                             <div className="luxury-notif-empty">
-                              <div className="luxury-notif-empty-icon">
-                                <ChefHat size={26} />
+                              <div className="luxury-notif-empty-icon font-monospace fw-bold" style={{ fontSize: '0.75rem', letterSpacing: '0.1em' }}>
+                                [ATELIER CLEAR]
                               </div>
                               <h4 className="luxury-notif-empty-title">
                                 {notifFilter === 'unread' ? 'No Unread Alerts' : 'All Caught Up'}
@@ -446,7 +471,6 @@ export const Navbar = () => {
                               : notifications
                             ).map((n) => {
                               const meta = getNotificationMeta(n.title, n.message);
-                              const Icon = meta.icon;
                               return (
                                 <div
                                   key={n.notificationId}
@@ -462,9 +486,9 @@ export const Navbar = () => {
                                   }}
                                 >
                                   <div className="d-flex align-items-start gap-3">
-                                    {/* Category Icon Emblem */}
-                                    <div className={`luxury-notif-avatar ${meta.iconClass}`}>
-                                      <Icon size={16} />
+                                    {/* Category Emblem */}
+                                    <div className={`luxury-notif-avatar font-monospace fw-bold ${meta.iconClass}`} style={{ fontSize: '0.65rem' }}>
+                                      {meta.tag.split(' ')[0].substring(0, 4)}
                                     </div>
 
                                     {/* Body Content */}
@@ -475,37 +499,35 @@ export const Navbar = () => {
                                           className="d-flex align-items-center gap-1 luxury-notif-time"
                                           title={new Date(n.createdAt).toLocaleString()}
                                         >
-                                          <Clock size={11} />
                                           <span>{formatNotificationTime(n.createdAt)}</span>
                                         </div>
                                       </div>
 
-                                      <h4 className="luxury-notif-title mb-1">
+                                      <h5 className="luxury-notif-item-title mb-1">
                                         {n.title}
-                                      </h4>
-
-                                      <p className="luxury-notif-message mb-0">
+                                      </h5>
+                                      <p className="luxury-notif-item-message mb-1">
                                         {n.message}
                                       </p>
 
+                                      {/* Perk subtitle */}
                                       {meta.perkText && (
-                                        <div className="luxury-notif-perk-pill">
-                                          <span>{meta.perkText}</span>
-                                        </div>
+                                        <p className="luxury-notif-perk">{meta.perkText}</p>
                                       )}
 
+                                      {/* Action link */}
                                       {n.targetUrl && (
-                                        <div className="luxury-notif-action-row">
-                                          <span className="luxury-notif-cta-btn">
+                                        <div className="luxury-notif-action d-flex align-items-center justify-content-between mt-2 pt-2 border-top border-light">
+                                          <span className="luxury-notif-action-link d-inline-flex align-items-center gap-1">
                                             <span>{meta.ctaText || 'View details'}</span>
-                                            <ArrowRight size={12} className="luxury-notif-arrow" />
+                                            <span>&rarr;</span>
                                           </span>
                                           <span className="luxury-notif-tap-hint">Tap to explore</span>
                                         </div>
                                       )}
                                     </div>
 
-                                    {/* Unread Glowing Dot */}
+                                    {/* Unread Indicator Dot */}
                                     {!n.isRead && (
                                       <div className="luxury-notif-dot-wrapper">
                                         <span className="luxury-notif-dot" title="Unread"></span>
@@ -526,7 +548,7 @@ export const Navbar = () => {
                             onClick={() => setShowNotifDropdown(false)}
                           >
                             <span>View Announcements</span>
-                            <ArrowRight size={12} />
+                            <span>&rarr;</span>
                           </Link>
                           <span className="luxury-notif-footer-brand">Chef James Thew</span>
                         </div>
@@ -570,13 +592,12 @@ export const Navbar = () => {
                   )}
                 </Link>
 
-                {/* Logout Button */}
+                {/* Logout Button (Pure Typography, Zero Icons) */}
                 <button
                   onClick={handleLogout}
                   className="btn luxury-logout-btn"
                   title="Log out"
                 >
-                  <LogOut size={14} />
                   <span>Logout</span>
                 </button>
               </div>
@@ -587,3 +608,5 @@ export const Navbar = () => {
     </nav>
   );
 };
+
+export default Navbar;

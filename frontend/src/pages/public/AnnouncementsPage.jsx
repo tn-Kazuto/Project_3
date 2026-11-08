@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { announcementApi } from '../../services/api';
-import { Award, Trophy, Calendar, User, Sparkles, AlertCircle, Megaphone } from 'lucide-react';
 
 export const AnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -36,9 +35,6 @@ export const AnnouncementsPage = () => {
           border: '1px solid var(--dp-color-panel-line)',
         }}
       >
-        <div className="d-inline-flex align-items-center justify-content-center p-3 mb-3 border" style={{ borderColor: 'var(--dp-color-accent)' }}>
-          <Award size={36} className="luxury-gold-icon" />
-        </div>
         <div className="roman-numeral mb-2">V &middot; HALL OF FAME</div>
         <h1 className="brand-font display-5 mb-3 text-dark">Winner Announcements & News</h1>
         <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
@@ -47,8 +43,7 @@ export const AnnouncementsPage = () => {
       </div>
 
       {error && (
-        <div className="alert alert-danger d-flex align-items-center gap-2 mb-4" style={{ borderRadius: 0 }}>
-          <AlertCircle size={20} />
+        <div className="alert alert-danger mb-4" style={{ borderRadius: 0 }}>
           <span>{error}</span>
         </div>
       )}
@@ -68,7 +63,6 @@ export const AnnouncementsPage = () => {
             border: '1px solid var(--dp-color-rule)',
           }}
         >
-          <Megaphone size={48} className="luxury-gold-icon mb-3 opacity-50" />
           <h4 className="brand-font mb-2">No Announcements Published Yet</h4>
           <p className="text-muted mb-0">
             Contest results and official winner declarations by Chef James Thew will appear here.
@@ -100,8 +94,7 @@ export const AnnouncementsPage = () => {
                     >
                       {hasWinner ? '🏆 Contest Winner Announcement' : '📢 Official News'}
                     </span>
-                    <span className="small text-muted d-flex align-items-center gap-1 font-monospace" style={{ fontSize: '0.75rem' }}>
-                      <Calendar size={14} className="luxury-gold-icon" />
+                    <span className="small text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
                       {new Date(a.publishedAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -120,13 +113,14 @@ export const AnnouncementsPage = () => {
                       }}
                     >
                       <div
-                        className="p-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                        className="p-2 d-flex align-items-center justify-content-center flex-shrink-0 font-monospace fw-bold"
                         style={{
                           backgroundColor: 'var(--dp-color-field)',
                           color: 'var(--dp-color-accent)',
+                          minWidth: '36px',
                         }}
                       >
-                        <Trophy size={24} />
+                        [1st]
                       </div>
                       <div>
                         <div className="roman-numeral mb-0" style={{ fontSize: '0.8rem' }}>HONORED WINNER</div>
@@ -155,8 +149,7 @@ export const AnnouncementsPage = () => {
                     className="border-top pt-3 mt-auto d-flex align-items-center justify-content-between text-muted small"
                     style={{ borderColor: 'var(--dp-color-rule)' }}
                   >
-                    <span className="d-flex align-items-center gap-1">
-                      <User size={14} className="luxury-gold-icon" />
+                    <span>
                       Published by: <strong>{a.authorName || 'Chef James Thew'}</strong>
                     </span>
                     <span
@@ -168,7 +161,7 @@ export const AnnouncementsPage = () => {
                         borderRadius: 0,
                       }}
                     >
-                      <Sparkles size={12} className="me-1 inline luxury-gold-icon" /> Verified Announcement
+                      Verified Announcement
                     </span>
                   </div>
                 </div>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChefHat, MapPin, Clock } from 'lucide-react';
 
 export const Footer = () => {
   return (
@@ -10,7 +9,7 @@ export const Footer = () => {
           {/* Brand & Chef Bio */}
           <div className="col-lg-4 col-md-6">
             <div className="d-flex align-items-center gap-2 mb-3">
-              <ChefHat size={30} className="luxury-gold-icon" />
+              <span className="font-monospace fw-bold text-uppercase" style={{ letterSpacing: '0.15em', color: 'var(--dp-color-accent, #b69355)', fontSize: '0.85rem' }}>[ATELIER]</span>
               <h4 className="m-0 brand-font">Chef James Thew</h4>
             </div>
             <p className="small footer-text mb-3">
@@ -19,11 +18,11 @@ export const Footer = () => {
             </p>
             <div className="d-flex flex-column gap-2 small footer-text">
               <div className="d-flex align-items-center gap-2">
-                <MapPin size={16} className="luxury-gold-icon flex-shrink-0" />
+                <span className="font-monospace text-muted" style={{ fontSize: '0.75rem' }}>STUDIO:</span>
                 <span>The Grand Palace Culinary Studio, Suite 500</span>
               </div>
               <div className="d-flex align-items-center gap-2">
-                <Clock size={16} className="luxury-gold-icon flex-shrink-0" />
+                <span className="font-monospace text-muted" style={{ fontSize: '0.75rem' }}>HOURS:</span>
                 <span>Weekend Cooking Classes: Sat & Sun (10 AM - 3 PM)</span>
               </div>
             </div>
@@ -74,3 +73,5 @@ export const Footer = () => {
     </footer>
   );
 };
+
+export default Footer;

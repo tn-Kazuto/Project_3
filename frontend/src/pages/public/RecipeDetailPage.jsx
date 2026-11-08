@@ -2,20 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { recipeApi, feedbackApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { ChefHat, Calendar, Lock, CheckCircle2, MessageSquare, Send, ArrowLeft, Printer, Share2, Copy, Check, Video, Mic, Radio, FileText, Star, Camera } from 'lucide-react';
-
-const FacebookIcon = ({ size = 14, className = '' }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className={className}
-    style={{ display: 'inline-block', verticalAlign: 'middle' }}
-  >
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-  </svg>
-);
 
 const toRoman = (num) => {
   const map = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
@@ -200,8 +186,7 @@ export const RecipeDetailPage = () => {
             borderRadius: 0,
           }}
         >
-          <Lock size={36} className="luxury-gold-icon mb-3" />
-          <div className="roman-numeral mb-2" style={{ color: 'var(--dp-color-accent)' }}>
+          <div className="roman-numeral mb-2" style={{ color: 'var(--dp-color-accent)', fontSize: '1.1rem' }}>
             RESERVED ARCHIVE
           </div>
           <h3 className="brand-font mb-2 text-white" style={{ fontSize: '1.75rem' }}>
@@ -270,8 +255,7 @@ export const RecipeDetailPage = () => {
           className="text-decoration-none small d-inline-flex align-items-center gap-2 gold-underline text-uppercase fw-semibold"
           style={{ letterSpacing: '0.14em', color: 'var(--dp-color-ink-2)' }}
         >
-          <ArrowLeft size={16} />
-          Back to Culinary Library
+          <span>&larr; Back to Culinary Library</span>
         </Link>
         <div className="d-flex flex-wrap align-items-center gap-2">
           {/* Facebook Share Button */}
@@ -289,7 +273,6 @@ export const RecipeDetailPage = () => {
             }}
             title="Share this recipe to Facebook"
           >
-            <FacebookIcon size={14} />
             <span>Share on Facebook</span>
           </button>
 
@@ -307,7 +290,6 @@ export const RecipeDetailPage = () => {
             }}
             title="Copy recipe link to clipboard"
           >
-            {copiedLink ? <Check size={14} className="text-success" /> : <Copy size={14} className="luxury-gold-icon" />}
             <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
           </button>
 
@@ -324,7 +306,6 @@ export const RecipeDetailPage = () => {
               letterSpacing: '0.12em',
             }}
           >
-            <Printer size={15} className="luxury-gold-icon" />
             <span>Print Culinary Card</span>
           </button>
         </div>
@@ -355,31 +336,28 @@ export const RecipeDetailPage = () => {
             </span>
             {recipe.contentType === 'VIDEO' && (
               <span className="badge font-monospace text-uppercase" style={{ backgroundColor: 'var(--dp-color-accent)', color: '#ffffff', borderRadius: 0 }}>
-                <Video size={11} className="me-1 inline" /> Video Masterclass
+                Video Masterclass
               </span>
             )}
             {recipe.contentType === 'TALKSHOW' && (
               <span className="badge font-monospace text-uppercase" style={{ backgroundColor: '#2c3e50', color: '#ffffff', borderRadius: 0 }}>
-                <Mic size={11} className="me-1 inline" /> Culinary Talkshow
+                Culinary Talkshow
               </span>
             )}
             {recipe.contentType === 'LIVESHOW' && (
               <span className="badge font-monospace text-uppercase" style={{ backgroundColor: '#c0392b', color: '#ffffff', borderRadius: 0 }}>
-                <Radio size={11} className="me-1 inline" /> Live Show
+                Live Show
               </span>
             )}
           </div>
           <div className="small d-flex flex-wrap align-items-center gap-3 text-muted font-monospace">
-            <span className="d-flex align-items-center gap-1">
-              <ChefHat size={16} className="luxury-gold-icon" />
+            <span>
               By {recipe.authorName}
             </span>
-            <span className="d-flex align-items-center gap-1">
-              <Calendar size={16} />
+            <span>
               {new Date(recipe.createdAt).toLocaleDateString()}
             </span>
-            <span className="d-flex align-items-center gap-1">
-              <Share2 size={15} className="luxury-gold-icon" />
+            <span>
               {recipe.shareCount || 0} Shares
             </span>
           </div>
@@ -459,7 +437,7 @@ export const RecipeDetailPage = () => {
                       fontSize: '0.92rem',
                     }}
                   >
-                    <CheckCircle2 size={16} className="luxury-gold-icon flex-shrink-0 mt-1" />
+                    <span className="font-monospace text-muted mt-1">&bull;</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -520,7 +498,6 @@ export const RecipeDetailPage = () => {
       >
         <div className="roman-numeral mb-1">CRITIQUE & INQUIRIES</div>
         <h3 className="brand-font mb-4 text-dark d-flex align-items-center gap-2">
-          <MessageSquare size={22} className="luxury-gold-icon" />
           Recipe Feedback & Reviews ({feedbacks.length})
         </h3>
 
@@ -584,23 +561,24 @@ export const RecipeDetailPage = () => {
                   <button
                     key={star}
                     type="button"
-                    className="btn p-0 border-0 bg-transparent"
-                    style={{ cursor: 'pointer', lineHeight: 1 }}
+                    className="btn p-0 border-0 bg-transparent font-monospace"
+                    style={{
+                      cursor: 'pointer',
+                      fontSize: '1.25rem',
+                      lineHeight: 1,
+                      color: (hoverRating || rating) >= star ? '#b69355' : '#8c8c8c',
+                    }}
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
                     aria-label={`${star} star`}
                   >
-                    <Star
-                      size={18}
-                      fill={(hoverRating || rating) >= star ? '#b69355' : 'none'}
-                      stroke={(hoverRating || rating) >= star ? '#b69355' : '#8c8c8c'}
-                    />
+                    ★
                   </button>
                 ))}
               </div>
               <span className="small text-muted font-monospace ms-1" style={{ fontSize: '0.8rem' }}>
-                {rating ? `(${rating} / 5 ${rating === 5 ? '★ Exceptional' : rating === 4 ? '★ Very Good' : rating === 3 ? '★ Good' : '★ Average'})` : '(Optional Rating)'}
+                {rating ? `(${rating} / 5 ${rating === 5 ? 'Exceptional' : rating === 4 ? 'Very Good' : rating === 3 ? 'Good' : 'Average'})` : '(Optional Rating)'}
               </span>
             </div>
 
@@ -618,7 +596,6 @@ export const RecipeDetailPage = () => {
             {/* Practiced Dish Media Attachment (SRS v2.0) */}
             <div className="mb-3">
               <label className="form-label small text-muted font-monospace text-uppercase mb-1" style={{ fontSize: '0.75rem' }}>
-                <Camera size={13} className="me-1 inline luxury-gold-icon" />
                 Attach Practiced Dish Photo / Video URL (Optional)
               </label>
               <input
@@ -656,14 +633,7 @@ export const RecipeDetailPage = () => {
                 borderRadius: 0,
               }}
             >
-              {submittingFeedback ? (
-                'Submitting...'
-              ) : (
-                <>
-                  <Send size={14} />
-                  <span>Post Feedback</span>
-                </>
-              )}
+              {submittingFeedback ? 'Submitting...' : 'Post Feedback'}
             </button>
           </form>
         </div>
@@ -683,9 +653,9 @@ export const RecipeDetailPage = () => {
               <div className="d-flex align-items-center gap-3">
                 <div className="brand-font display-6 fw-bold text-dark m-0">{avg || '5.0'}</div>
                 <div>
-                  <div className="d-flex align-items-center gap-1">
+                  <div className="d-flex align-items-center gap-1 font-monospace" style={{ color: '#b69355' }}>
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} size={16} fill={s <= Math.round(Number(avg || 5)) ? '#b69355' : 'none'} stroke="#b69355" />
+                      <span key={s} style={{ opacity: s <= Math.round(Number(avg || 5)) ? 1 : 0.3 }}>★</span>
                     ))}
                   </div>
                   <div className="small font-monospace text-muted mt-1" style={{ fontSize: '0.75rem' }}>
@@ -716,9 +686,9 @@ export const RecipeDetailPage = () => {
                   <div className="d-flex align-items-center gap-2">
                     <span className="fw-semibold text-dark small">{f.senderName}</span>
                     {f.rating > 0 && (
-                      <div className="d-flex align-items-center gap-0">
+                      <div className="d-flex align-items-center gap-1 font-monospace small" style={{ color: '#b69355' }}>
                         {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} size={12} fill={s <= f.rating ? '#b69355' : 'none'} stroke="#b69355" />
+                          <span key={s} style={{ opacity: s <= f.rating ? 1 : 0.3 }}>★</span>
                         ))}
                       </div>
                     )}
@@ -731,7 +701,6 @@ export const RecipeDetailPage = () => {
                 {f.mediaUrl && (
                   <div className="mt-3 pt-2 border-top" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
                     <div className="small font-monospace text-uppercase text-muted mb-1" style={{ fontSize: '0.7rem' }}>
-                      <Camera size={12} className="luxury-gold-icon me-1 inline" />
                       Practiced Dish Creation:
                     </div>
                     <div style={{ maxWidth: '280px', border: '1px solid var(--dp-color-accent)', backgroundColor: '#000' }}>

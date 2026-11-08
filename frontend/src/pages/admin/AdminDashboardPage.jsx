@@ -7,30 +7,6 @@ import {
   announcementApi,
   feedbackApi,
 } from '../../services/api';
-import {
-  LayoutDashboard,
-  BookOpen,
-  Lightbulb,
-  Trophy,
-  Megaphone,
-  MessageSquare,
-  Plus,
-  Trash2,
-  CheckCircle2,
-  AlertCircle,
-  Award,
-  Calendar,
-  Lock,
-  Unlock,
-  Eye,
-  RefreshCw,
-  Send,
-  ShieldCheck,
-  Sparkles,
-  Share2,
-  Star,
-  Camera,
-} from 'lucide-react';
 
 export const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -392,7 +368,7 @@ export const AdminDashboardPage = () => {
               border: '1px solid var(--dp-color-accent)',
             }}
           >
-            👑 Master Chef Administration
+            Master Chef Administration
           </span>
           <h1 className="brand-font display-6 fw-bold mb-1 text-dark">Chef James Thew Executive Dashboard</h1>
           <p className="text-muted mb-0 small">Complete platform management for recipes, contests, announcements, and feedbacks.</p>
@@ -403,24 +379,23 @@ export const AdminDashboardPage = () => {
             style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)', letterSpacing: '0.12em' }}
             onClick={loadAllDashboardData}
           >
-            <RefreshCw size={14} className="luxury-gold-icon" /> Refresh
+            Refresh
           </button>
         </div>
       </div>
 
       {statusMessage.text && (
         <div className={`alert alert-${statusMessage.type} alert-dismissible fade show d-flex align-items-center gap-2`} role="alert" style={{ borderRadius: 0 }}>
-          {statusMessage.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{statusMessage.text}</span>
           <button type="button" className="btn-close" onClick={() => setStatusMessage({ type: '', text: '' })}></button>
         </div>
       )}
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs (Pure Typography) */}
       <ul className="nav nav-pills mb-4 gap-2 border-bottom pb-3" style={{ borderColor: 'var(--dp-color-rule)' }}>
         <li className="nav-item">
           <button
-            className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'overview' ? 'active' : ''}`}
+            className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'overview' ? 'var(--dp-color-field)' : 'transparent',
               color: activeTab === 'overview' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -430,12 +405,12 @@ export const AdminDashboardPage = () => {
             }}
             onClick={() => { setActiveTab('overview'); setSelectedContestForEntries(null); }}
           >
-            <LayoutDashboard size={16} /> Overview
+            Overview
           </button>
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'recipes' ? 'active' : ''}`}
+            className={`nav-link ${activeTab === 'recipes' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'recipes' ? 'var(--dp-color-field)' : 'transparent',
               color: activeTab === 'recipes' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -445,12 +420,12 @@ export const AdminDashboardPage = () => {
             }}
             onClick={() => { setActiveTab('recipes'); setSelectedContestForEntries(null); }}
           >
-            <BookOpen size={16} /> Recipes ({recipes.length})
+            Recipes ({recipes.length})
           </button>
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'tips' ? 'active' : ''}`}
+            className={`nav-link ${activeTab === 'tips' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'tips' ? 'var(--dp-color-field)' : 'transparent',
               color: activeTab === 'tips' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -460,12 +435,12 @@ export const AdminDashboardPage = () => {
             }}
             onClick={() => { setActiveTab('tips'); setSelectedContestForEntries(null); }}
           >
-            <Lightbulb size={16} /> Cooking Tips ({tips.length})
+            Cooking Tips ({tips.length})
           </button>
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'contests' ? 'active' : ''}`}
+            className={`nav-link ${activeTab === 'contests' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'contests' ? 'var(--dp-color-field)' : 'transparent',
               color: activeTab === 'contests' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -475,12 +450,12 @@ export const AdminDashboardPage = () => {
             }}
             onClick={() => { setActiveTab('contests'); setSelectedContestForEntries(null); }}
           >
-            <Trophy size={16} /> Contests ({contests.length})
+            Contests ({contests.length})
           </button>
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'announcements' ? 'active' : ''}`}
+            className={`nav-link ${activeTab === 'announcements' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'announcements' ? 'var(--dp-color-field)' : 'transparent',
               color: activeTab === 'announcements' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -490,12 +465,12 @@ export const AdminDashboardPage = () => {
             }}
             onClick={() => { setActiveTab('announcements'); setSelectedContestForEntries(null); }}
           >
-            <Megaphone size={16} /> Announcements ({announcements.length})
+            Announcements ({announcements.length})
           </button>
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'feedback' ? 'active' : ''}`}
+            className={`nav-link ${activeTab === 'feedback' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'feedback' ? 'var(--dp-color-field)' : 'transparent',
               color: activeTab === 'feedback' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -505,7 +480,7 @@ export const AdminDashboardPage = () => {
             }}
             onClick={() => { setActiveTab('feedback'); setSelectedContestForEntries(null); }}
           >
-            <MessageSquare size={16} /> Feedbacks ({feedbacks.length})
+            Feedbacks ({feedbacks.length})
           </button>
         </li>
       </ul>
@@ -523,7 +498,7 @@ export const AdminDashboardPage = () => {
             >
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="text-uppercase small fw-semibold font-monospace" style={{ letterSpacing: '0.12em' }}>Total Recipes</span>
-                <BookOpen size={20} className="luxury-gold-icon" />
+                <span className="font-monospace small text-muted">I.</span>
               </div>
               <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{recipes.length}</h2>
               <div className="small font-monospace text-muted">
@@ -543,7 +518,7 @@ export const AdminDashboardPage = () => {
             >
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="text-uppercase small fw-semibold font-monospace" style={{ letterSpacing: '0.12em' }}>Cooking Tips</span>
-                <Lightbulb size={20} className="luxury-gold-icon" />
+                <span className="font-monospace small text-muted">II.</span>
               </div>
               <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{tips.length}</h2>
               <div className="small font-monospace text-muted">
@@ -567,7 +542,7 @@ export const AdminDashboardPage = () => {
                 <span className="text-uppercase small fw-semibold font-monospace" style={{ letterSpacing: '0.12em', color: 'var(--dp-color-accent)' }}>
                   Culinary Contests
                 </span>
-                <Trophy size={20} className="luxury-gold-icon" />
+                <span className="font-monospace small" style={{ color: 'var(--dp-color-accent)' }}>III.</span>
               </div>
               <h2 className="brand-font display-5 fw-bold mb-1 text-white">{contests.length}</h2>
               <div className="small font-monospace" style={{ color: 'var(--dp-color-on-field-2)' }}>
@@ -587,7 +562,7 @@ export const AdminDashboardPage = () => {
             >
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="text-uppercase small fw-semibold font-monospace" style={{ letterSpacing: '0.12em' }}>Feedbacks & Reviews</span>
-                <MessageSquare size={20} className="luxury-gold-icon" />
+                <span className="font-monospace small text-muted">IV.</span>
               </div>
               <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{feedbacks.length}</h2>
               <div className="small font-monospace text-muted">
@@ -619,7 +594,7 @@ export const AdminDashboardPage = () => {
                   }}
                   onClick={() => setShowRecipeModal(true)}
                 >
-                  <Plus size={16} className="luxury-gold-icon" /> New Recipe
+                  + New Recipe
                 </button>
                 <button
                   className="btn btn-outline-secondary d-flex align-items-center gap-2"
@@ -631,7 +606,7 @@ export const AdminDashboardPage = () => {
                   }}
                   onClick={() => setShowTipModal(true)}
                 >
-                  <Plus size={16} className="luxury-gold-icon" /> New Cooking Tip
+                  + New Cooking Tip
                 </button>
                 <button
                   className="btn btn-warning text-white fw-semibold d-flex align-items-center gap-2"
@@ -643,7 +618,7 @@ export const AdminDashboardPage = () => {
                   }}
                   onClick={() => setShowContestModal(true)}
                 >
-                  <Plus size={16} /> Launch Contest
+                  + Launch Contest
                 </button>
                 <button
                   className="btn btn-outline-dark d-flex align-items-center gap-2"
@@ -654,7 +629,7 @@ export const AdminDashboardPage = () => {
                   }}
                   onClick={() => setShowAnnouncementModal(true)}
                 >
-                  <Plus size={16} className="luxury-gold-icon" /> Publish Announcement
+                  + Publish Announcement
                 </button>
               </div>
             </div>
@@ -670,8 +645,7 @@ export const AdminDashboardPage = () => {
               }}
             >
               <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
-                <div className="d-flex align-items-center gap-2">
-                  <ShieldCheck size={20} className="luxury-gold-icon" />
+                <div>
                   <h5 className="brand-font mb-0 text-dark">Executive Atelier Architecture & System Metrics</h5>
                 </div>
                 <span
@@ -683,7 +657,7 @@ export const AdminDashboardPage = () => {
                     borderRadius: 0,
                   }}
                 >
-                  <Sparkles size={12} className="me-1 inline luxury-gold-icon" /> 100% Operational Integrity
+                  100% Operational Integrity
                 </span>
               </div>
 
@@ -743,7 +717,7 @@ export const AdminDashboardPage = () => {
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 className="fw-bold mb-0">Recipes Catalog Management</h5>
             <button className="btn btn-primary btn-sm d-flex align-items-center gap-1" onClick={() => setShowRecipeModal(true)}>
-              <Plus size={16} /> Add Recipe
+              + Add Recipe
             </button>
           </div>
           <div className="table-responsive">
@@ -770,7 +744,7 @@ export const AdminDashboardPage = () => {
                       </span>
                       {r.shareCount > 0 && (
                         <span className="small text-muted ms-2">
-                          <Share2 size={12} className="inline me-1" />{r.shareCount}
+                          {r.shareCount} shares
                         </span>
                       )}
                     </td>
@@ -787,7 +761,6 @@ export const AdminDashboardPage = () => {
                         title={r.isFree ? 'Set to Members Only' : 'Set to Free Access'}
                         onClick={() => handleToggleRecipeFree(r)}
                       >
-                        {r.isFree ? <Lock size={14} className="me-1 inline" /> : <Unlock size={14} className="me-1 inline" />}
                         {r.isFree ? 'Set Member-only' : 'Set Free'}
                       </button>
                       <button
@@ -795,7 +768,7 @@ export const AdminDashboardPage = () => {
                         title="Delete Recipe"
                         onClick={() => handleDeleteRecipe(r.recipeId, r.title)}
                       >
-                        <Trash2 size={14} />
+                        Delete
                       </button>
                     </td>
                   </tr>
@@ -812,7 +785,7 @@ export const AdminDashboardPage = () => {
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 className="fw-bold mb-0">Cooking Tips Management</h5>
             <button className="btn btn-info text-white btn-sm d-flex align-items-center gap-1" onClick={() => setShowTipModal(true)}>
-              <Plus size={16} /> Add Tip
+              + Add Tip
             </button>
           </div>
           <div className="table-responsive">
@@ -845,7 +818,6 @@ export const AdminDashboardPage = () => {
                         title={t.isFree ? 'Set to Members Only' : 'Set to Free Access'}
                         onClick={() => handleToggleTipFree(t)}
                       >
-                        {t.isFree ? <Lock size={14} className="me-1 inline" /> : <Unlock size={14} className="me-1 inline" />}
                         {t.isFree ? 'Set Member-only' : 'Set Free'}
                       </button>
                       <button
@@ -853,7 +825,7 @@ export const AdminDashboardPage = () => {
                         title="Delete Tip"
                         onClick={() => handleDeleteTip(t.tipId, t.title)}
                       >
-                        <Trash2 size={14} />
+                        Delete
                       </button>
                     </td>
                   </tr>
@@ -918,7 +890,6 @@ export const AdminDashboardPage = () => {
                             </td>
                             <td>
                               <span className="badge bg-light text-dark border font-monospace">
-                                <Award size={12} className="luxury-gold-icon me-1 inline" />
                                 {e.voteCount || 0} votes
                               </span>
                               {contestEntries.length > 0 && e.voteCount > 0 && e.voteCount === Math.max(...contestEntries.map(x => x.voteCount)) && (
@@ -936,8 +907,8 @@ export const AdminDashboardPage = () => {
                             </td>
                             <td>
                               {e.isWinner ? (
-                                <span className="badge bg-warning text-dark fw-bold d-inline-flex align-items-center gap-1">
-                                  <Award size={14} /> Winner
+                                <span className="badge bg-warning text-dark fw-bold">
+                                  Winner
                                 </span>
                               ) : (
                                 <span className="badge bg-light text-muted border">Participant</span>
@@ -946,10 +917,10 @@ export const AdminDashboardPage = () => {
                             <td className="text-end">
                               {!e.isWinner && (
                                 <button
-                                  className="btn btn-sm btn-warning text-dark fw-semibold d-inline-flex align-items-center gap-1"
+                                  className="btn btn-sm btn-warning text-dark fw-semibold"
                                   onClick={() => handleSelectWinner(e)}
                                 >
-                                  <Trophy size={14} /> Select Winner
+                                  Select Winner
                                 </button>
                               )}
                             </td>
@@ -967,7 +938,7 @@ export const AdminDashboardPage = () => {
               <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h5 className="fw-bold mb-0">Culinary Contests Management</h5>
                 <button className="btn btn-warning text-dark fw-semibold btn-sm d-flex align-items-center gap-1" onClick={() => setShowContestModal(true)}>
-                  <Plus size={16} /> Create Contest
+                  + Create Contest
                 </button>
               </div>
               <div className="table-responsive">
@@ -1004,17 +975,17 @@ export const AdminDashboardPage = () => {
                         </td>
                         <td className="text-end">
                           <button
-                            className="btn btn-sm btn-outline-primary me-2 d-inline-flex align-items-center gap-1"
+                            className="btn btn-sm btn-outline-primary me-2"
                             onClick={() => handleViewEntries(c)}
                           >
-                            <Eye size={14} /> View Entries
+                            View Entries
                           </button>
                           <button
                             className="btn btn-sm btn-outline-danger"
                             title="Delete Contest"
                             onClick={() => handleDeleteContest(c.contestId, c.title)}
                           >
-                            <Trash2 size={14} />
+                            Delete
                           </button>
                         </td>
                       </tr>
@@ -1033,7 +1004,7 @@ export const AdminDashboardPage = () => {
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 className="fw-bold mb-0">Announcements Management</h5>
             <button className="btn btn-secondary btn-sm d-flex align-items-center gap-1" onClick={() => setShowAnnouncementModal(true)}>
-              <Plus size={16} /> Publish Announcement
+              + Publish Announcement
             </button>
           </div>
           <div className="table-responsive">
@@ -1054,8 +1025,8 @@ export const AdminDashboardPage = () => {
                     <td>{a.contestTitle || <span className="text-muted">—</span>}</td>
                     <td>
                       {a.winnerName ? (
-                        <span className="badge bg-warning text-dark fw-bold d-inline-flex align-items-center gap-1">
-                          <Trophy size={14} /> {a.winnerName}
+                        <span className="badge bg-warning text-dark fw-bold">
+                          {a.winnerName}
                         </span>
                       ) : (
                         <span className="text-muted">—</span>
@@ -1068,7 +1039,7 @@ export const AdminDashboardPage = () => {
                         title="Delete Announcement"
                         onClick={() => handleDeleteAnnouncement(a.announcementId, a.title)}
                       >
-                        <Trash2 size={14} />
+                        Delete
                       </button>
                     </td>
                   </tr>
@@ -1140,8 +1111,7 @@ export const AdminDashboardPage = () => {
                     <td>
                       {f.rating > 0 ? (
                         <div className="d-flex align-items-center gap-1 font-monospace small" style={{ color: '#b69355' }}>
-                          <span>{f.rating}★</span>
-                          <span className="small text-muted">({f.rating}/5)</span>
+                          <span>{f.rating} / 5</span>
                         </div>
                       ) : (
                         <span className="text-muted small">-</span>
@@ -1150,8 +1120,7 @@ export const AdminDashboardPage = () => {
                     <td style={{ maxWidth: '300px', whiteSpace: 'pre-line' }}>{f.comment}</td>
                     <td>
                       {f.mediaUrl ? (
-                        <a href={f.mediaUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" style={{ fontSize: '0.75rem' }}>
-                          <Camera size={12} className="luxury-gold-icon" />
+                        <a href={f.mediaUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-secondary" style={{ fontSize: '0.75rem' }}>
                           <span>View Media</span>
                         </a>
                       ) : (
@@ -1166,7 +1135,7 @@ export const AdminDashboardPage = () => {
                         title="Delete feedback"
                         aria-label="Delete feedback"
                       >
-                        <Trash2 size={14} />
+                        Delete
                       </button>
                     </td>
                   </tr>

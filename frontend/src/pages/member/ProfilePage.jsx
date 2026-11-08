@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { authApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Phone, Calendar, Shield, CreditCard, KeyRound, CheckCircle2, AlertCircle, Save, Clock, X, Sparkles } from 'lucide-react';
 
 export const ProfilePage = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -198,14 +197,15 @@ export const ProfilePage = () => {
       {/* Page Title & Header */}
       <div className="d-flex align-items-center gap-3 mb-5 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
         <div
-          className="p-3 d-flex align-items-center justify-content-center"
+          className="p-3 d-flex align-items-center justify-content-center font-monospace fw-bold"
           style={{
             backgroundColor: 'var(--dp-color-field)',
             color: 'var(--dp-color-accent)',
             border: '1px solid var(--dp-color-accent)',
+            minWidth: '48px',
           }}
         >
-          <User size={30} />
+          [VIP]
         </div>
         <div>
           <div className="roman-numeral mb-0" style={{ fontSize: '0.9rem' }}>III &middot; CULINARY DOSSIER</div>
@@ -215,8 +215,7 @@ export const ProfilePage = () => {
       </div>
 
       {error && (
-        <div className="alert alert-danger d-flex align-items-center gap-2 mb-4" style={{ borderRadius: 0 }}>
-          <AlertCircle size={20} />
+        <div className="alert alert-danger mb-4" style={{ borderRadius: 0 }}>
           <span>{error}</span>
         </div>
       )}
@@ -312,7 +311,7 @@ export const ProfilePage = () => {
                     letterSpacing: '0.12em',
                   }}
                 >
-                  <CreditCard size={15} className="me-2 inline" /> Renew or Upgrade Pass
+                  Renew or Upgrade Pass
                 </button>
               )}
             </div>
@@ -327,12 +326,12 @@ export const ProfilePage = () => {
             >
               <h5 className="brand-font mb-3 text-dark">Contact Information</h5>
               <div className="d-flex flex-column gap-3 small">
-                <div className="d-flex align-items-center gap-2">
-                  <Mail size={16} className="luxury-gold-icon flex-shrink-0" />
+                <div className="d-flex align-items-center justify-content-between">
+                  <span className="small text-muted font-monospace">EMAIL:</span>
                   <span className="text-dark font-monospace">{profile.email}</span>
                 </div>
-                <div className="d-flex align-items-center gap-2">
-                  <Phone size={16} className="luxury-gold-icon flex-shrink-0" />
+                <div className="d-flex align-items-center justify-content-between">
+                  <span className="small text-muted font-monospace">TEL:</span>
                   <span className="text-dark font-monospace">{profile.phone || 'No phone registered'}</span>
                 </div>
               </div>
@@ -353,14 +352,12 @@ export const ProfilePage = () => {
               <p className="small text-muted mb-4">Update your display name and contact phone number.</p>
 
               {profileSuccess && (
-                <div className="alert alert-success d-flex align-items-center gap-2 small py-2 mb-3" style={{ borderRadius: 0 }}>
-                  <CheckCircle2 size={16} />
+                <div className="alert alert-success small py-2 mb-3" style={{ borderRadius: 0 }}>
                   <span>{profileSuccess}</span>
                 </div>
               )}
               {profileError && (
-                <div className="alert alert-danger d-flex align-items-center gap-2 small py-2 mb-3" style={{ borderRadius: 0 }}>
-                  <AlertCircle size={16} />
+                <div className="alert alert-danger small py-2 mb-3" style={{ borderRadius: 0 }}>
                   <span>{profileError}</span>
                 </div>
               )}
@@ -371,7 +368,7 @@ export const ProfilePage = () => {
                   <input
                     type="text"
                     className="form-control"
-                    style={{ borderColor: 'var(--dp-color-rule)' }}
+                    style={{ borderColor: 'var(--dp-color-rule)', borderRadius: 0 }}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
@@ -383,7 +380,7 @@ export const ProfilePage = () => {
                   <input
                     type="tel"
                     className="form-control"
-                    style={{ borderColor: 'var(--dp-color-rule)' }}
+                    style={{ borderColor: 'var(--dp-color-rule)', borderRadius: 0 }}
                     placeholder="+1 (555) 000-0000"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -393,7 +390,7 @@ export const ProfilePage = () => {
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="btn btn-primary px-4 fw-semibold d-inline-flex align-items-center gap-2"
+                  className="btn btn-primary px-4 fw-semibold"
                   style={{
                     backgroundColor: 'var(--dp-color-field)',
                     color: 'var(--dp-color-on-field)',
@@ -401,7 +398,6 @@ export const ProfilePage = () => {
                     borderRadius: 0,
                   }}
                 >
-                  <Save size={16} />
                   <span>{savingProfile ? 'Saving...' : 'Save Profile Changes'}</span>
                 </button>
               </form>
@@ -419,14 +415,12 @@ export const ProfilePage = () => {
               <p className="small text-muted mb-4">Update your password to keep your culinary atelier secure.</p>
 
               {passwordSuccess && (
-                <div className="alert alert-success d-flex align-items-center gap-2 small py-2 mb-3" style={{ borderRadius: 0 }}>
-                  <CheckCircle2 size={16} />
+                <div className="alert alert-success small py-2 mb-3" style={{ borderRadius: 0 }}>
                   <span>{passwordSuccess}</span>
                 </div>
               )}
               {passwordError && (
-                <div className="alert alert-danger d-flex align-items-center gap-2 small py-2 mb-3" style={{ borderRadius: 0 }}>
-                  <AlertCircle size={16} />
+                <div className="alert alert-danger small py-2 mb-3" style={{ borderRadius: 0 }}>
                   <span>{passwordError}</span>
                 </div>
               )}
@@ -437,7 +431,7 @@ export const ProfilePage = () => {
                   <input
                     type="password"
                     className="form-control"
-                    style={{ borderColor: 'var(--dp-color-rule)' }}
+                    style={{ borderColor: 'var(--dp-color-rule)', borderRadius: 0 }}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
@@ -450,7 +444,7 @@ export const ProfilePage = () => {
                     <input
                       type="password"
                       className="form-control"
-                      style={{ borderColor: 'var(--dp-color-rule)' }}
+                      style={{ borderColor: 'var(--dp-color-rule)', borderRadius: 0 }}
                       placeholder="Min 6 characters"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
@@ -462,7 +456,7 @@ export const ProfilePage = () => {
                     <input
                       type="password"
                       className="form-control"
-                      style={{ borderColor: 'var(--dp-color-rule)' }}
+                      style={{ borderColor: 'var(--dp-color-rule)', borderRadius: 0 }}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
@@ -473,7 +467,7 @@ export const ProfilePage = () => {
                 <button
                   type="submit"
                   disabled={savingPassword}
-                  className="btn btn-outline-secondary px-4 fw-semibold d-inline-flex align-items-center gap-2"
+                  className="btn btn-outline-secondary px-4 fw-semibold"
                   style={{
                     borderColor: 'var(--dp-color-accent)',
                     color: 'var(--dp-color-ink)',
@@ -481,7 +475,6 @@ export const ProfilePage = () => {
                     borderRadius: 0,
                   }}
                 >
-                  <KeyRound size={16} />
                   <span>{savingPassword ? 'Updating...' : 'Change Password'}</span>
                 </button>
               </form>
@@ -522,31 +515,29 @@ export const ProfilePage = () => {
                 </div>
                 <button
                   type="button"
-                  className="btn text-white p-1"
+                  className="btn text-white p-1 font-monospace fs-4"
                   onClick={() => setShowRenewModal(false)}
-                  style={{ borderRadius: 0 }}
+                  style={{ borderRadius: 0, lineHeight: 1 }}
                   aria-label="Close"
                 >
-                  <X size={20} />
+                  &times;
                 </button>
               </div>
 
               <form onSubmit={handleRenewSubscription} className="p-4">
                 {renewSuccess && (
                   <div
-                    className="alert alert-success d-flex align-items-center gap-2 small py-2 mb-3"
+                    className="alert alert-success small py-2 mb-3"
                     style={{ borderRadius: 0 }}
                   >
-                    <CheckCircle2 size={16} />
                     <span>{renewSuccess}</span>
                   </div>
                 )}
                 {renewError && (
                   <div
-                    className="alert alert-danger d-flex align-items-center gap-2 small py-2 mb-3"
+                    className="alert alert-danger small py-2 mb-3"
                     style={{ borderRadius: 0 }}
                   >
-                    <AlertCircle size={16} />
                     <span>{renewError}</span>
                   </div>
                 )}

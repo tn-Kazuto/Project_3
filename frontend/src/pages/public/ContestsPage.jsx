@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { contestApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Trophy, Calendar, Clock, User, Send, CheckCircle2, AlertCircle, Award, Sparkles, ChefHat, Heart, ArrowUpDown, Eye } from 'lucide-react';
 
 export const ContestsPage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -222,9 +221,6 @@ export const ContestsPage = () => {
     <div className="container py-5 luxury-contests">
       {/* Header Banner - Architectural Pale Taupe Panel */}
       <div className="field-taupe p-4 p-md-5 mb-5 text-center" style={{ backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
-        <div className="d-inline-flex align-items-center justify-content-center p-3 mb-3 border" style={{ borderColor: 'var(--dp-color-accent)' }}>
-          <Trophy size={36} className="luxury-gold-icon" />
-        </div>
         <div className="roman-numeral mb-2">IV &middot; COMPETITIVE ARENA</div>
         <h1 className="brand-font display-5 mb-3 text-dark">Culinary Contests by Chef James Thew</h1>
         <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
@@ -239,7 +235,7 @@ export const ContestsPage = () => {
               borderRadius: 0,
             }}
           >
-            <Sparkles size={14} className="me-1 inline luxury-gold-icon" /> Free for Everyone to Enter
+            Free for Everyone to Enter
           </span>
           <span
             className="badge font-monospace px-3 py-2"
@@ -249,14 +245,13 @@ export const ContestsPage = () => {
               borderRadius: 0,
             }}
           >
-            <Award size={14} className="me-1 inline" /> Win Recognition & Prizes
+            Win Recognition & Prizes
           </span>
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-danger d-flex align-items-center gap-2 mb-4" style={{ borderRadius: 0 }}>
-          <AlertCircle size={20} />
+        <div className="alert alert-danger mb-4" style={{ borderRadius: 0 }}>
           <span>{error}</span>
         </div>
       )}
@@ -276,7 +271,6 @@ export const ContestsPage = () => {
             border: '1px solid var(--dp-color-rule)',
           }}
         >
-          <Trophy size={48} className="luxury-gold-icon mb-3 opacity-50" />
           <h4 className="brand-font mb-2">No Active Contests Right Now</h4>
           <p className="text-muted mb-0">
             Chef James Thew is preparing the next exciting contest challenge. Check back soon or browse our winning announcements!
@@ -306,7 +300,7 @@ export const ContestsPage = () => {
                         borderRadius: 0,
                       }}
                     >
-                      {c.contestType === 'RECIPE' ? '🍲 Recipe Contest' : '💡 Tip Contest'}
+                      {c.contestType === 'RECIPE' ? 'Recipe Contest' : 'Tip Contest'}
                     </span>
                     <span
                       className="badge font-monospace"
@@ -335,18 +329,15 @@ export const ContestsPage = () => {
                     }}
                   >
                     <div className="row g-2">
-                      <div className="col-sm-6 d-flex align-items-center gap-2">
-                        <Calendar size={16} className="luxury-gold-icon" />
+                      <div className="col-sm-6">
                         <span><strong>Starts:</strong> {new Date(c.startDate).toLocaleDateString()}</span>
                       </div>
-                      <div className="col-sm-6 d-flex align-items-center gap-2">
-                        <Clock size={16} style={{ color: 'var(--dp-color-accent-text)' }} />
+                      <div className="col-sm-6">
                         <span><strong>Ends:</strong> {new Date(c.endDate).toLocaleDateString()}</span>
                       </div>
-                      <div className="col-12 d-flex align-items-center gap-2 mt-2 pt-2 border-top" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
-                        <ChefHat size={16} className="luxury-gold-icon" />
+                      <div className="col-12 mt-2 pt-2 border-top d-flex justify-content-between" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
                         <span><strong>Curated by:</strong> {c.creatorName || 'Chef James Thew'}</span>
-                        <span className="ms-auto font-monospace fw-semibold" style={{ color: 'var(--dp-color-accent-text)' }}>
+                        <span className="font-monospace fw-semibold" style={{ color: 'var(--dp-color-accent-text)' }}>
                           {c.entryCount || 0} Submissions
                         </span>
                       </div>
@@ -356,7 +347,7 @@ export const ContestsPage = () => {
                   <div className="mt-auto pt-2 d-flex flex-column gap-2">
                     <button
                       type="button"
-                      className="btn btn-outline-secondary w-100 font-monospace text-uppercase d-flex align-items-center justify-content-center gap-2"
+                      className="btn btn-outline-secondary w-100 font-monospace text-uppercase"
                       style={{
                         borderColor: 'var(--dp-color-rule)',
                         color: 'var(--dp-color-ink)',
@@ -366,7 +357,6 @@ export const ContestsPage = () => {
                       }}
                       onClick={() => handleOpenVotingModal(c)}
                     >
-                      <Award size={15} className="luxury-gold-icon" />
                       <span>View Entries & Vote ({c.entryCount || 0})</span>
                     </button>
 
@@ -376,7 +366,7 @@ export const ContestsPage = () => {
                       </button>
                     ) : (
                       <button
-                        className="btn btn-primary w-100 fw-semibold d-flex align-items-center justify-content-center gap-2"
+                        className="btn btn-primary w-100 fw-semibold"
                         style={{
                           backgroundColor: 'var(--dp-color-field)',
                           color: 'var(--dp-color-on-field)',
@@ -385,7 +375,6 @@ export const ContestsPage = () => {
                         }}
                         onClick={() => handleOpenSubmitModal(c)}
                       >
-                        <Send size={16} />
                         Submit Your Entry Now
                       </button>
                     )}
@@ -418,8 +407,7 @@ export const ContestsPage = () => {
                   borderRadius: 0,
                 }}
               >
-                <h5 className="modal-title brand-font d-flex align-items-center gap-2 text-white m-0" style={{ fontSize: '1.25rem' }}>
-                  <Trophy size={20} className="luxury-gold-icon" />
+                <h5 className="modal-title brand-font text-white m-0" style={{ fontSize: '1.25rem' }}>
                   Submit to: {selectedContest.title}
                 </h5>
                 <button
@@ -433,7 +421,7 @@ export const ContestsPage = () => {
               <div className="modal-body p-4">
                 {submitSuccess ? (
                   <div className="text-center py-4">
-                    <CheckCircle2 size={56} className="text-success mb-3" />
+                    <div className="text-success font-monospace fw-bold fs-4 mb-3">[SUCCESS]</div>
                     <h4 className="brand-font text-dark mb-2">Submission Received!</h4>
                     <p className="text-muted mb-4">{submitSuccess}</p>
                     <button
@@ -452,8 +440,7 @@ export const ContestsPage = () => {
                 ) : (
                   <form onSubmit={handleSubmitEntry}>
                     {submitError && (
-                      <div className="alert alert-danger d-flex align-items-center gap-2 mb-3" style={{ borderRadius: 0 }}>
-                        <AlertCircle size={18} />
+                      <div className="alert alert-danger mb-3" style={{ borderRadius: 0 }}>
                         <span>{submitError}</span>
                       </div>
                     )}
@@ -461,13 +448,12 @@ export const ContestsPage = () => {
                     {/* Submitter Info Notice */}
                     {isAuthenticated ? (
                       <div
-                        className="p-3 mb-3 d-flex align-items-center gap-2 small"
+                        className="p-3 mb-3 small"
                         style={{
                           backgroundColor: 'var(--dp-color-ground-2)',
                           border: '1px solid var(--dp-color-panel-line)',
                         }}
                       >
-                        <User size={16} className="luxury-gold-icon" />
                         <span>
                           Submitting as registered member: <strong>{user?.fullName}</strong> ({user?.email})
                         </span>
@@ -580,7 +566,7 @@ export const ContestsPage = () => {
                       </button>
                       <button
                         type="submit"
-                        className="btn btn-primary px-4 fw-semibold d-flex align-items-center gap-2"
+                        className="btn btn-primary px-4 fw-semibold"
                         style={{
                           backgroundColor: 'var(--dp-color-field)',
                           color: 'var(--dp-color-on-field)',
@@ -591,13 +577,11 @@ export const ContestsPage = () => {
                       >
                         {submitting ? (
                           <>
-                            <span className="spinner-border spinner-border-sm" role="status"></span>
+                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                             Submitting...
                           </>
                         ) : (
-                          <>
-                            <Send size={16} /> Submit Entry
-                          </>
+                          'Submit Entry'
                         )}
                       </button>
                     </div>
@@ -633,8 +617,7 @@ export const ContestsPage = () => {
                   <div className="roman-numeral text-white small" style={{ letterSpacing: '0.15em', opacity: 0.85 }}>
                     COMMUNITY ARENA &middot; VOTE
                   </div>
-                  <h5 className="modal-title brand-font d-flex align-items-center gap-2 text-white m-0" style={{ fontSize: '1.35rem' }}>
-                    <Award size={22} className="luxury-gold-icon" />
+                  <h5 className="modal-title brand-font text-white m-0" style={{ fontSize: '1.35rem' }}>
                     Entries for: {selectedContestForVoting.title}
                   </h5>
                 </div>
@@ -648,8 +631,7 @@ export const ContestsPage = () => {
 
               <div className="modal-body p-4" style={{ backgroundColor: 'var(--dp-color-ground-1)' }}>
                 {voteMessage.text && (
-                  <div className={`alert alert-${voteMessage.type} d-flex align-items-center gap-2 mb-4`} style={{ borderRadius: 0 }}>
-                    {voteMessage.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                  <div className={`alert alert-${voteMessage.type} mb-4`} style={{ borderRadius: 0 }}>
                     <span>{voteMessage.text}</span>
                   </div>
                 )}
@@ -667,11 +649,10 @@ export const ContestsPage = () => {
 
                   <button
                     type="button"
-                    className="btn btn-sm btn-outline-secondary font-monospace d-flex align-items-center gap-2"
+                    className="btn btn-sm btn-outline-secondary font-monospace"
                     style={{ borderRadius: 0, letterSpacing: '0.08em' }}
                     onClick={handleToggleSort}
                   >
-                    <ArrowUpDown size={14} className="luxury-gold-icon" />
                     <span>Order: {sortVotesDescending ? 'Most Voted First' : 'Newest Submissions'}</span>
                   </button>
                 </div>
@@ -683,7 +664,6 @@ export const ContestsPage = () => {
                   </div>
                 ) : votingEntries.length === 0 ? (
                   <div className="text-center py-5 bg-white border p-4" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
-                    <ChefHat size={44} className="text-muted mb-3" />
                     <h5 className="brand-font text-dark mb-2">No Submissions Yet</h5>
                     <p className="text-muted small mb-3">Be the first culinarian to enter this contest and collect community votes!</p>
                     <button
@@ -722,7 +702,7 @@ export const ContestsPage = () => {
                                 </span>
                                 {isTopVoted && (
                                   <span
-                                    className="badge font-monospace d-flex align-items-center gap-1"
+                                    className="badge font-monospace"
                                     style={{
                                       backgroundColor: 'var(--dp-color-accent)',
                                       color: 'var(--dp-color-field)',
@@ -730,8 +710,7 @@ export const ContestsPage = () => {
                                       fontSize: '0.75rem',
                                     }}
                                   >
-                                    <Trophy size={13} />
-                                    Community Favorite
+                                    ★ Community Favorite
                                   </span>
                                 )}
                               </div>
@@ -772,7 +751,7 @@ export const ContestsPage = () => {
                                 style={{ borderColor: 'var(--dp-color-panel-line)' }}
                               >
                                 <div className="d-flex align-items-center gap-2">
-                                  <Heart size={18} fill="#b69355" color="#b69355" />
+                                  <span style={{ color: '#b69355', fontSize: '1.1rem' }}>♥</span>
                                   <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-ink)', fontSize: '1.05rem' }}>
                                     {entry.voteCount || 0}
                                   </span>
@@ -792,7 +771,7 @@ export const ContestsPage = () => {
                                   ) : (
                                     <button
                                       type="button"
-                                      className="btn btn-sm btn-primary font-monospace d-flex align-items-center gap-1"
+                                      className="btn btn-sm btn-primary font-monospace"
                                       disabled={submittingVote}
                                       onClick={() => handleVote(entry)}
                                       style={{
@@ -803,8 +782,7 @@ export const ContestsPage = () => {
                                         letterSpacing: '0.1em',
                                       }}
                                     >
-                                      <Heart size={14} className="luxury-gold-icon" />
-                                      <span>Vote for Entry</span>
+                                      Vote for Entry
                                     </button>
                                   )}
                                 </div>
@@ -854,8 +832,7 @@ export const ContestsPage = () => {
                   borderRadius: 0,
                 }}
               >
-                <h5 className="modal-title brand-font text-white m-0 d-flex align-items-center gap-2" style={{ fontSize: '1.2rem' }}>
-                  <Award size={18} className="luxury-gold-icon" />
+                <h5 className="modal-title brand-font text-white m-0" style={{ fontSize: '1.2rem' }}>
                   Confirm Guest Vote
                 </h5>
                 <button

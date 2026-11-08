@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { recipeApi, tipApi, categoryApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Search, BookOpen, Lightbulb, Lock, ArrowRight, ChefHat, Video, Mic, Radio, FileText, Share2 } from 'lucide-react';
 
 export const RecipesPage = () => {
   const [activeTab, setActiveTab] = useState('recipes'); // 'recipes' or 'tips'
@@ -31,30 +30,34 @@ export const RecipesPage = () => {
     fetchCategories();
   }, []);
 
-  // Load recipes and tips
+  // Fetch recipes or tips based on filters
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const params = {};
+        if (selectedCategory) params.categoryId = selectedCategory;
+        if (tierFilter === 'free') params.isFreeOnly = true;
+        else if (tierFilter === 'members') params.isFreeOnly = false;
+        if (formatFilter !== 'ALL') params.contentType = formatFilter;
+
         if (activeTab === 'recipes') {
-          const params = {};
           if (searchTerm.trim()) params.search = searchTerm.trim();
-          if (selectedCategory) params.categoryId = selectedCategory;
-          if (tierFilter === 'free') params.isFreeOnly = true;
-          else if (tierFilter === 'members') params.isFreeOnly = false;
-          if (formatFilter !== 'ALL') params.contentType = formatFilter;
-
           const res = await recipeApi.getAll(params);
-          if (res.data?.success) setRecipes(res.data.data);
+          if (res.data?.success) {
+            let data = res.data.data || [];
+            if (formatFilter !== 'ALL') {
+              data = data.filter((r) => (r.contentType || 'ARTICLE').toUpperCase() === formatFilter.toUpperCase());
+            }
+            setRecipes(data);
+          }
         } else {
-          const params = {};
           if (searchTerm.trim()) params.search = searchTerm.trim();
-
           const res = await tipApi.getAll(params);
-          if (res.data?.success) setTips(res.data.data);
+          if (res.data?.success) setTips(res.data.data || []);
         }
       } catch (err) {
-        console.error('Error loading content:', err);
+        console.error('Error loading recipes/tips:', err);
       } finally {
         setLoading(false);
       }
@@ -70,26 +73,25 @@ export const RecipesPage = () => {
       });
       return;
     }
-
     if (isRecipe) {
       navigate(`/recipes/${item.recipeId}`);
     }
   };
 
   return (
-    <div className="container py-5 luxury-catalog">
-      {/* Header & Tabs */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-5 border-bottom pb-4" style={{ borderColor: 'var(--dp-color-rule)' }}>
+    <div className="container py-5 luxury-recipes">
+      {/* Architectural Section Header */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
         <div>
           <div className="roman-numeral mb-1">III &middot; ARCHITECTURAL CATALOG</div>
-          <h1 className="brand-font display-5 m-0 text-dark">Culinary Library</h1>
-          <p className="text-muted small m-0 mt-2">
-            Browse chef recipes and cooking wisdom from Chef James Thew and community members
+          <h1 className="brand-font display-5 mb-0 text-dark">Culinary Library</h1>
+          <p className="text-muted small mt-2 mb-0">
+            Exclusive gastronomy formulated by Executive Chef James Thew across Juices, Vegetarian, Non-Vegetarian, and Italian classics.
           </p>
         </div>
 
-        {/* Architectural Tab Switcher */}
-        <div className="btn-group p-1" style={{ backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }} role="group">
+        {/* Tab Switcher: Recipes vs Tips */}
+        <div className="d-flex gap-2 mt-3 mt-md-0 border p-1" style={{ borderColor: 'var(--dp-color-rule)', backgroundColor: '#ffffff' }}>
           <button
             type="button"
             className="btn btn-sm px-4 py-2"
@@ -101,7 +103,6 @@ export const RecipesPage = () => {
             }}
             onClick={() => setActiveTab('recipes')}
           >
-            <BookOpen size={16} />
             <span>Recipes ({recipes.length})</span>
           </button>
           <button
@@ -115,7 +116,6 @@ export const RecipesPage = () => {
             }}
             onClick={() => setActiveTab('tips')}
           >
-            <Lightbulb size={16} />
             <span>Cooking Tips ({tips.length})</span>
           </button>
         </div>
@@ -132,47 +132,42 @@ export const RecipesPage = () => {
         <div className="row g-4 align-items-center">
           {/* Keyword Search */}
           <div className="col-lg-6">
-            <div className="input-group">
-              <span className="input-group-text bg-white border-end-0" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                <Search size={18} className="luxury-gold-icon" />
-              </span>
-              <input
-                type="text"
-                className="form-control border-start-0 ps-0"
-                style={{ borderColor: 'var(--dp-color-rule)' }}
-                placeholder={
-                  activeTab === 'recipes'
-                    ? 'Search recipes by dish name, chicken, pasta, spices...'
-                    : 'Search tips by keyword...'
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+            <input
+              type="text"
+              className="form-control"
+              style={{ borderColor: 'var(--dp-color-rule)' }}
+              placeholder={
+                activeTab === 'recipes'
+                  ? 'Search recipes by dish name, chicken, pasta, spices...'
+                  : 'Search tips by keyword...'
+              }
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
           {/* Category Filter for Recipes */}
           {activeTab === 'recipes' && (
             <div className="col-lg-6">
-              <div className="d-flex flex-wrap gap-2">
+              <div className="d-flex flex-wrap gap-2 justify-content-lg-end">
                 <button
                   type="button"
-                  className="btn btn-sm px-3"
+                  className={`btn btn-sm ${selectedCategory === null ? 'btn-primary' : 'btn-outline-secondary'}`}
                   style={{
                     backgroundColor: selectedCategory === null ? 'var(--dp-color-field)' : 'transparent',
                     color: selectedCategory === null ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: selectedCategory === null ? 'var(--dp-color-field)' : 'var(--dp-color-rule)',
+                    borderColor: selectedCategory === null ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
                     borderRadius: 0,
                   }}
                   onClick={() => setSelectedCategory(null)}
                 >
-                  All Cuisines
+                  All Categories
                 </button>
                 {categories.map((c) => (
                   <button
                     key={c.categoryId}
                     type="button"
-                    className="btn btn-sm px-3"
+                    className={`btn btn-sm ${selectedCategory === c.categoryId ? 'btn-primary' : 'btn-outline-secondary'}`}
                     style={{
                       backgroundColor: selectedCategory === c.categoryId ? 'var(--dp-color-field)' : 'transparent',
                       color: selectedCategory === c.categoryId ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -188,79 +183,69 @@ export const RecipesPage = () => {
             </div>
           )}
 
-          {/* Access Tier Filter for Recipes */}
-          {activeTab === 'recipes' && (
-            <div className="col-12 pt-3 border-top" style={{ borderColor: 'var(--dp-color-rule)' }}>
-              <div className="d-flex flex-wrap align-items-center gap-2">
-                <span className="small text-uppercase font-monospace text-muted me-2" style={{ fontSize: '0.75rem' }}>
-                  Access Tier:
-                </span>
+          {/* Tier Filter: All vs Free vs Members-only */}
+          <div className="col-12 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2" style={{ borderColor: 'var(--dp-color-rule)' }}>
+            <div className="d-flex align-items-center gap-2">
+              <span className="small text-uppercase fw-semibold text-muted" style={{ letterSpacing: '0.12em' }}>
+                Access Tier:
+              </span>
+              <div className="btn-group btn-group-sm">
                 <button
                   type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: tierFilter === 'all' ? 'var(--dp-color-field)' : 'transparent',
-                    color: tierFilter === 'all' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: tierFilter === 'all' ? 'var(--dp-color-field)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
+                  className={`btn ${tierFilter === 'all' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                  style={{ borderRadius: 0 }}
                   onClick={() => setTierFilter('all')}
                 >
                   All Repertoire
                 </button>
                 <button
                   type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: tierFilter === 'free' ? 'var(--dp-color-field)' : 'transparent',
-                    color: tierFilter === 'free' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: tierFilter === 'free' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
+                  className={`btn ${tierFilter === 'free' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                  style={{ borderRadius: 0 }}
                   onClick={() => setTierFilter('free')}
                 >
                   Free Access Only
                 </button>
                 <button
                   type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: tierFilter === 'members' ? 'var(--dp-color-field)' : 'transparent',
-                    color: tierFilter === 'members' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: tierFilter === 'members' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
+                  className={`btn ${tierFilter === 'members' ? 'btn-dark' : 'btn-outline-secondary'}`}
+                  style={{ borderRadius: 0 }}
                   onClick={() => setTierFilter('members')}
                 >
                   Member Reserved
                 </button>
               </div>
+            </div>
 
-              {/* Multimedia Format Filter (SRS v2.0) */}
-              <div className="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                <span className="small text-uppercase font-monospace text-muted me-2" style={{ fontSize: '0.75rem' }}>
-                  Format:
-                </span>
+            <span className="small text-muted font-monospace">
+              Showing {activeTab === 'recipes' ? recipes.length : tips.length} items
+            </span>
+          </div>
+
+          {/* Media Format Filter (SRS Phase U2) - Recipes Tab Only */}
+          {activeTab === 'recipes' && (
+            <div className="col-12 pt-3 border-top d-flex flex-wrap align-items-center gap-2" style={{ borderColor: 'var(--dp-color-rule)' }}>
+              <span className="small text-uppercase fw-semibold text-muted" style={{ letterSpacing: '0.12em' }}>
+                Format:
+              </span>
+              <div className="d-flex flex-wrap gap-2">
                 <button
                   type="button"
                   className="btn btn-sm px-3"
                   style={{
                     backgroundColor: formatFilter === 'ALL' ? 'var(--dp-color-field)' : 'transparent',
                     color: formatFilter === 'ALL' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: formatFilter === 'ALL' ? 'var(--dp-color-field)' : 'var(--dp-color-rule)',
+                    borderColor: formatFilter === 'ALL' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
                     borderRadius: 0,
                     fontSize: '0.8rem',
                   }}
                   onClick={() => setFormatFilter('ALL')}
                 >
-                  All Formats
+                  <span>All Formats</span>
                 </button>
                 <button
                   type="button"
-                  className="btn btn-sm px-3 d-inline-flex align-items-center gap-1"
+                  className="btn btn-sm px-3"
                   style={{
                     backgroundColor: formatFilter === 'ARTICLE' ? 'var(--dp-color-field)' : 'transparent',
                     color: formatFilter === 'ARTICLE' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -270,12 +255,11 @@ export const RecipesPage = () => {
                   }}
                   onClick={() => setFormatFilter('ARTICLE')}
                 >
-                  <FileText size={13} />
                   <span>Articles</span>
                 </button>
                 <button
                   type="button"
-                  className="btn btn-sm px-3 d-inline-flex align-items-center gap-1"
+                  className="btn btn-sm px-3"
                   style={{
                     backgroundColor: formatFilter === 'VIDEO' ? 'var(--dp-color-field)' : 'transparent',
                     color: formatFilter === 'VIDEO' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -285,12 +269,11 @@ export const RecipesPage = () => {
                   }}
                   onClick={() => setFormatFilter('VIDEO')}
                 >
-                  <Video size={13} />
                   <span>Video Masterclass</span>
                 </button>
                 <button
                   type="button"
-                  className="btn btn-sm px-3 d-inline-flex align-items-center gap-1"
+                  className="btn btn-sm px-3"
                   style={{
                     backgroundColor: formatFilter === 'TALKSHOW' ? 'var(--dp-color-field)' : 'transparent',
                     color: formatFilter === 'TALKSHOW' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -300,12 +283,11 @@ export const RecipesPage = () => {
                   }}
                   onClick={() => setFormatFilter('TALKSHOW')}
                 >
-                  <Mic size={13} />
                   <span>Culinary Talkshows</span>
                 </button>
                 <button
                   type="button"
-                  className="btn btn-sm px-3 d-inline-flex align-items-center gap-1"
+                  className="btn btn-sm px-3"
                   style={{
                     backgroundColor: formatFilter === 'LIVESHOW' ? 'var(--dp-color-field)' : 'transparent',
                     color: formatFilter === 'LIVESHOW' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
@@ -315,7 +297,6 @@ export const RecipesPage = () => {
                   }}
                   onClick={() => setFormatFilter('LIVESHOW')}
                 >
-                  <Radio size={13} />
                   <span>Live Shows</span>
                 </button>
               </div>
@@ -324,21 +305,21 @@ export const RecipesPage = () => {
         </div>
       </div>
 
-      {/* Content Grid */}
+      {/* Main Content Grid */}
       {loading ? (
-        <div className="text-center py-5">
-          <div className="spinner-border" style={{ color: 'var(--dp-color-accent)' }} role="status">
+        <div className="d-flex justify-content-center align-items-center py-5 min-vh-25">
+          <div className="spinner-border text-danger" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="mt-2 text-muted">Retrieving culinary creations...</p>
         </div>
       ) : activeTab === 'recipes' ? (
+        /* Recipes Grid */
         <div className="row g-4">
           {recipes.length > 0 ? (
             recipes.map((r) => (
               <div key={r.recipeId} className="col-md-6 col-lg-4">
                 <div
-                  className="card h-100 p-4 d-flex flex-column cursor-pointer"
+                  className="card h-100 p-4 cursor-pointer"
                   style={{
                     backgroundColor: '#ffffff',
                     border: '1px solid var(--dp-color-rule)',
@@ -354,17 +335,17 @@ export const RecipesPage = () => {
                       </span>
                       {r.contentType === 'VIDEO' && (
                         <span className="badge font-monospace text-uppercase" style={{ backgroundColor: 'var(--dp-color-accent)', color: '#ffffff', borderRadius: 0 }}>
-                          <Video size={10} className="me-1 inline" /> Video
+                          Video
                         </span>
                       )}
                       {r.contentType === 'TALKSHOW' && (
                         <span className="badge font-monospace text-uppercase" style={{ backgroundColor: '#2c3e50', color: '#ffffff', borderRadius: 0 }}>
-                          <Mic size={10} className="me-1 inline" /> Talkshow
+                          Talkshow
                         </span>
                       )}
                       {r.contentType === 'LIVESHOW' && (
                         <span className="badge font-monospace text-uppercase" style={{ backgroundColor: '#c0392b', color: '#ffffff', borderRadius: 0 }}>
-                          <Radio size={10} className="me-1 inline" /> Live
+                          Live
                         </span>
                       )}
                     </div>
@@ -376,13 +357,7 @@ export const RecipesPage = () => {
                         borderRadius: 0,
                       }}
                     >
-                      {r.isFree ? (
-                        'Free Access'
-                      ) : (
-                        <span className="d-flex align-items-center gap-1">
-                          <Lock size={12} className="luxury-gold-icon" /> Members Only
-                        </span>
-                      )}
+                      {r.isFree ? 'Free Access' : 'Members Only'}
                     </span>
                   </div>
 
@@ -399,20 +374,17 @@ export const RecipesPage = () => {
                     style={{ borderColor: 'var(--dp-color-rule)' }}
                   >
                     <div className="d-flex align-items-center gap-3">
-                      <span className="d-flex align-items-center gap-1 text-muted">
-                        <ChefHat size={14} className="luxury-gold-icon" />
+                      <span className="text-muted">
                         {r.authorName}
                       </span>
                       {r.shareCount > 0 && (
-                        <span className="d-flex align-items-center gap-1 text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                          <Share2 size={12} className="luxury-gold-icon" />
-                          {r.shareCount}
+                        <span className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
+                          {r.shareCount} shares
                         </span>
                       )}
                     </div>
-                    <span className="d-flex align-items-center gap-1 text-uppercase fw-semibold gold-underline" style={{ fontSize: '0.75rem', letterSpacing: '0.12em' }}>
-                      <span>View</span>
-                      <ArrowRight size={14} />
+                    <span className="text-uppercase fw-semibold gold-underline" style={{ fontSize: '0.75rem', letterSpacing: '0.12em' }}>
+                      <span>View &rarr;</span>
                     </span>
                   </div>
                 </div>
@@ -439,8 +411,7 @@ export const RecipesPage = () => {
                   }}
                 >
                   <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div className="d-flex align-items-center gap-2">
-                      <Lightbulb size={18} className="luxury-gold-icon" />
+                    <div>
                       <span className="text-uppercase small fw-bold font-monospace" style={{ letterSpacing: '0.14em', color: 'var(--dp-color-accent-text)' }}>
                         Kitchen Tip
                       </span>
@@ -453,13 +424,7 @@ export const RecipesPage = () => {
                         borderRadius: 0,
                       }}
                     >
-                      {t.isFree ? (
-                        'Free Access'
-                      ) : (
-                        <span className="d-flex align-items-center gap-1">
-                          <Lock size={12} className="luxury-gold-icon" /> Members Only
-                        </span>
-                      )}
+                      {t.isFree ? 'Free Access' : 'Members Only'}
                     </span>
                   </div>
 

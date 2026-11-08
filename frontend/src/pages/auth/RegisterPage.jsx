@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ChefHat, CreditCard, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 
 export const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -87,7 +86,6 @@ export const RegisterPage = () => {
             {/* Header */}
             <div className="text-center mb-5 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
               <div className="roman-numeral mb-1">II &middot; MEMBERSHIP & ONBOARDING</div>
-              <ChefHat size={36} className="luxury-gold-icon mb-2" />
               <h1 className="brand-font display-6 m-0 text-dark">Join the Culinary Circle</h1>
               <p className="text-muted small m-0 mt-2">
                 Access exclusive 5-star recipes, master chef tips, and global cooking contests
@@ -95,8 +93,7 @@ export const RegisterPage = () => {
             </div>
 
             {error && (
-              <div className="alert alert-danger d-flex align-items-center gap-2 small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
-                <AlertCircle size={18} className="flex-shrink-0" />
+              <div className="alert alert-danger small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
                 <div>{error}</div>
               </div>
             )}
@@ -228,11 +225,11 @@ export const RegisterPage = () => {
                     <p className="small text-muted mb-3">Billed monthly, renews every 30 days.</p>
                     <ul className="list-unstyled small text-secondary m-0 d-flex flex-column gap-2">
                       <li className="d-flex align-items-center gap-2">
-                        <CheckCircle2 size={15} className="luxury-gold-icon flex-shrink-0" />
+                        <span className="text-muted font-monospace">&bull;</span>
                         <span>All secret recipes & tips</span>
                       </li>
                       <li className="d-flex align-items-center gap-2">
-                        <CheckCircle2 size={15} className="luxury-gold-icon flex-shrink-0" />
+                        <span className="text-muted font-monospace">&bull;</span>
                         <span>Upload personal recipes</span>
                       </li>
                     </ul>
@@ -256,7 +253,7 @@ export const RegisterPage = () => {
                         className="badge text-white font-monospace d-flex align-items-center gap-1"
                         style={{ backgroundColor: 'var(--dp-color-accent)' }}
                       >
-                        <Sparkles size={12} /> Best Value (Save $20)
+                        Best Value (Save $20)
                       </span>
                       <input
                         type="radio"
@@ -274,11 +271,11 @@ export const RegisterPage = () => {
                     <p className="small mb-3" style={{ color: 'var(--dp-color-on-field-2)' }}>Billed annually, full 365-day access.</p>
                     <ul className="list-unstyled small m-0 d-flex flex-column gap-2" style={{ color: 'var(--dp-color-on-field-2)' }}>
                       <li className="d-flex align-items-center gap-2">
-                        <CheckCircle2 size={15} className="luxury-gold-icon flex-shrink-0" />
+                        <span className="text-muted font-monospace">&bull;</span>
                         <span className="text-white">All member privileges</span>
                       </li>
                       <li className="d-flex align-items-center gap-2">
-                        <CheckCircle2 size={15} className="luxury-gold-icon flex-shrink-0" />
+                        <span className="text-muted font-monospace">&bull;</span>
                         <span className="text-white">Priority contest judging</span>
                       </li>
                     </ul>
@@ -324,21 +321,16 @@ export const RegisterPage = () => {
 
                   <div className="col-12">
                     <label className="form-label small fw-semibold">Card Number *</label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-white border-end-0" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                        <CreditCard size={18} className="luxury-gold-icon" />
-                      </span>
-                      <input
-                        type="text"
-                        className="form-control border-start-0 ps-0"
-                        style={{ borderColor: 'var(--dp-color-rule)' }}
-                        name="cardNumber"
-                        placeholder="4000 1234 5678 9010 (Mock test card)"
-                        value={formData.cardNumber}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      className="form-control"
+                      style={{ borderColor: 'var(--dp-color-rule)' }}
+                      name="cardNumber"
+                      placeholder="4000 1234 5678 9010 (Mock test card)"
+                      value={formData.cardNumber}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
                   <div className="col-6">

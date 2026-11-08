@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { recipeApi, tipApi, categoryApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Plus, Edit2, Trash2, BookOpen, Lightbulb, ChefHat, Check, AlertCircle, X, Shield } from 'lucide-react';
 
 export const MyRecipesPage = () => {
   const { user, isAdmin } = useAuth();
@@ -194,7 +193,7 @@ export const MyRecipesPage = () => {
         <button
           type="button"
           onClick={openCreateModal}
-          className="btn btn-primary px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
+          className="btn btn-primary px-4 py-2 fw-semibold"
           style={{
             backgroundColor: 'var(--dp-color-field)',
             color: 'var(--dp-color-on-field)',
@@ -202,8 +201,7 @@ export const MyRecipesPage = () => {
             borderRadius: 0,
           }}
         >
-          <Plus size={18} className="luxury-gold-icon" />
-          <span>Add New {activeTab === 'recipes' ? 'Recipe' : 'Cooking Tip'}</span>
+          <span>+ Add New {activeTab === 'recipes' ? 'Recipe' : 'Cooking Tip'}</span>
         </button>
       </div>
 
@@ -296,20 +294,20 @@ export const MyRecipesPage = () => {
                           <button
                             type="button"
                             onClick={() => openEditModal(r, true)}
-                            className="btn btn-outline-secondary btn-sm"
-                            style={{ borderRadius: 0 }}
+                            className="btn btn-outline-secondary btn-sm font-monospace"
+                            style={{ borderRadius: 0, fontSize: '0.8rem' }}
                             title="Edit Recipe"
                           >
-                            <Edit2 size={14} />
+                            Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(r.recipeId, true)}
-                            className="btn btn-outline-dark btn-sm"
-                            style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)' }}
+                            className="btn btn-outline-dark btn-sm font-monospace"
+                            style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)', fontSize: '0.8rem' }}
                             title="Delete Recipe"
                           >
-                            <Trash2 size={14} />
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -376,20 +374,20 @@ export const MyRecipesPage = () => {
                           <button
                             type="button"
                             onClick={() => openEditModal(t, false)}
-                            className="btn btn-outline-secondary btn-sm"
-                            style={{ borderRadius: 0 }}
+                            className="btn btn-outline-secondary btn-sm font-monospace"
+                            style={{ borderRadius: 0, fontSize: '0.8rem' }}
                             title="Edit Tip"
                           >
-                            <Edit2 size={14} />
+                            Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(t.tipId, false)}
-                            className="btn btn-outline-dark btn-sm"
-                            style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)' }}
+                            className="btn btn-outline-dark btn-sm font-monospace"
+                            style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)', fontSize: '0.8rem' }}
                             title="Delete Tip"
                           >
-                            <Trash2 size={14} />
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -556,8 +554,7 @@ export const MyRecipesPage = () => {
                       }}
                     >
                       <div>
-                        <div className="fw-semibold small d-flex align-items-center gap-1">
-                          <Shield size={16} className="luxury-gold-icon" />
+                        <div className="fw-semibold small">
                           <span>Free Public Access</span>
                         </div>
                         <small className="text-muted">

@@ -1,27 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, BookOpen, UtensilsCrossed } from 'lucide-react';
 
 /**
  * 404 Not Found Page for James Thew Culinary Platform.
- * Luxury Architectural Styling with prominent EB Garamond typography.
+ * Luxury Architectural Styling with prominent EB Garamond typography (zero icons).
  */
 export const NotFoundPage = () => {
   return (
     <div className="container py-5 my-5 text-center luxury-notfound">
       <div className="row justify-content-center">
         <div className="col-md-8 col-lg-6">
-          <div
-            className="p-4 d-inline-flex mb-4"
-            style={{
-              backgroundColor: 'var(--dp-color-ground-2)',
-              border: '1px solid var(--dp-color-panel-line)',
-            }}
-          >
-            <UtensilsCrossed size={48} className="luxury-gold-icon" />
-          </div>
-
-          <div className="roman-numeral mb-2" style={{ fontSize: '1rem' }}>
+          <div className="roman-numeral mb-2" style={{ fontSize: '1rem', letterSpacing: '0.15em' }}>
             VACANT REPERTOIRE
           </div>
 
@@ -53,7 +42,6 @@ export const NotFoundPage = () => {
                 borderRadius: 0,
               }}
             >
-              <Home size={18} />
               <span>Return to Home</span>
             </Link>
             <Link
@@ -66,7 +54,6 @@ export const NotFoundPage = () => {
                 borderRadius: 0,
               }}
             >
-              <BookOpen size={18} className="luxury-gold-icon" />
               <span>Browse 5-Star Recipes</span>
             </Link>
           </div>

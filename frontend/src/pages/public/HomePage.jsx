@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { recipeApi, contestApi, announcementApi } from '../../services/api';
-import { ChefHat, Calendar, Trophy, ArrowRight, BookOpen, Clock, Users, Star, Award } from 'lucide-react';
 
 export const HomePage = () => {
   const [recipes, setRecipes] = useState([]);
@@ -76,7 +75,6 @@ export const HomePage = () => {
                   }}
                 >
                   <span>Explore Recipes</span>
-                  <ArrowRight size={18} />
                 </Link>
                 <Link
                   to="/register"
@@ -152,8 +150,7 @@ export const HomePage = () => {
                 }}
               >
                 <div className="d-flex align-items-center gap-2 mb-2">
-                  <Star size={18} className="luxury-gold-icon" />
-                  <span className="fw-semibold small text-uppercase" style={{ letterSpacing: '0.12em' }}>
+                  <span className="fw-semibold small text-uppercase" style={{ letterSpacing: '0.12em', color: 'var(--dp-color-accent, #b69355)' }}>
                     Exclusive Member Privilege
                   </span>
                 </div>
@@ -167,7 +164,7 @@ export const HomePage = () => {
               {/* Ruled Rows Pattern */}
               <div className="ruled-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div className="d-flex align-items-start gap-3">
-                  <Calendar size={22} className="luxury-gold-icon mt-1 flex-shrink-0" />
+                  <span className="font-monospace fw-bold text-muted mt-1 flex-shrink-0">I.</span>
                   <div>
                     <h5 className="brand-font mb-1">Weekend Schedule & Tasting Sessions</h5>
                     <p className="small mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
@@ -182,7 +179,7 @@ export const HomePage = () => {
 
               <div className="ruled-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div className="d-flex align-items-start gap-3">
-                  <BookOpen size={22} className="luxury-gold-icon mt-1 flex-shrink-0" />
+                  <span className="font-monospace fw-bold text-muted mt-1 flex-shrink-0">II.</span>
                   <div>
                     <h5 className="brand-font mb-1">Four Fundamental Culinary Pillars</h5>
                     <p className="small mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
@@ -197,7 +194,7 @@ export const HomePage = () => {
 
               <div className="ruled-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div className="d-flex align-items-start gap-3">
-                  <Users size={22} className="luxury-gold-icon mt-1 flex-shrink-0" />
+                  <span className="font-monospace fw-bold text-muted mt-1 flex-shrink-0">III.</span>
                   <div>
                     <h5 className="brand-font mb-1">Intimate Atelier Setting</h5>
                     <p className="small mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
@@ -228,7 +225,6 @@ export const HomePage = () => {
               style={{ letterSpacing: '0.16em', color: 'var(--dp-color-ink)' }}
             >
               <span>Explore All Recipes</span>
-              <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -415,7 +411,6 @@ export const HomePage = () => {
                 style={{ letterSpacing: '0.16em', color: 'var(--dp-color-on-field)' }}
               >
                 <span>All Announcements</span>
-                <ArrowRight size={16} />
               </Link>
             </div>
 
@@ -431,7 +426,6 @@ export const HomePage = () => {
                       }}
                     >
                       <div className="d-flex align-items-center gap-2 mb-2" style={{ color: 'var(--dp-color-accent)' }}>
-                        <Trophy size={18} />
                         <span className="text-uppercase small fw-bold" style={{ letterSpacing: '0.14em' }}>
                           Winner Declaration
                         </span>

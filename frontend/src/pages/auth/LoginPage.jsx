@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ChefHat, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
 export const LoginPage = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
@@ -53,14 +52,12 @@ export const LoginPage = () => {
             {/* Header banner */}
             <div className="text-center mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
               <div className="roman-numeral mb-1">I &middot; CREDENTIALS & ACCESS</div>
-              <ChefHat size={36} className="luxury-gold-icon mb-2" />
               <h2 className="brand-font m-0 text-dark" style={{ fontSize: '1.85rem' }}>Welcome Back</h2>
               <p className="text-muted small m-0 mt-2">Sign in to your James Thew culinary account</p>
             </div>
 
             {error && (
-              <div className="alert alert-danger d-flex align-items-center gap-2 small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
-                <AlertCircle size={18} className="flex-shrink-0" />
+              <div className="alert alert-danger small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
                 <div>{error}</div>
               </div>
             )}
@@ -68,40 +65,30 @@ export const LoginPage = () => {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="form-label small fw-semibold">Email or Username</label>
-                <div className="input-group">
-                  <span className="input-group-text bg-white border-end-0" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                    <Mail size={18} className="luxury-gold-icon" />
-                  </span>
-                  <input
-                    type="text"
-                    className="form-control border-start-0 ps-0"
-                    style={{ borderColor: 'var(--dp-color-rule)' }}
-                    placeholder="e.g. james or you@example.com"
-                    value={emailOrUsername}
-                    onChange={(e) => setEmailOrUsername(e.target.value)}
-                    required
-                  />
-                </div>
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ borderColor: 'var(--dp-color-rule)' }}
+                  placeholder="e.g. james or you@example.com"
+                  value={emailOrUsername}
+                  onChange={(e) => setEmailOrUsername(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="mb-4">
                 <div className="d-flex justify-content-between align-items-center mb-1">
                   <label className="form-label small fw-semibold m-0">Password</label>
                 </div>
-                <div className="input-group">
-                  <span className="input-group-text bg-white border-end-0" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                    <Lock size={18} className="luxury-gold-icon" />
-                  </span>
-                  <input
-                    type="password"
-                    className="form-control border-start-0 ps-0"
-                    style={{ borderColor: 'var(--dp-color-rule)' }}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
+                <input
+                  type="password"
+                  className="form-control"
+                  style={{ borderColor: 'var(--dp-color-rule)' }}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </div>
 
               <button
@@ -118,13 +105,10 @@ export const LoginPage = () => {
                 {loading ? (
                   <>
                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    Signing in...
+                    <span>Signing in...</span>
                   </>
                 ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight size={18} />
-                  </>
+                  <span>Sign In</span>
                 )}
               </button>
             </form>
@@ -136,6 +120,53 @@ export const LoginPage = () => {
               <Link to="/register" className="gold-underline fw-semibold" style={{ color: 'var(--dp-color-ink)' }}>
                 Subscribe & Register ($10/mo or $100/yr)
               </Link>
+            </div>
+
+            {/* Quick Credentials Card for Demo / Evaluation */}
+            <div
+              className="mt-4 p-3 small"
+              style={{
+                backgroundColor: 'var(--dp-color-cream, #fdfbf7)',
+                border: '1px dashed var(--dp-color-gold, #b69355)',
+              }}
+            >
+              <div
+                className="fw-semibold text-uppercase mb-2"
+                style={{
+                  fontSize: '0.72rem',
+                  letterSpacing: '0.08em',
+                  color: 'var(--dp-color-gold, #b69355)',
+                }}
+              >
+                Quick Credentials (SRS Seeded)
+              </div>
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <span className="text-muted">Admin (James Thew):</span>
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold"
+                  style={{ color: 'var(--dp-color-ink, #1a1a1a)' }}
+                  onClick={() => {
+                    setEmailOrUsername('james');
+                    setPassword('Admin@123456');
+                  }}
+                >
+                  james / Admin@123456
+                </button>
+              </div>
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="text-muted">VIP Member:</span>
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0 text-decoration-none text-muted"
+                  onClick={() => {
+                    setEmailOrUsername('sophia@culinaryart.com');
+                    setPassword('Member@123456');
+                  }}
+                >
+                  sophia@culinaryart.com / Member@123456
+                </button>
+              </div>
             </div>
           </div>
         </div>

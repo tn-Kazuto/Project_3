@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { faqApi } from '../../services/api';
-import { HelpCircle, Search, MessageSquare, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 
 export const FaqPage = () => {
   const [faqs, setFaqs] = useState([]);
@@ -43,35 +42,27 @@ export const FaqPage = () => {
     <div className="container py-5">
       {/* Header Banner - Pale Taupe Architectural Panel */}
       <div className="field-taupe p-4 p-md-5 mb-5 text-center">
-        <div className="d-inline-flex align-items-center justify-content-center p-3 mb-3 border border-warning" style={{ borderColor: 'var(--dp-color-accent)' }}>
-          <HelpCircle size={36} className="luxury-gold-icon" />
-        </div>
         <div className="roman-numeral mb-2">VII &middot; INQUIRIES & GUIDANCE</div>
         <h1 className="brand-font display-5 mb-3">Frequently Asked Questions</h1>
         <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
           Find answers to common inquiries about culinary memberships, recipe access, cooking contests, and weekend masterclasses with Chef James Thew.
         </p>
 
-        {/* Search Bar with square hairline rule */}
+        {/* Search Bar */}
         <div className="max-w-600 mx-auto mt-4">
-          <div className="input-group input-group-lg">
-            <span className="input-group-text bg-white border-end-0">
-              <Search size={20} style={{ color: 'var(--dp-color-accent)' }} />
-            </span>
-            <input
-              type="text"
-              className="form-control border-start-0 ps-0"
-              placeholder="Search questions (e.g. subscription, contest, cancel)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <input
+            type="text"
+            className="form-control form-control-lg text-center"
+            placeholder="Search questions (e.g. subscription, contest, cancel)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)' }}
+          />
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-danger d-flex align-items-center gap-2 mb-4">
-          <AlertCircle size={20} />
+        <div className="alert alert-danger mb-4">
           <span>{error}</span>
         </div>
       )}
@@ -88,7 +79,6 @@ export const FaqPage = () => {
           <div className="col-lg-10">
             {filteredFaqs.length === 0 ? (
               <div className="text-center py-5 text-muted">
-                <HelpCircle size={48} className="mb-3 opacity-50" />
                 <h5 className="brand-font">No matching questions found</h5>
                 <p>Try different keywords or contact us directly.</p>
               </div>
@@ -130,11 +120,9 @@ export const FaqPage = () => {
                           <span className="flex-grow-1 text-start fw-medium" style={{ fontFamily: 'var(--dp-typography-serif)', fontSize: '1.15rem' }}>
                             {faq.question}
                           </span>
-                          {isOpen ? (
-                            <ChevronUp size={20} className="luxury-gold-icon flex-shrink-0" />
-                          ) : (
-                            <ChevronDown size={20} className="text-muted flex-shrink-0" />
-                          )}
+                          <span className="font-monospace small text-muted flex-shrink-0 ms-2">
+                            {isOpen ? '[-]' : '[+]'}
+                          </span>
                         </button>
                       </h2>
                       {isOpen && (
@@ -190,7 +178,7 @@ export const FaqPage = () => {
                     borderRadius: 0,
                   }}
                 >
-                  <MessageSquare size={18} className="me-2 inline" /> Send Us a Message
+                  Send Us a Message
                 </Link>
               </div>
             </div>
