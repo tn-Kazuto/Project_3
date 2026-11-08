@@ -40,16 +40,51 @@ export const FaqPage = () => {
 
   return (
     <div className="container py-5">
-      {/* Header Banner - Pale Taupe Architectural Panel */}
-      <div className="field-taupe p-4 p-md-5 mb-5 text-center">
+      {/* Header Banner - Pale Taupe Architectural Panel with Culinary Scrim */}
+      <div 
+        className="field-taupe p-4 p-md-5 mb-5 text-center position-relative overflow-hidden"
+        style={{
+          backgroundColor: 'var(--dp-color-ground-2)',
+          border: '1px solid var(--dp-color-panel-line)',
+          backgroundImage: 'linear-gradient(rgba(244, 240, 234, 0.92), rgba(244, 240, 234, 0.96)), url("https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1600&q=80")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="roman-numeral mb-2">VII &middot; INQUIRIES & GUIDANCE</div>
         <h1 className="brand-font display-5 mb-3">Frequently Asked Questions</h1>
         <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
           Find answers to common inquiries about culinary memberships, recipe access, cooking contests, and weekend masterclasses with Chef James Thew.
         </p>
 
+        {/* Quick Topic Chips (Visual Filter Buttons to jump or filter without reading all text) */}
+        <div className="d-flex justify-content-center gap-2 mt-4 flex-wrap">
+          {['All Inquiries', 'Subscription', 'Contest', 'Recipe', 'Masterclass'].map((topic) => {
+            const isAll = topic === 'All Inquiries';
+            const isActive = isAll ? searchQuery === '' : searchQuery.toLowerCase() === topic.toLowerCase();
+            return (
+              <button
+                key={topic}
+                type="button"
+                className="btn btn-sm font-monospace text-uppercase"
+                style={{
+                  backgroundColor: isActive ? 'var(--dp-color-field)' : '#ffffff',
+                  color: isActive ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
+                  border: '1px solid var(--dp-color-rule)',
+                  borderRadius: 0,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.1em',
+                }}
+                onClick={() => setSearchQuery(isAll ? '' : topic)}
+              >
+                {topic}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Search Bar */}
-        <div className="max-w-600 mx-auto mt-4">
+        <div className="max-w-600 mx-auto mt-3">
           <input
             type="text"
             className="form-control form-control-lg text-center"

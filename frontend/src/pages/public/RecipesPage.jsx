@@ -78,6 +78,59 @@ export const RecipesPage = () => {
     }
   };
 
+  const visualCategories = [
+    {
+      name: 'Juices & Nectars',
+      matchName: 'juice',
+      tag: '01 · REFRESHMENT',
+      desc: 'Cold-pressed botanical infusions & revitalizing smoothies',
+      imageUrl: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=600&q=80',
+    },
+    {
+      name: 'Vegetarian Gastronomy',
+      matchName: 'vegetarian',
+      excludeName: 'non',
+      tag: '02 · PLANT-FORWARD',
+      desc: 'Wild truffles, garden harvest & seasonal fine-dining',
+      imageUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80',
+    },
+    {
+      name: 'Prime Cuts & Meats',
+      matchName: 'non-vegetarian',
+      tag: '03 · ROBUST FEASTS',
+      desc: 'Dry-aged Wagyu steaks, roasted game & poultry reductions',
+      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+    },
+    {
+      name: 'Artisanal Italian',
+      matchName: 'italian',
+      tag: '04 · CLASSIC HERITAGE',
+      desc: 'Handmade bronze-die pastas, creamy risottos & velvety tiramisù',
+      imageUrl: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80',
+    },
+  ];
+
+  const handleVisualCategoryClick = (visualCat) => {
+    const target = categories.find((c) => {
+      const name = c.categoryName.toLowerCase();
+      if (visualCat.excludeName && name.includes(visualCat.excludeName)) return false;
+      return name.includes(visualCat.matchName);
+    });
+    if (target) {
+      setSelectedCategory(selectedCategory === target.categoryId ? null : target.categoryId);
+    }
+  };
+
+  const isCategorySelected = (visualCat) => {
+    if (selectedCategory === null) return false;
+    const target = categories.find((c) => {
+      const name = c.categoryName.toLowerCase();
+      if (visualCat.excludeName && name.includes(visualCat.excludeName)) return false;
+      return name.includes(visualCat.matchName);
+    });
+    return target && target.categoryId === selectedCategory;
+  };
+
   return (
     <div className="container py-5 luxury-recipes">
       {/* Architectural Section Header */}
@@ -120,6 +173,66 @@ export const RecipesPage = () => {
           </button>
         </div>
       </div>
+
+      {/* Visual Category Pillars (4 Pillars of Gastronomy) */}
+      {activeTab === 'recipes' && (
+        <div className="mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="font-monospace small text-uppercase" style={{ letterSpacing: '0.14em', color: 'var(--dp-color-accent)' }}>
+              FOUR PILLARS OF CHEF JAMES THEW &middot; VISUAL DIRECTORY
+            </span>
+            {selectedCategory !== null && (
+              <button
+                type="button"
+                className="btn btn-link btn-sm p-0 text-decoration-none font-monospace small"
+                style={{ color: 'var(--dp-color-ink-2)' }}
+                onClick={() => setSelectedCategory(null)}
+              >
+                [Clear Filter]
+              </button>
+            )}
+          </div>
+          <div className="row g-3">
+            {visualCategories.map((vCat, idx) => {
+              const selected = isCategorySelected(vCat);
+              return (
+                <div key={idx} className="col-6 col-lg-3">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleVisualCategoryClick(vCat)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleVisualCategoryClick(vCat)}
+                    className="position-relative overflow-hidden text-white h-100 p-3 d-flex flex-column justify-content-end"
+                    style={{
+                      minHeight: '160px',
+                      backgroundImage: `linear-gradient(rgba(20, 18, 16, ${selected ? '0.65' : '0.78'}), rgba(20, 18, 16, ${selected ? '0.85' : '0.92'})), url("${vCat.imageUrl}")`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      border: selected ? '2px solid var(--dp-color-accent)' : '1px solid var(--dp-color-rule)',
+                      boxShadow: selected ? '0 0 15px rgba(182, 147, 85, 0.35)' : 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.25s ease',
+                    }}
+                  >
+                    <span className="font-monospace text-uppercase" style={{ fontSize: '0.65rem', color: selected ? 'var(--dp-color-accent)' : 'var(--dp-color-on-field-2)', letterSpacing: '0.12em' }}>
+                      {vCat.tag}
+                    </span>
+                    <h5 className="brand-font m-0 mt-1" style={{ fontSize: '1.05rem', color: '#ffffff' }}>
+                      {vCat.name}
+                    </h5>
+                    <p className="small mb-0 mt-1 d-none d-md-block" style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.75)', lineHeight: '1.3' }}>
+                      {vCat.desc}
+                    </p>
+                    <div className="mt-2 pt-2 border-top border-secondary font-monospace" style={{ fontSize: '0.65rem', color: selected ? 'var(--dp-color-accent)' : 'rgba(255, 255, 255, 0.6)' }}>
+                      {selected ? 'ACTIVE &bull; CLICK TO RESET' : 'SELECT CATEGORY &rarr;'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Search & Category Filter Bar */}
       <div
