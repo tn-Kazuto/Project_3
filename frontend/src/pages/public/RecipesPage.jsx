@@ -361,11 +361,23 @@ export const RecipesPage = () => {
                     </span>
                   </div>
 
+                  {r.imageUrl && (
+                    <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
+                      <img
+                        src={r.imageUrl}
+                        alt={r.title}
+                        className="w-100 h-100"
+                        style={{ objectFit: 'cover' }}
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+
                   <h4 className="brand-font mb-2 text-dark" style={{ fontSize: '1.35rem' }}>
                     {r.title}
                   </h4>
 
-                  <p className="text-muted small line-clamp-3 mb-4 flex-grow-1" style={{ lineHeight: '1.65' }}>
+                  <p className="text-muted small mb-3 flex-grow-1" style={{ lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     <strong className="text-dark">Ingredients:</strong> {r.ingredients.substring(0, 100)}...
                   </p>
 

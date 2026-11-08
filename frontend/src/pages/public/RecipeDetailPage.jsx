@@ -363,9 +363,46 @@ export const RecipeDetailPage = () => {
           </div>
         </div>
 
-        <h1 className="brand-font display-6 mb-4 text-dark" style={{ letterSpacing: '-0.015em' }}>
+        <h1 className="brand-font display-6 mb-3 text-dark" style={{ letterSpacing: '-0.015em' }}>
           {recipe.title}
         </h1>
+
+        {/* Quick Culinary Specs Bar */}
+        <div className="d-flex flex-wrap align-items-center gap-3 py-2 px-3 mb-4 small" style={{ backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
+          <div>
+            <span className="text-muted font-monospace me-1">CATEGORY:</span>
+            <strong className="text-dark font-monospace">{recipe.categoryName}</strong>
+          </div>
+          <span className="text-muted opacity-50">&bull;</span>
+          <div>
+            <span className="text-muted font-monospace me-1">TIER:</span>
+            <span className="badge font-monospace" style={{ backgroundColor: recipe.isFree ? '#1b4d3e' : 'var(--dp-color-field)', color: '#ffffff', borderRadius: 0 }}>
+              {recipe.isFree ? 'Free Access' : 'Members Only'}
+            </span>
+          </div>
+          <span className="text-muted opacity-50">&bull;</span>
+          <div>
+            <span className="text-muted font-monospace me-1">FORMAT:</span>
+            <strong className="text-dark font-monospace">{recipe.contentType || 'ARTICLE'}</strong>
+          </div>
+          <span className="text-muted opacity-50">&bull;</span>
+          <div>
+            <span className="text-muted font-monospace me-1">AUTHOR:</span>
+            <strong className="text-dark font-monospace">{recipe.authorName || 'Chef James Thew'}</strong>
+          </div>
+        </div>
+
+        {/* Recipe Hero Image if not video */}
+        {!recipe.videoUrl && recipe.imageUrl && (
+          <div className="mb-4 overflow-hidden" style={{ maxHeight: '440px', border: '1px solid var(--dp-color-panel-line)' }}>
+            <img
+              src={recipe.imageUrl}
+              alt={recipe.title}
+              className="w-100"
+              style={{ objectFit: 'cover', maxHeight: '440px' }}
+            />
+          </div>
+        )}
 
         {/* Video Masterclass / Screening Player (SRS v2.0) */}
         {recipe.videoUrl && (

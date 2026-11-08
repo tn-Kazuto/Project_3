@@ -256,6 +256,18 @@ export const HomePage = () => {
                       </span>
                     </div>
 
+                    {r.imageUrl && (
+                      <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
+                        <img
+                          src={r.imageUrl}
+                          alt={r.title}
+                          className="w-100 h-100"
+                          style={{ objectFit: 'cover' }}
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+
                     <h4 className="brand-font mb-2" style={{ fontSize: '1.35rem' }}>
                       {r.title}
                     </h4>
