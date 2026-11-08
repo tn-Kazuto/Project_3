@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="luxury_gold">#B69355</color>
+    <color name="luxury_gold_light">#D4AF37</color>
+    <color name="luxury_gold_dark">#8C6D33</color>
+    <color name="luxury_charcoal">#1A1A1A</color>
+    <color name="luxury_charcoal_surface">#242424</color>
+    <color name="luxury_charcoal_elevated">#2E2E2E</color>
+    <color name="luxury_alabaster">#FDFBF7</color>
+    <color name="luxury_text_muted">#A0A0A0</color>
+    <color name="luxury_border">#383838</color>
+</resources>
+

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.JamesThewCulinary" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/luxury_charcoal</item>
+        <item name="android:navigationBarColor">@color/luxury_charcoal</item>
+        <item name="android:windowBackground">@color/luxury_charcoal</item>
+    </style>
+</resources>
+

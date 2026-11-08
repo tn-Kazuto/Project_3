@@ -361,34 +361,899 @@ p {
   color: inherit;
 }
 
-/* Navbar */
+/* ── 5-Star Architectural Luxury Navbar System ── */
 .luxury-navbar {
-  background-color: var(--dp-color-ground) !important;
-  border-bottom: var(--dp-border-hairline) solid var(--dp-color-rule) !important;
-  box-shadow: none !important;
+  background-color: rgba(243, 238, 228, 0.98) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--dp-color-rule) !important;
+  box-shadow: 0 1px 0 rgba(182, 147, 85, 0.1) !important;
+  min-height: 72px;
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+  transition: all 0.2s ease;
+  z-index: 1040;
 }
 
 .navbar-brand-title {
   font-family: var(--dp-typography-serif);
   font-weight: 600;
-  font-size: 1.45rem;
-  letter-spacing: 0.03em;
+  font-size: 1.4rem;
+  letter-spacing: 0.035em;
   color: var(--dp-color-ink) !important;
+  white-space: nowrap !important;
+  line-height: 1;
 }
 
+.luxury-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: rgba(182, 147, 85, 0.12);
+  border: 1px solid rgba(182, 147, 85, 0.35);
+  color: var(--dp-color-accent);
+  transition: all 0.25s ease;
+}
+
+.navbar-brand:hover .luxury-brand-badge {
+  background-color: var(--dp-color-field);
+  color: var(--dp-color-accent-light);
+  border-color: var(--dp-color-accent);
+}
+
+/* Nav links - Anti-wrapping single line with elegant tracked uppercase */
 .nav-link {
   font-family: var(--dp-typography-sans);
   text-transform: uppercase;
-  letter-spacing: var(--dp-typography-label-tracking);
-  font-size: var(--dp-typography-label);
+  letter-spacing: 0.11em;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--dp-color-ink-2) !important;
-  transition: color var(--dp-motion-interaction);
+  padding: 0.45rem 0.65rem !important;
+  white-space: nowrap !important;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+  transition: color var(--dp-motion-interaction), background-color var(--dp-motion-interaction);
+}
+
+/* Underline indicator animation on hover & active */
+.luxury-navbar .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0.65rem;
+  right: 0.65rem;
+  height: 2px;
+  background-color: var(--dp-color-accent);
+  opacity: 0;
+  transform: scaleX(0.3);
+  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.2s ease;
+}
+
+.luxury-navbar .nav-link:hover::after,
+.luxury-navbar .nav-link.active::after {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .nav-link:hover,
 .nav-link.active {
   color: var(--dp-color-accent-text) !important;
+}
+
+.luxury-navbar .nav-link.nav-link-admin {
+  color: #a82315 !important;
+  font-weight: 700;
+}
+
+.luxury-navbar .nav-link.nav-link-admin::after {
+  background-color: #a82315;
+}
+
+/* Responsive link tightening for medium laptops (992px - 1280px) */
+@media (min-width: 992px) and (max-width: 1280px) {
+  .luxury-navbar .nav-link {
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    padding: 0.4rem 0.42rem !important;
+  }
+  .luxury-navbar .nav-link::after {
+    left: 0.42rem;
+    right: 0.42rem;
+  }
+}
+
+/* Hairline Vertical Divider */
+.luxury-nav-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--dp-color-panel-line);
+  margin: 0 0.4rem;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 991.98px) {
+  .luxury-nav-divider {
+    display: none;
+  }
+}
+
+/* ── 5-Star Luxury Concierge Notifications System ── */
+.luxury-notif-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(198, 184, 159, 0.45);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  color: var(--dp-color-ink);
+  transition: all 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.luxury-notif-btn:hover,
+.luxury-notif-btn.is-active {
+  background-color: rgba(182, 147, 85, 0.15);
+  border-color: var(--dp-color-accent);
+  color: var(--dp-color-accent-text);
+  box-shadow: 0 0 12px rgba(182, 147, 85, 0.25);
+}
+
+.luxury-notif-btn .luxury-gold-icon {
+  color: var(--dp-color-accent-text);
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.luxury-notif-btn:hover .luxury-gold-icon,
+.luxury-notif-btn.is-active .luxury-gold-icon {
+  transform: rotate(8deg);
+  color: var(--dp-color-accent);
+}
+
+/* Luxury Notification Badge on Bell */
+.luxury-notif-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: linear-gradient(135deg, #d2b071 0%, #b69355 100%);
+  color: #ffffff;
+  font-family: var(--dp-typography-sans);
+  font-weight: 700;
+  font-size: 0.625rem;
+  line-height: 15px;
+  text-align: center;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(182, 147, 85, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+/* Luxury Notification Drawer Backdrop */
+.luxury-notif-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(38, 35, 33, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1065;
+  animation: luxuryBackdropFadeIn 0.25s ease forwards;
+}
+
+@keyframes luxuryBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Luxury Notification Right-Side Drawer Panel (5-Star Concierge) */
+.luxury-notif-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 100vw;
+  height: 100vh;
+  background-color: #ffffff;
+  border-left: 1px solid var(--dp-color-panel-line);
+  box-shadow: -14px 0 45px rgba(38, 35, 33, 0.25), -2px 0 10px rgba(182, 147, 85, 0.15);
+  z-index: 1070;
+  display: flex;
+  flex-direction: column;
+  animation: luxuryDrawerSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}
+
+@keyframes luxuryDrawerSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Close Button */
+.luxury-notif-close-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(198, 184, 159, 0.45);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--dp-color-ink);
+  padding: 0;
+  transition: all 0.22s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.luxury-notif-close-btn:hover {
+  background-color: var(--dp-color-field);
+  color: #ffffff;
+  border-color: var(--dp-color-field);
+  transform: rotate(90deg);
+}
+
+/* Luxury Notification Dropdown Container (Fallback) */
+.luxury-notif-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 390px;
+  max-width: 92vw;
+  background-color: #ffffff;
+  border: 1px solid var(--dp-color-panel-line);
+  border-top: 2px solid var(--dp-color-accent);
+  border-radius: 4px;
+  box-shadow: 0 20px 48px -10px rgba(38, 35, 33, 0.28), 0 2px 10px rgba(182, 147, 85, 0.16);
+  z-index: 1060;
+  display: flex;
+  flex-direction: column;
+  animation: luxuryNotifSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top right;
+  overflow: visible;
+}
+
+@keyframes luxuryNotifSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Caret / Pointer pointing directly to Bell */
+.luxury-notif-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  right: 13px;
+  width: 12px;
+  height: 12px;
+  background: #fbf9f5;
+  border-left: 1px solid var(--dp-color-panel-line);
+  border-top: 2px solid var(--dp-color-accent);
+  transform: rotate(45deg);
+  z-index: 10;
+}
+
+/* Header */
+.luxury-notif-header {
+  padding: 1rem 1.15rem 0.65rem;
+  background: linear-gradient(180deg, #fbf9f5 0%, #f4efe6 100%);
+  border-bottom: 1px solid var(--dp-color-panel-line);
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  position: relative;
+  z-index: 3;
+}
+
+.luxury-notif-eyebrow {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dp-color-accent-text);
+}
+
+.luxury-notif-header-title {
+  font-family: var(--dp-typography-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--dp-color-field);
+  letter-spacing: -0.01em;
+}
+
+.luxury-notif-count-pill {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  background: rgba(182, 147, 85, 0.15);
+  color: var(--dp-color-accent-text);
+  border: 1px solid rgba(182, 147, 85, 0.3);
+  border-radius: 999px;
+}
+
+.luxury-notif-mark-all {
+  font-family: var(--dp-typography-sans) !important;
+  font-size: 0.725rem !important;
+  font-weight: 600 !important;
+  color: var(--dp-color-accent-text) !important;
+  padding: 0.25rem 0.45rem !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 3px !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+}
+
+.luxury-notif-mark-all:hover {
+  background-color: rgba(182, 147, 85, 0.12) !important;
+  color: var(--dp-color-accent) !important;
+}
+
+/* Filter Tabs */
+.luxury-notif-tabs {
+  margin-top: 0.65rem;
+  border-bottom: 1px solid rgba(198, 184, 159, 0.35);
+  padding-bottom: 0.35rem;
+}
+
+.luxury-notif-tab {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.725rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--dp-color-ink-2);
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0.65rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.luxury-notif-tab:hover {
+  color: var(--dp-color-ink);
+  background: rgba(182, 147, 85, 0.1);
+}
+
+.luxury-notif-tab.active {
+  color: #ffffff;
+  background: var(--dp-color-field);
+}
+
+/* List container & Custom scrollbar */
+.luxury-notif-list {
+  max-height: 380px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.luxury-notif-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.luxury-notif-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.luxury-notif-list::-webkit-scrollbar-thumb {
+  background: var(--dp-color-panel-line);
+  border-radius: 999px;
+}
+
+.luxury-notif-list::-webkit-scrollbar-thumb:hover {
+  background: var(--dp-color-accent);
+}
+
+/* Notification Item */
+.luxury-notif-item {
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid rgba(198, 184, 159, 0.3);
+  transition: all 0.2s ease;
+  position: relative;
+  text-align: left;
+  outline: none;
+  cursor: pointer;
+}
+
+.luxury-notif-item.is-unread {
+  background-color: rgba(182, 147, 85, 0.045);
+  border-left: 3px solid var(--dp-color-accent);
+}
+
+.luxury-notif-item.is-read {
+  background-color: #ffffff;
+  border-left: 3px solid transparent;
+  opacity: 0.92;
+}
+
+.luxury-notif-item:hover {
+  background-color: rgba(228, 219, 204, 0.45);
+  opacity: 1;
+}
+
+.luxury-notif-item:focus-visible {
+  outline: 2px solid var(--dp-color-accent);
+  outline-offset: -2px;
+}
+
+/* Avatar / Category Badge */
+.luxury-notif-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.luxury-notif-item:hover .luxury-notif-avatar {
+  transform: scale(1.08);
+}
+
+.notif-icon-vip {
+  background: rgba(182, 147, 85, 0.15);
+  color: #b69355;
+  border: 1px solid rgba(182, 147, 85, 0.35);
+}
+
+.notif-icon-contest {
+  background: rgba(210, 176, 113, 0.18);
+  color: #a67c30;
+  border: 1px solid rgba(210, 176, 113, 0.4);
+}
+
+.notif-icon-culinary {
+  background: rgba(70, 64, 58, 0.1);
+  color: #302c29;
+  border: 1px solid rgba(70, 64, 58, 0.25);
+}
+
+.notif-icon-general {
+  background: rgba(182, 147, 85, 0.12);
+  color: #b69355;
+  border: 1px solid rgba(182, 147, 85, 0.25);
+}
+
+/* Content Typography */
+.luxury-notif-tag {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dp-color-accent-text);
+}
+
+.luxury-notif-time {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.6875rem;
+  color: #8c8278;
+}
+
+.luxury-notif-title {
+  font-family: var(--dp-typography-serif);
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: var(--dp-color-field);
+  line-height: 1.3;
+}
+
+.luxury-notif-message {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.8125rem;
+  color: var(--dp-color-ink-2);
+  line-height: 1.45;
+}
+
+.luxury-notif-cta {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--dp-color-accent-text);
+  transition: color 0.15s ease;
+}
+
+/* Action button row inside notification item */
+.luxury-notif-action-row {
+  margin-top: 0.75rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(198, 184, 159, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.luxury-notif-cta-btn {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.725rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--dp-color-accent-text);
+  background: rgba(182, 147, 85, 0.12);
+  border: 1px solid rgba(182, 147, 85, 0.35);
+  padding: 0.28rem 0.65rem;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.luxury-notif-item:hover .luxury-notif-cta-btn {
+  background: var(--dp-color-accent);
+  color: #ffffff;
+  border-color: var(--dp-color-accent);
+  box-shadow: 0 2px 8px rgba(182, 147, 85, 0.35);
+}
+
+.luxury-notif-arrow {
+  transition: transform 0.2s ease;
+}
+
+.luxury-notif-item:hover .luxury-notif-arrow {
+  transform: translateX(3px);
+}
+
+.luxury-notif-tap-hint {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.65rem;
+  color: #8c8278;
+  letter-spacing: 0.02em;
+}
+
+.luxury-notif-perk-pill {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.65rem;
+  color: var(--dp-color-accent-text);
+  background: rgba(182, 147, 85, 0.08);
+  border-left: 2px solid var(--dp-color-accent);
+  padding: 0.3rem 0.55rem;
+  border-radius: 0 2px 2px 0;
+  margin-top: 0.5rem;
+  line-height: 1.35;
+}
+
+.luxury-notif-chevron {
+  transition: transform 0.2s ease;
+}
+
+.luxury-notif-item:hover .luxury-notif-chevron {
+  transform: translateX(3px);
+}
+
+/* Unread dot */
+.luxury-notif-dot-wrapper {
+  padding-top: 4px;
+}
+
+.luxury-notif-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b69355;
+  box-shadow: 0 0 6px rgba(182, 147, 85, 0.7);
+  display: inline-block;
+}
+
+/* Empty State */
+.luxury-notif-empty {
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+}
+
+.luxury-notif-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(182, 147, 85, 0.1);
+  border: 1px solid rgba(182, 147, 85, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dp-color-accent);
+  margin-bottom: 0.85rem;
+}
+
+.luxury-notif-empty-title {
+  font-family: var(--dp-typography-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--dp-color-field);
+  margin-bottom: 0.35rem;
+}
+
+.luxury-notif-empty-desc {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.785rem;
+  color: var(--dp-color-ink-2);
+  line-height: 1.45;
+  max-width: 260px;
+  margin: 0 auto 1rem;
+}
+
+.luxury-notif-empty-btn {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.725rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background-color: var(--dp-color-field);
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--dp-color-field);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.luxury-notif-empty-btn:hover {
+  background-color: var(--dp-color-accent);
+  border-color: var(--dp-color-accent);
+  color: #ffffff;
+}
+
+/* Footer */
+.luxury-notif-footer {
+  padding: 0.75rem 1.15rem;
+  background-color: #faf7f2;
+  border-top: 1px solid var(--dp-color-panel-line);
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.luxury-notif-footer-link {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dp-color-accent-text);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.luxury-notif-footer-link:hover {
+  color: var(--dp-color-ink);
+  transform: translateX(2px);
+}
+
+.luxury-notif-footer-brand {
+  font-family: var(--dp-typography-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9c9184;
+}
+
+@media (max-width: 576px) {
+  .luxury-notif-dropdown {
+    right: -10px;
+    width: calc(100vw - 24px);
+  }
+  .luxury-notif-dropdown::before {
+    right: 22px;
+  }
+}
+
+/* Architectural User Profile Pill */
+.luxury-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0.65rem 0.3rem 0.45rem;
+  background-color: rgba(228, 219, 204, 0.5);
+  border: 1px solid var(--dp-color-panel-line);
+  text-decoration: none !important;
+  color: var(--dp-color-ink) !important;
+  transition: all 0.2s ease;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+
+.luxury-user-pill:hover {
+  background-color: rgba(228, 219, 204, 0.95);
+  border-color: var(--dp-color-accent);
+  color: var(--dp-color-ink) !important;
+}
+
+.luxury-user-avatar {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--dp-color-field);
+  color: var(--dp-color-accent);
+  font-family: var(--dp-typography-serif);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid var(--dp-color-accent);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.luxury-user-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--dp-color-ink);
+  white-space: nowrap !important;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+@media (min-width: 992px) and (max-width: 1200px) {
+  .luxury-user-name {
+    max-width: 90px;
+  }
+}
+
+/* Luxury Plan Badges */
+.badge-luxury-gold {
+  background: linear-gradient(135deg, #b69355 0%, #8e7039 100%) !important;
+  color: #ffffff !important;
+  font-family: var(--dp-typography-sans) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  font-size: 0.64rem !important;
+  padding: 0.22rem 0.5rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.badge-luxury-admin {
+  background: #262321 !important;
+  color: #d2b071 !important;
+  border: 1px solid #b69355 !important;
+  font-family: var(--dp-typography-sans) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  font-size: 0.64rem !important;
+  padding: 0.22rem 0.5rem !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* Architectural Minimalist Logout Button */
+.luxury-logout-btn {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  padding: 0.38rem 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: transparent;
+  color: var(--dp-color-ink);
+  border: 1px solid var(--dp-color-panel-line);
+  white-space: nowrap !important;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.luxury-logout-btn:hover {
+  background-color: var(--dp-color-field);
+  color: var(--dp-color-on-field);
+  border-color: var(--dp-color-field);
+}
+
+/* Guest Action Buttons */
+.luxury-login-btn {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.09em;
+  font-weight: 600;
+  border: 1px solid var(--dp-color-field);
+  color: var(--dp-color-field);
+  background-color: transparent;
+  padding: 0.42rem 0.9rem;
+  white-space: nowrap !important;
+  transition: all 0.2s ease;
+}
+
+.luxury-login-btn:hover {
+  background-color: var(--dp-color-field);
+  color: var(--dp-color-on-field);
+}
+
+.luxury-register-btn {
+  font-family: var(--dp-typography-sans);
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.09em;
+  font-weight: 600;
+  border: 1px solid var(--dp-color-accent);
+  background: var(--dp-color-field) !important;
+  color: var(--dp-color-accent-light) !important;
+  padding: 0.42rem 1rem;
+  white-space: nowrap !important;
+  transition: all 0.2s ease;
+}
+
+.luxury-register-btn:hover {
+  background: var(--dp-color-field-deep) !important;
+  color: #ffffff !important;
+  border-color: #ffffff;
+}
+
+/* Mobile Collapse Styling */
+@media (max-width: 991.98px) {
+  .luxury-navbar .navbar-collapse {
+    background-color: var(--dp-color-ground);
+    border-top: 1px solid var(--dp-color-rule);
+    margin-top: 0.85rem;
+    padding: 1.25rem 0.75rem;
+  }
+  
+  .luxury-navbar .navbar-nav {
+    margin-bottom: 1.25rem !important;
+    gap: 0.35rem !important;
+  }
+  
+  .luxury-navbar .nav-link {
+    padding: 0.65rem 0.85rem !important;
+    border-bottom: 1px solid rgba(213, 202, 184, 0.4);
+    width: 100%;
+  }
+  
+  .luxury-navbar .nav-link::after {
+    display: none;
+  }
+  
+  .luxury-navbar-actions {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--dp-color-rule);
+  }
+  
+  .luxury-user-pill {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .luxury-logout-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Luxury Footer */
