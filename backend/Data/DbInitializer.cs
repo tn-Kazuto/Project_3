@@ -425,6 +425,139 @@ END;
                 }
             }
 
+            // 4.1 Ensure All Rich Master Recipes Exist (Self-healing upsert for team synchronization)
+            var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Role == "ADMIN");
+            var catJuices = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Juices");
+            var catVeg = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Vegetarian");
+            var catNonVeg = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Non-Vegetarian");
+            var catItalian = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Italian");
+
+            if (adminUser != null && catJuices != null && catVeg != null && catNonVeg != null && catItalian != null)
+            {
+                var masterCatalog = new List<Recipe>
+                {
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catJuices.CategoryId,
+                        Title = "Cold-Pressed Sicilian Blood Orange, Pomegranate & Wild Rosemary Tonic",
+                        Ingredients = "4 Sicilian Blood Oranges (peeled)\n2 Ripe Pomegranates (seeded)\n1 Sprig Wild Rosemary\n1 Lime (juiced)\n10g Fresh Ginger Root\n200ml Sparkling Mineral Water\nIce cubes & rosemary sprig for garnish",
+                        CookingProcedure = "1. Wash all produce thoroughly in cold water. Peel oranges and separate into quarters.\n2. Feed pomegranate seeds and ginger root through a slow masticating cold-press juicer.\n3. Pass blood orange wedges through the juicer, blending naturally with the ruby pomegranate extract.\n4. Bruise the rosemary sprig gently between fingers to release essential oils; steep in the fresh juice for 3 minutes.\n5. Fill chilled crystal tumbler with artisanal ice cubes, pour the elixir over ice, top with a splash of sparkling water, and garnish with wild rosemary.",
+                        ImageUrl = "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = true,
+                        ContentType = "ARTICLE",
+                        ShareCount = 18,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catJuices.CategoryId,
+                        Title = "Royal Green Alkalizer: Cold-Pressed Celery, Green Apple, Baby Spinach & Fresh Ginger",
+                        Ingredients = "6 Stalks Organic Crisp Celery\n2 Granny Smith Green Apples (cored)\n100g Baby Spinach leaves\n1/2 English Cucumber\n15g Young Ginger Root\n1/2 Lemon (peeled)\nPinch of Celtic Sea Salt",
+                        CookingProcedure = "1. Chill all organic vegetables for 2 hours before pressing to keep extraction temperature below 15°C.\n2. Alternate feeding fibrous celery and crisp green apple through the low-RPM cold press.\n3. Bunch baby spinach tightly and press between apple slices for maximal chlorophyll yield.\n4. Add cucumber and young ginger, finishing with fresh lemon to stabilize antioxidants and prevent browning.\n5. Stir gently with a glass rod, add a micro-pinch of Celtic sea salt to unlock natural mineral electrolytes, and serve immediately in a frosted glass.",
+                        ImageUrl = "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = false,
+                        ContentType = "ARTICLE",
+                        ShareCount = 24,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catVeg.CategoryId,
+                        Title = "Artisanal Wild Forest Mushroom & Truffle Risotto with Aged Parmigiano",
+                        Ingredients = "320g Acquerello Carnaroli Rice\n250g Wild Chanterelles and King Oyster Mushrooms\n1.2L Rich Roasted Vegetable Stock\n1 Shallot (finely brunoised)\n120ml Dry White Italian Wine (Pinot Grigio)\n60g Cultured Unsalted Butter (ice-cold cubes)\n50g Parmigiano Reggiano DOP (aged 24 months, freshly grated)\n20g Fresh Black Truffle (for shaving)\nExtra Virgin Olive Oil, Sea Salt, White Pepper",
+                        CookingProcedure = "1. In a heavy copper saucepan, bring vegetable stock to a gentle bare simmer.\n2. Sauté wild mushrooms in olive oil over high heat until caramelized and golden; set aside two-thirds for garnish.\n3. Sweat minced shallots in olive oil over medium-low heat until translucent without browning.\n4. Add Carnaroli rice and toast for 3 minutes until grains are pearl-edged and hot to the touch.\n5. Deglaze with white wine and stir until completely absorbed.\n6. Add simmering stock ladle by ladle, stirring steadily for 16-17 minutes until rice is al dente with creamy starch suspension.\n7. Remove from heat (la mantecatura): vigorously beat in cold butter cubes and Parmigiano Reggiano until glossy and flowing (all'onda).\n8. Plate onto warm flat earthenware, top with sautéed forest mushrooms, and shave generous black truffle over top.",
+                        ImageUrl = "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = true,
+                        ContentType = "ARTICLE",
+                        ShareCount = 35,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catVeg.CategoryId,
+                        Title = "Salt-Baked Golden & Chioggia Beetroot Carpaccio with Whipped Goat Cheese & Candied Walnuts",
+                        Ingredients = "4 Medium Golden and Chioggia Heirloom Beetroots\n1kg Coarse Rock Salt\n2 Egg Whites\n150g Fresh Artisanal Goat Cheese (Chèvre)\n50ml Heavy Cream\n60g Walnut Halves\n2 tbsp Wildflower Honey\nAged Balsamic Vinegar (Tradizionale 12-Year)\nBaby Arugula & Micro Purple Shiso",
+                        CookingProcedure = "1. Mix coarse rock salt with egg whites and 50ml water to form a moldable damp sand texture.\n2. Encase unpeeled washed beetroots completely in salt paste on a parchment-lined baking sheet.\n3. Bake at 190°C for 60 minutes until tender when pierced with a cake tester. Cool, crack salt crust, and peel skins cleanly.\n4. Whip goat cheese and heavy cream with sea salt in a food processor until light, airy, and pipeable.\n5. Caramelize walnut halves in wildflower honey over medium heat for 4 minutes until amber; spread on silicone mat to cool.\n6. Slice beets paper-thin (1.5mm) using a Japanese mandoline; arrange in overlapping concentric rosettes on a dark ceramic platter.\n7. Pipe neat quenelles of whipped Chèvre, scatter candied walnuts and micro shiso, and finish with drops of 12-year aged balsamic.",
+                        ImageUrl = "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = false,
+                        ContentType = "ARTICLE",
+                        ShareCount = 42,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catNonVeg.CategoryId,
+                        Title = "Crispy Skin French Duck Breast with Blackberry-Port Wine Reduction & Parsnip Purée",
+                        Ingredients = "2 Moulard Duck Breasts (approx. 220g each)\n300g Fresh Parsnips (peeled and diced)\n80ml Whole Milk & 30g Cultured Butter\n150g Fresh Blackberries\n100ml Ruby Port Wine\n150ml Rich Duck or Veal Demi-Glace\n2 Shallots (minced)\nFresh Thyme, Fleur de Sel, Coarse Black Pepper",
+                        CookingProcedure = "1. Score the duck breast skin in a tight 5mm diamond crosshatch pattern without penetrating the meat. Season both sides with fleur de sel.\n2. Place duck breasts skin-side down in a cold dry cast-iron skillet over medium-low heat. Render fat slowly for 12 minutes, spooning away excess fat.\n3. Flip when skin is deeply mahogany and glass-crisp; sear flesh side for 3-4 minutes to 54°C internal temperature (medium-rare). Rest on wire rack 8 minutes.\n4. Boil parsnips in salted water until knife-tender; blend in high-speed blender with milk and butter until silky smooth.\n5. In the same pan, sauté shallots in 1 tbsp duck fat, deglaze with Port wine, and reduce by half. Add demi-glace and fresh blackberries; simmer until syrupy.\n6. Carve duck breast into thick angled medallions, fan across parsnip purée, and spoon glossy blackberry reduction along the side.",
+                        ImageUrl = "https://images.unsplash.com/photo-1514944298352-f418579435b8?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = true,
+                        ContentType = "ARTICLE",
+                        ShareCount = 56,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catNonVeg.CategoryId,
+                        Title = "Prime Australian Wagyu Ribeye MB7+ with Charred Scallion Chimichurri & Bone Marrow Butter",
+                        Ingredients = "2 Wagyu Ribeye Steaks (350g each, 3.5cm thickness, Marbling Score 7+)\n2 Fresh Beef Marrow Bones (canoe cut)\n4 Garlic Cloves (crushed)\n3 Sprigs Fresh Rosemary & Thyme\nChimichurri: 1 bunch Flat-Leaf Parsley, 4 Charred Scallions, 2 Garlic Cloves, 1 Red Fresno Chili, 60ml Red Wine Vinegar, 120ml Olive Oil, Smoked Salt\nMaldon Sea Salt Flakes",
+                        CookingProcedure = "1. Bring Wagyu steaks to ambient room temperature 45 minutes before cooking. Season generously with Maldon sea salt flakes.\n2. Roast marrow bones at 220°C for 15 minutes. Scoop hot marrow, whip into softened cultured butter with minced thyme and sea salt, and chill into a log.\n3. Blend chimichurri ingredients lightly with a pulse action, leaving texture rustic and vibrant.\n4. Preheat heavy ridged cast-iron skillet until smoking hot. Sear Wagyu 2.5 minutes per side, creating a caramelized crust.\n5. Add butter, crushed garlic, and thyme sprigs to the pan; baste foaming aromatic butter over steaks for 90 seconds.\n6. Rest steaks for 8 minutes on a warm carving board. Slice against grain and crown with a medallion of bone marrow butter and a spoonful of charred scallion chimichurri.",
+                        ImageUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = false,
+                        ContentType = "ARTICLE",
+                        ShareCount = 64,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catItalian.CategoryId,
+                        Title = "Handmade Tagliolini with White Truffle Butter & 36-Month Parmigiano Reggiano",
+                        Ingredients = "400g Italian Tipo 00 Pasta Flour\n4 Whole Organic Eggs + 4 Extra Yolks\n60g Cultured Truffle Butter\n40g Parmigiano Reggiano Vacche Rosse (aged 36 months, microplaned)\n1 Fresh White Truffle (Tuber Magnatum Pico)\nCoarse Sea Salt for pasta water",
+                        CookingProcedure = "1. Sift flour onto wooden pasta board. Create a wide well and drop in eggs and yolks.\n2. Beat eggs with fork, gradually incorporating flour from inner rim until dough comes together.\n3. Knead firmly for 12 minutes until supple and satin-smooth. Wrap in cling film and rest at room temperature for 45 minutes.\n4. Roll dough paper-thin using a pasta sheeter to setting 7; cut into 2mm fine tagliolini ribbons.\n5. Drop fresh pasta into rolling salted water for exactly 90 seconds.\n6. In a warm serving skillet, melt truffle butter with 3 tablespoons of starchy pasta water to form an emulsified creamy glaze.\n7. Transfer pasta directly into pan, swirl vigorously with grated Vacche Rosse Parmigiano until coated.\n8. Twirl into high nests on preheated porcelain bowls and shave fresh white truffle tableside.",
+                        ImageUrl = "https://images.unsplash.com/photo-1621996346565-e3d5d6281e04?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = true,
+                        ContentType = "ARTICLE",
+                        ShareCount = 88,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        AuthorId = adminUser.UserId,
+                        CategoryId = catItalian.CategoryId,
+                        Title = "Traditional Roman Spaghetti alla Carbonara with Crispy Guanciale & Organic Egg Crema",
+                        Ingredients = "360g Bronze-Die Extruded Spaghetti (Gragnano IGP)\n200g Authentic Italian Guanciale (cured pork jowl, sliced 1cm thick)\n5 Organic Farm Egg Yolks + 1 Whole Egg\n80g Pecorino Romano DOP (finely grated)\nFreshly Toasted Sarawak Whole Black Peppercorns (coarsely crushed)",
+                        CookingProcedure = "1. Cut guanciale into 1cm thick lardons. Place into cold dry stainless-steel pan over low heat; render fat slowly for 10 minutes until exterior is crunchy-crisp and interior remains tender.\n2. Remove guanciale crisps and set aside; reserve the golden pork fat in the pan.\n3. Toast black peppercorns in a dry skillet for 2 minutes to awaken piperine oils; crush coarsely in a granite mortar.\n4. In a stainless-steel bowl, whisk egg yolks, whole egg, grated Pecorino Romano, and 2 tablespoons of rendered warm guanciale fat into a thick golden custard.\n5. Boil spaghetti in moderately salted water until 2 minutes shy of al dente.\n6. Transfer pasta into the pan with remaining guanciale fat, tossing over heat for 1 minute with 60ml pasta water.\n7. Remove pan completely from heat (cool 30 seconds to prevent scrambling eggs), pour in egg-Pecorino mixture, and toss vigorously until a glossy, velvety emulsion coats every strand.\n8. Fold in crispy guanciale, dish immediately, and crown with extra Pecorino and cracked Sarawak pepper.",
+                        ImageUrl = "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=1200&q=80",
+                        IsFree = false,
+                        ContentType = "ARTICLE",
+                        ShareCount = 112,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+
+                bool hasNewRecipes = false;
+                foreach (var masterItem in masterCatalog)
+                {
+                    if (!await context.Recipes.AnyAsync(r => r.Title == masterItem.Title))
+                    {
+                        context.Recipes.Add(masterItem);
+                        hasNewRecipes = true;
+                    }
+                }
+
+                if (hasNewRecipes)
+                {
+                    await context.SaveChangesAsync();
+                }
+            }
+
             // 5. Seed Culinary Tips
             if (!await context.Tips.AnyAsync())
             {
