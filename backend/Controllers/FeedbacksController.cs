@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using backend.DTOs;
 using backend.Services;
+using JamesThew.Shared.Contracts.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -73,7 +74,7 @@ namespace backend.Controllers
         /// Restricted to Admin (Chef James Thew).
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<FeedbackDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -87,7 +88,7 @@ namespace backend.Controllers
         /// Deletes a feedback item. Restricted to Admin (Chef James Thew).
         /// </summary>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]

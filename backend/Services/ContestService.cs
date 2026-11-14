@@ -18,20 +18,23 @@ namespace backend.Services
         private readonly IUnitOfWork _uow;
         private readonly INotificationService? _notificationService;
         private readonly IEmailService? _emailService;
+        private readonly ILogger<ContestService>? _logger;
 
         public ContestService(
             IUnitOfWork uow,
             INotificationService? notificationService = null,
-            IEmailService? emailService = null)
+            IEmailService? emailService = null,
+            ILogger<ContestService>? logger = null)
         {
             _uow = uow;
             _notificationService = notificationService;
             _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<ApiResponse<IEnumerable<ContestDto>>> GetAllAsync(bool? activeOnly = null)
         {
-            var query = _uow.Repository<Contest>().Query()
+            var query = _uow.Repository<Contest>().QueryReadOnly()
                 .Include(c => c.Creator)
                 .Include(c => c.Entries)
                 .AsQueryable();
@@ -52,7 +55,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<ContestDto>> GetByIdAsync(int id)
         {
-            var contest = await _uow.Repository<Contest>().Query()
+            var contest = await _uow.Repository<Contest>().QueryReadOnly()
                 .Include(c => c.Creator)
                 .Include(c => c.Entries)
                 .FirstOrDefaultAsync(c => c.ContestId == id);
@@ -193,7 +196,7 @@ namespace backend.Services
                 return ApiResponse<IEnumerable<ContestEntryDto>>.Fail("Contest not found.");
             }
 
-            var query = _uow.Repository<ContestEntry>().Query()
+            var query = _uow.Repository<ContestEntry>().QueryReadOnly()
                 .Include(e => e.Contest)
                 .Include(e => e.User)
                 .Include(e => e.Votes)
@@ -362,9 +365,9 @@ namespace backend.Services
                         "/announcements");
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Non-blocking notification/email dispatch
+                _logger?.LogWarning(ex, "Non-blocking notification/email dispatch failed while declaring winner for contest {ContestId}", entry.ContestId);
             }
 
             return ApiResponse<ContestEntryDto>.Ok(MapEntryToDto(entry), "Contest winner declared successfully.");

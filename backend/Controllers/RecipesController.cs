@@ -33,19 +33,50 @@ namespace backend.Controllers
         /// Retrieves recipes with keyword search and category filtering.
         /// Content Gatekeeping: Unauthenticated guests only receive free recipes (IsFree == true).
         /// Registered members and Admins receive all recipes.
+        /// Supports optional pagination via 'page' (default 1) and 'pageSize' (default 12, max 50).
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<RecipeDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll(
             [FromQuery] string? search, 
             [FromQuery] int? categoryId,
             [FromQuery] bool? isFreeOnly,
-            [FromQuery] string? contentType)
+            [FromQuery] string? contentType,
+            [FromQuery] int? page = null,
+            [FromQuery] int? pageSize = null)
         {
             var (userId, role) = GetCurrentUser();
+            if (page.HasValue)
+            {
+                var pagedResult = await _recipeService.GetPagedAsync(
+                    page.Value, pageSize ?? 12, search, categoryId, userId, role, isFreeOnly, contentType);
+                return Ok(pagedResult);
+            }
+
             var result = await _recipeService.GetAllAsync(search, categoryId, userId, role, isFreeOnly, contentType);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Dedicated paginated recipe catalog endpoint adhering strictly to PERF-09 (default 12, max 50).
+        /// </summary>
+        [HttpGet("paged")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            [FromQuery] string? search = null,
+            [FromQuery] int? categoryId = null,
+            [FromQuery] bool? isFreeOnly = null,
+            [FromQuery] string? contentType = null)
+        {
+            var (userId, role) = GetCurrentUser();
+            var pagedResult = await _recipeService.GetPagedAsync(
+                page, pageSize, search, categoryId, userId, role, isFreeOnly, contentType);
+            return Ok(pagedResult);
         }
 
         /// <summary>

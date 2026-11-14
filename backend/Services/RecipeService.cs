@@ -1,6 +1,7 @@
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
+using JamesThew.Shared.Contracts.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
@@ -25,7 +26,7 @@ namespace backend.Services
         public async Task<ApiResponse<IEnumerable<RecipeDto>>> GetAllAsync(
             string? search, int? categoryId, int? currentUserId, string? userRole, bool? isFreeOnly = null, string? contentType = null)
         {
-            var query = _uow.Repository<Recipe>().Query()
+            var query = _uow.Repository<Recipe>().QueryReadOnly()
                 .Include(r => r.Author)
                 .Include(r => r.Category)
                 .Include(r => r.Feedbacks)
@@ -33,7 +34,7 @@ namespace backend.Services
 
             // 1. Content gatekeeping & Tier filtering
             bool isExpiredMember = false;
-            if (currentUserId != null && userRole?.Trim().ToUpperInvariant() == "MEMBER")
+            if (currentUserId != null && userRole?.Trim().ToUpperInvariant() == AppConstants.Roles.Member)
             {
                 var currentUser = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
                 if (currentUser?.SubscriptionEnd == null || currentUser.SubscriptionEnd < DateTime.UtcNow)
@@ -74,15 +75,88 @@ namespace backend.Services
 
             var recipes = await query
                 .OrderByDescending(r => r.CreatedAt)
+                .Take(50) // PERF-09: Max 50 items per unpaged query
                 .Select(r => MapToDto(r))
                 .ToListAsync();
 
             return ApiResponse<IEnumerable<RecipeDto>>.Ok(recipes);
         }
 
+        public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>>> GetPagedAsync(
+            int page, int pageSize, string? search, int? categoryId, int? currentUserId, string? userRole, bool? isFreeOnly = null, string? contentType = null)
+        {
+            var query = _uow.Repository<Recipe>().QueryReadOnly()
+                .Include(r => r.Author)
+                .Include(r => r.Category)
+                .Include(r => r.Feedbacks)
+                .AsQueryable();
+
+            // 1. Content gatekeeping & Tier filtering
+            bool isExpiredMember = false;
+            if (currentUserId != null && userRole?.Trim().ToUpperInvariant() == AppConstants.Roles.Member)
+            {
+                var currentUser = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
+                if (currentUser?.SubscriptionEnd == null || currentUser.SubscriptionEnd < DateTime.UtcNow)
+                {
+                    isExpiredMember = true;
+                }
+            }
+
+            if (currentUserId == null || isExpiredMember || (isFreeOnly.HasValue && isFreeOnly.Value))
+            {
+                query = query.Where(r => r.IsFree);
+            }
+            else if (isFreeOnly.HasValue && !isFreeOnly.Value)
+            {
+                query = query.Where(r => !r.IsFree);
+            }
+
+            // 2. Filter by category if specified
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(r => r.CategoryId == categoryId.Value);
+            }
+
+            // 3. Filter by contentType if specified (ARTICLE, VIDEO, TALKSHOW, LIVESHOW)
+            if (!string.IsNullOrWhiteSpace(contentType))
+            {
+                var typeTerm = contentType.Trim().ToUpper();
+                query = query.Where(r => r.ContentType == typeTerm);
+            }
+
+            // 4. Search by keyword across title and ingredients
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(r => r.Title.ToLower().Contains(term) ||
+                                         r.Ingredients.ToLower().Contains(term));
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageIndex = Math.Max(1, page);
+            var safePageSize = Math.Clamp(pageSize, 1, 50); // PERF-09: Clamp to max 50 items/page
+
+            var items = await query
+                .OrderByDescending(r => r.CreatedAt)
+                .Skip((pageIndex - 1) * safePageSize)
+                .Take(safePageSize)
+                .Select(r => MapToDto(r))
+                .ToListAsync();
+
+            var pagedResult = new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = safePageSize
+            };
+
+            return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>>.Ok(pagedResult);
+        }
+
         public async Task<ApiResponse<RecipeDto>> GetByIdAsync(int id, int? currentUserId, string? userRole)
         {
-            var recipe = await _uow.Repository<Recipe>().Query()
+            var recipe = await _uow.Repository<Recipe>().QueryReadOnly()
                 .Include(r => r.Author)
                 .Include(r => r.Category)
                 .Include(r => r.Feedbacks)
@@ -104,7 +178,7 @@ namespace backend.Services
             if (!recipe.IsFree && currentUserId != null)
             {
                 var normalizedRole = userRole?.Trim().ToUpperInvariant();
-                if (normalizedRole == "MEMBER")
+                if (normalizedRole == AppConstants.Roles.Member)
                 {
                     var user = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
                     var subscriptionEnd = user?.SubscriptionEnd;
@@ -121,7 +195,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<IEnumerable<RecipeDto>>> GetMyRecipesAsync(int currentUserId)
         {
-            var recipes = await _uow.Repository<Recipe>().Query()
+            var recipes = await _uow.Repository<Recipe>().QueryReadOnly()
                 .Include(r => r.Author)
                 .Include(r => r.Category)
                 .Include(r => r.Feedbacks)
@@ -144,7 +218,7 @@ namespace backend.Services
             }
 
             // Admin can freely toggle IsFree; Members' posts default to members-only (IsFree = false)
-            bool isFree = userRole == "ADMIN" ? request.IsFree : false;
+            bool isFree = userRole == AppConstants.Roles.Admin ? request.IsFree : false;
 
             var recipe = new Recipe
             {
@@ -183,7 +257,7 @@ namespace backend.Services
             }
 
             // Ownership check: Members can only edit their own recipes; Admin can moderate any recipe
-            if (userRole != "ADMIN" && recipe.AuthorId != currentUserId)
+            if (userRole != AppConstants.Roles.Admin && recipe.AuthorId != currentUserId)
             {
                 return ApiResponse<RecipeDto>.Fail(
                     "FORBIDDEN: You do not have permission to update recipes authored by another user.");
@@ -207,7 +281,7 @@ namespace backend.Services
             recipe.UpdatedAt = DateTime.UtcNow;
 
             // Only Admin can adjust the IsFree flag
-            if (userRole == "ADMIN")
+            if (userRole == AppConstants.Roles.Admin)
             {
                 recipe.IsFree = request.IsFree;
             }
@@ -227,7 +301,7 @@ namespace backend.Services
             }
 
             // Ownership check: Members can only delete their own recipes; Admin can moderate/delete any recipe
-            if (userRole != "ADMIN" && recipe.AuthorId != currentUserId)
+            if (userRole != AppConstants.Roles.Admin && recipe.AuthorId != currentUserId)
             {
                 return ApiResponse.Fail(
                     "FORBIDDEN: You do not have permission to delete recipes authored by another user.");

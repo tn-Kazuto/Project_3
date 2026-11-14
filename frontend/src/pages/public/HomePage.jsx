@@ -9,6 +9,7 @@ export const HomePage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const loadHomeData = async () => {
       try {
         const [recipeRes, contestRes, announceRes] = await Promise.all([
@@ -17,17 +18,21 @@ export const HomePage = () => {
           announcementApi.getAll(),
         ]);
 
+        if (!isMounted) return;
         if (recipeRes.data?.success) setRecipes(recipeRes.data.data.slice(0, 3));
         if (contestRes.data?.success) setContests(contestRes.data.data.slice(0, 2));
         if (announceRes.data?.success) setAnnouncements(announceRes.data.data.slice(0, 2));
       } catch (err) {
-        console.error('Error loading home data:', err);
+        if (isMounted) console.error('Error loading home data:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     loadHomeData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -57,7 +62,7 @@ export const HomePage = () => {
                 Chef James Thew
               </h1>
 
-              <p className="lead mb-4" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.75' }}>
+              <p className="lead mb-4 drop-cap" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.75' }}>
                 Welcome to my culinary sanctuary. Working as an executive chef in luxury 5-star hotels,
                 hosting culinary television programs, and authoring renowned cookbooks across Juices, Vegetarian,
                 Non-Vegetarian, and Italian cuisines. Explore my recipes, take part in competitive cook-offs,
@@ -89,21 +94,27 @@ export const HomePage = () => {
                 </Link>
               </div>
 
-              {/* Atelier Credentials Bar */}
+              {/* 5-Star Hotel Atelier Credentials Bar */}
               <div className="row g-3 pt-4 border-top mt-4" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                <div className="col-4">
+                <div className="col-6 col-md-3">
                   <div className="font-monospace small fw-bold text-uppercase" style={{ color: 'var(--dp-color-accent)' }}>
                     3-Michelin
                   </div>
                   <div className="small" style={{ color: 'var(--dp-color-ink-2)' }}>Technique Standard</div>
                 </div>
-                <div className="col-4">
+                <div className="col-6 col-md-3">
+                  <div className="font-monospace small fw-bold text-uppercase" style={{ color: 'var(--dp-color-accent)' }}>
+                    5-Star Hotel
+                  </div>
+                  <div className="small" style={{ color: 'var(--dp-color-ink-2)' }}>Grand Palace Residency</div>
+                </div>
+                <div className="col-6 col-md-3">
                   <div className="font-monospace small fw-bold text-uppercase" style={{ color: 'var(--dp-color-accent)' }}>
                     18+ Master
                   </div>
                   <div className="small" style={{ color: 'var(--dp-color-ink-2)' }}>Tested Recipes</div>
                 </div>
-                <div className="col-4">
+                <div className="col-6 col-md-3">
                   <div className="font-monospace small fw-bold text-uppercase" style={{ color: 'var(--dp-color-accent)' }}>
                     VIP Atelier
                   </div>
@@ -129,7 +140,7 @@ export const HomePage = () => {
                     style={{
                       maxHeight: '460px',
                       objectFit: 'cover',
-                      filter: 'grayscale(20%) contrast(105%)',
+                      filter: 'grayscale(15%) contrast(105%)',
                     }}
                   />
                   <div
@@ -146,6 +157,109 @@ export const HomePage = () => {
                       </span>
                       <span className="roman-numeral" style={{ fontSize: '0.9rem' }}>EST. 2012</span>
                     </div>
+                    <div className="mt-1 small font-monospace text-white-50" style={{ fontSize: '0.75rem' }}>
+                      Fifth Avenue Atelier Suite &bull; Private Chef Residence
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FIVE-STAR HOTEL DINING SUITES & SALONS SHOWCASE ── */}
+      <section className="py-5 border-bottom" style={{ backgroundColor: 'var(--dp-color-ground)', borderColor: 'var(--dp-color-rule)' }}>
+        <div className="container py-lg-3">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 pb-2 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
+            <div>
+              <span className="font-monospace small text-uppercase" style={{ letterSpacing: '0.14em', color: 'var(--dp-color-accent)' }}>
+                THE GRAND PALACE HOSPITALITY &middot; THREE ICONIC SPACES
+              </span>
+              <h2 className="brand-font display-6 m-0 text-dark">Distinguished Dining Salons</h2>
+            </div>
+            <span className="small font-monospace text-muted mt-2 mt-md-0">
+              RESERVATIONS &middot; PRIVATE DINING &middot; SALON PRIV&Eacute;
+            </span>
+          </div>
+
+          <div className="row g-4">
+            <div className="col-lg-4">
+              <div className="card h-100 border-0 bg-white atelier-card-hover" style={{ border: '1px solid var(--dp-color-rule)', borderRadius: 0 }}>
+                <div style={{ aspectRatio: '16/10', overflow: 'hidden' }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=700&q=80"
+                    alt="Le Salon Gastronomique"
+                    className="w-100 h-100"
+                    style={{ objectFit: 'cover' }}
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-4 d-flex flex-column flex-grow-1">
+                  <span className="font-monospace text-uppercase small" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.12em' }}>
+                    SUITE I &middot; HAUTE CUISINE
+                  </span>
+                  <h4 className="brand-font mt-2 mb-2" style={{ fontSize: '1.35rem' }}>Le Salon Gastronomique</h4>
+                  <p className="small text-muted flex-grow-1 mb-3" style={{ lineHeight: '1.65' }}>
+                    The flagship 5-star hotel dining room offering 5-course tasting menus, wine pairings curated by master sommeliers, and classical European tableside service.
+                  </p>
+                  <div className="border-top pt-2 d-flex justify-content-between align-items-center small font-monospace" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                    <span>DÉGUSTATION MENU</span>
+                    <span style={{ color: 'var(--dp-color-accent)' }}>&bull; EVENINGS</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-4">
+              <div className="card h-100 border-0 bg-white atelier-card-hover" style={{ border: '1px solid var(--dp-color-rule)', borderRadius: 0 }}>
+                <div style={{ aspectRatio: '16/10', overflow: 'hidden' }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=700&q=80"
+                    alt="The Botanical & Nectar Lounge"
+                    className="w-100 h-100"
+                    style={{ objectFit: 'cover' }}
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-4 d-flex flex-column flex-grow-1">
+                  <span className="font-monospace text-uppercase small" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.12em' }}>
+                    SUITE II &middot; REJUVENATION
+                  </span>
+                  <h4 className="brand-font mt-2 mb-2" style={{ fontSize: '1.35rem' }}>The Botanical & Nectar Lounge</h4>
+                  <p className="small text-muted flex-grow-1 mb-3" style={{ lineHeight: '1.65' }}>
+                    Specialized cold-pressed botanical extractions, antioxidant wellness blends, and bespoke herbal infusions crafted from organic heirloom orchards.
+                  </p>
+                  <div className="border-top pt-2 d-flex justify-content-between align-items-center small font-monospace" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                    <span>COLD-PRESSED JUICES</span>
+                    <span style={{ color: 'var(--dp-color-accent)' }}>&bull; ALL DAY</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-4">
+              <div className="card h-100 border-0 bg-white atelier-card-hover" style={{ border: '1px solid var(--dp-color-rule)', borderRadius: 0 }}>
+                <div style={{ aspectRatio: '16/10', overflow: 'hidden' }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=700&q=80"
+                    alt="The Chef's Private Atelier"
+                    className="w-100 h-100"
+                    style={{ objectFit: 'cover' }}
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-4 d-flex flex-column flex-grow-1">
+                  <span className="font-monospace text-uppercase small" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.12em' }}>
+                    SALON III &middot; PRIVATE ATELIER
+                  </span>
+                  <h4 className="brand-font mt-2 mb-2" style={{ fontSize: '1.35rem' }}>L'Atelier Privé & Studio</h4>
+                  <p className="small text-muted flex-grow-1 mb-3" style={{ lineHeight: '1.65' }}>
+                    Intimate hands-on workshops with Chef James Thew in the hotel's state-of-the-art studio kitchen. Restricted to 12 participants per session.
+                  </p>
+                  <div className="border-top pt-2 d-flex justify-content-between align-items-center small font-monospace" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                    <span>WEEKEND WORKSHOPS</span>
+                    <span style={{ color: 'var(--dp-color-accent)' }}>&bull; 10:00 &ndash; 15:00</span>
                   </div>
                 </div>
               </div>
@@ -322,7 +436,7 @@ export const HomePage = () => {
               recipes.map((r) => (
                 <div key={r.recipeId} className="col-md-4">
                   <div
-                    className="card h-100 p-4"
+                    className="card h-100 p-4 atelier-card-hover"
                     style={{
                       backgroundColor: '#ffffff',
                       border: '1px solid var(--dp-color-rule)',
@@ -435,7 +549,7 @@ export const HomePage = () => {
                   contests.map((c) => (
                     <div
                       key={c.contestId}
-                      className="p-4"
+                      className="p-4 atelier-card-hover"
                       style={{
                         backgroundColor: 'var(--dp-color-field-deep)',
                         border: '1px solid var(--dp-color-field-line)',
@@ -523,7 +637,7 @@ export const HomePage = () => {
                 announcements.map((a) => (
                   <div key={a.announcementId} className="col-md-6">
                     <div
-                      className="p-4 h-100"
+                      className="p-4 h-100 atelier-card-hover"
                       style={{
                         backgroundColor: 'var(--dp-color-field-deep)',
                         border: '1px solid var(--dp-color-field-line)',
@@ -551,6 +665,67 @@ export const HomePage = () => {
                   Check back soon for latest contest winners!
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FIVE-STAR HOTEL CRITICS REVIEWS & CONCIERGE RESIDENCE ── */}
+      <section className="py-5 border-top" style={{ backgroundColor: 'var(--dp-color-ground-2)', borderColor: 'var(--dp-color-panel-line)' }}>
+        <div className="container py-lg-4">
+          <div className="text-center max-w-700 mx-auto mb-5">
+            <span className="font-monospace small text-uppercase" style={{ letterSpacing: '0.16em', color: 'var(--dp-color-accent)' }}>
+              THE GRAND PALACE GUESTBOOK &middot; CRITICS PRAISE
+            </span>
+            <h2 className="brand-font display-6 text-dark mt-2 mb-3">
+              An Unrivaled Five-Star Gastronomic Legacy
+            </h2>
+            <p className="text-muted small" style={{ lineHeight: '1.7' }}>
+              Celebrated by international culinary reviewers, luxury epicureans, and hotel patrons across Paris, London, and New York.
+            </p>
+          </div>
+
+          <div className="row g-4">
+            <div className="col-md-4">
+              <div className="p-4 bg-white h-100 border text-center atelier-card-hover" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                <div className="mb-2" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.2em' }}>
+                  &star;&star;&star;&star;&star;
+                </div>
+                <p className="small mb-3 fst-italic" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.65' }}>
+                  "Chef James Thew at The Grand Palace bridges architectural purity and profound seasonal flavor. The white truffle risotto was pure poetry."
+                </p>
+                <div className="font-monospace small text-uppercase fw-bold" style={{ fontSize: '0.75rem', color: 'var(--dp-color-ink)' }}>
+                  &mdash; Le Guide Gastronomique
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="p-4 bg-white h-100 border text-center atelier-card-hover" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                <div className="mb-2" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.2em' }}>
+                  &star;&star;&star;&star;&star;
+                </div>
+                <p className="small mb-3 fst-italic" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.65' }}>
+                  "A masterclass in 5-star hotel hospitality. The private atelier weekend session gave me techniques I will cherish for a lifetime."
+                </p>
+                <div className="font-monospace small text-uppercase fw-bold" style={{ fontSize: '0.75rem', color: 'var(--dp-color-ink)' }}>
+                  &mdash; European Epicurean Quarterly
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="p-4 bg-white h-100 border text-center atelier-card-hover" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                <div className="mb-2" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.2em' }}>
+                  &star;&star;&star;&star;&star;
+                </div>
+                <p className="small mb-3 fst-italic" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.65' }}>
+                  "From the cold-pressed Sicilian botanical tonic to the dry-aged Wagyu MB7+, every dish honors the grand tradition of luxury dining."
+                </p>
+                <div className="font-monospace small text-uppercase fw-bold" style={{ fontSize: '0.75rem', color: 'var(--dp-color-ink)' }}>
+                  &mdash; Haute Living International
+                </div>
+              </div>
             </div>
           </div>
         </div>

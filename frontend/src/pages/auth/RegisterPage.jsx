@@ -199,7 +199,7 @@ export const RegisterPage = () => {
                 {/* Monthly Plan */}
                 <div className="col-md-6">
                   <div
-                    className="p-4 h-100 cursor-pointer"
+                    className="p-4 h-100 cursor-pointer atelier-card-hover"
                     style={{
                       backgroundColor: 'var(--dp-color-ground-2)',
                       border: formData.planType === 'MONTHLY' ? '2px solid var(--dp-color-accent)' : '1px solid var(--dp-color-panel-line)',
@@ -239,7 +239,7 @@ export const RegisterPage = () => {
                 {/* Yearly Plan (Featured Charcoal Column) */}
                 <div className="col-md-6">
                   <div
-                    className="p-4 h-100 cursor-pointer"
+                    className="p-4 h-100 cursor-pointer atelier-card-hover"
                     style={{
                       backgroundColor: 'var(--dp-color-field)',
                       color: 'var(--dp-color-on-field)',

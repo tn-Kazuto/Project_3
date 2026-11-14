@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { recipeApi, tipApi, categoryApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
 
 export const MyRecipesPage = () => {
   const { user, isAdmin } = useAuth();
@@ -51,7 +52,30 @@ export const MyRecipesPage = () => {
   };
 
   useEffect(() => {
-    loadData();
+    let isMounted = true;
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const [recRes, tipRes, catRes] = await Promise.all([
+          recipeApi.getMyRecipes(),
+          tipApi.getMyTips(),
+          categoryApi.getAll(),
+        ]);
+        if (!isMounted) return;
+        if (recRes.data?.success) setRecipes(recRes.data.data);
+        if (tipRes.data?.success) setTips(tipRes.data.data);
+        if (catRes.data?.success) setCategories(catRes.data.data);
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('Error loading member data:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetch();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const openCreateModal = () => {
@@ -239,11 +263,8 @@ export const MyRecipesPage = () => {
 
       {/* Content Table */}
       {loading ? (
-        <div className="text-center py-5">
-          <div className="spinner-border" style={{ color: 'var(--dp-color-accent)' }} role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2 text-muted">Retrieving contributions...</p>
+        <div className="py-4">
+          <CulinarySkeleton count={3} />
         </div>
       ) : activeTab === 'recipes' ? (
         <div

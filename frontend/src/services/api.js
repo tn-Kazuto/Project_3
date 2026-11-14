@@ -42,6 +42,7 @@ export const authApi = {
 
 export const recipeApi = {
   getAll: (params) => api.get('/recipes', { params }),
+  getPaged: (params) => api.get('/recipes/paged', { params }),
   getById: (id) => api.get(`/recipes/${id}`),
   getMyRecipes: () => api.get('/recipes/my-recipes'),
   create: (data) => api.post('/recipes', data),
@@ -52,6 +53,7 @@ export const recipeApi = {
 
 export const tipApi = {
   getAll: (params) => api.get('/tips', { params }),
+  getPaged: (params) => api.get('/tips/paged', { params }),
   getById: (id) => api.get(`/tips/${id}`),
   getMyTips: () => api.get('/tips/my-tips'),
   create: (data) => api.post('/tips', data),

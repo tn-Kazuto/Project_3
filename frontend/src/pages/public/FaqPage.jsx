@@ -10,7 +10,27 @@ export const FaqPage = () => {
   const [openIndex, setOpenIndex] = useState(0); // First FAQ open by default
 
   useEffect(() => {
-    fetchFaqs();
+    let isMounted = true;
+    const fetch = async () => {
+      try {
+        setLoading(true);
+        const res = await faqApi.getAll();
+        if (!isMounted) return;
+        if (res.data && res.data.success) {
+          setFaqs(res.data.data || []);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error(err);
+        setError('Unable to load FAQs at this time.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetch();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchFaqs = async () => {
@@ -39,7 +59,7 @@ export const FaqPage = () => {
   );
 
   return (
-    <div className="container py-5">
+    <div className="container py-5 luxury-faq">
       {/* Header Banner - Pale Taupe Architectural Panel with Culinary Scrim */}
       <div 
         className="field-taupe p-4 p-md-5 mb-5 text-center position-relative overflow-hidden"
@@ -51,10 +71,14 @@ export const FaqPage = () => {
           backgroundPosition: 'center',
         }}
       >
-        <div className="roman-numeral mb-2">VII &middot; INQUIRIES & GUIDANCE</div>
+        <div className="d-inline-flex align-items-center gap-2 mb-2 px-3 py-1 bg-white border" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
+          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
+          <span className="roman-numeral mb-0" style={{ fontSize: '0.8rem' }}>VII &middot; INQUIRIES & GUIDANCE</span>
+          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
+        </div>
         <h1 className="brand-font display-5 mb-3">Frequently Asked Questions</h1>
         <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
-          Find answers to common inquiries about culinary memberships, recipe access, cooking contests, and weekend masterclasses with Chef James Thew.
+          Welcome to The Grand Palace Hotel Concierge Desk. Find prompt answers to common inquiries about culinary memberships, recipe access, cooking contests, and weekend masterclasses with Chef James Thew.
         </p>
 
         {/* Quick Topic Chips (Visual Filter Buttons to jump or filter without reading all text) */}
@@ -103,11 +127,15 @@ export const FaqPage = () => {
       )}
 
       {loading ? (
-        <div className="text-center py-5">
-          <div className="spinner-border" style={{ color: 'var(--dp-color-accent)' }} role="status">
-            <span className="visually-hidden">Loading...</span>
+        <div className="row justify-content-center py-4" role="status" aria-label="Loading FAQs">
+          <div className="col-lg-10">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className="mb-3 p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                <div className="culinary-skeleton-block" style={{ width: '65%', height: '1.25rem' }} />
+              </div>
+            ))}
           </div>
-          <p className="mt-2" style={{ color: 'var(--dp-color-ink-2)' }}>Loading FAQs...</p>
+          <span className="visually-hidden">Loading FAQs...</span>
         </div>
       ) : (
         <div className="row justify-content-center">

@@ -104,7 +104,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<IEnumerable<FeedbackDto>>> GetByRecipeIdAsync(int recipeId)
         {
-            var feedbacks = await _uow.Repository<Feedback>().Query()
+            var feedbacks = await _uow.Repository<Feedback>().QueryReadOnly()
                 .Include(f => f.Recipe)
                 .Where(f => f.RecipeId == recipeId)
                 .OrderByDescending(f => f.CreatedAt)
@@ -129,7 +129,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<IEnumerable<FeedbackDto>>> GetAllAsync()
         {
-            var feedbacks = await _uow.Repository<Feedback>().Query()
+            var feedbacks = await _uow.Repository<Feedback>().QueryReadOnly()
                 .Include(f => f.Recipe)
                 .OrderByDescending(f => f.CreatedAt)
                 .Select(f => new FeedbackDto

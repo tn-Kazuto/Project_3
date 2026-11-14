@@ -17,7 +17,7 @@ namespace backend.Services
         public async Task<ApiResponse<IEnumerable<CategoryDto>>> GetAllAsync()
         {
             var categories = await _uow.Repository<Category>()
-                .Query()
+                .QueryReadOnly()
                 .Include(c => c.Recipes)
                 .OrderBy(c => c.CategoryName)
                 .Select(c => new CategoryDto
@@ -35,7 +35,7 @@ namespace backend.Services
         public async Task<ApiResponse<CategoryDto>> GetByIdAsync(int id)
         {
             var category = await _uow.Repository<Category>()
-                .Query()
+                .QueryReadOnly()
                 .Include(c => c.Recipes)
                 .FirstOrDefaultAsync(c => c.CategoryId == id);
 

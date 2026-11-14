@@ -33,15 +33,42 @@ namespace backend.Controllers
         /// Retrieves tips with keyword search.
         /// Content Gatekeeping: Unauthenticated guests only receive free tips (IsFree == true).
         /// Registered members and Admins receive all tips.
+        /// Supports optional pagination via 'page' (default 1) and 'pageSize' (default 12, max 50).
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<TipDto>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll([FromQuery] string? search)
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<TipDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? search,
+            [FromQuery] int? page = null,
+            [FromQuery] int? pageSize = null)
         {
             var (userId, role) = GetCurrentUser();
+            if (page.HasValue)
+            {
+                var pagedResult = await _tipService.GetPagedAsync(page.Value, pageSize ?? 12, search, userId, role);
+                return Ok(pagedResult);
+            }
+
             var result = await _tipService.GetAllAsync(search, userId, role);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Dedicated paginated culinary tips catalog endpoint adhering to PERF-09 (default 12, max 50).
+        /// </summary>
+        [HttpGet("paged")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<TipDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            [FromQuery] string? search = null)
+        {
+            var (userId, role) = GetCurrentUser();
+            var pagedResult = await _tipService.GetPagedAsync(page, pageSize, search, userId, role);
+            return Ok(pagedResult);
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ namespace backend.Services
     public interface ITipService
     {
         Task<ApiResponse<IEnumerable<TipDto>>> GetAllAsync(string? search, int? currentUserId, string? userRole);
+        Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<TipDto>>> GetPagedAsync(int page, int pageSize, string? search, int? currentUserId, string? userRole);
         Task<ApiResponse<TipDto>> GetByIdAsync(int id, int? currentUserId, string? userRole);
         Task<ApiResponse<IEnumerable<TipDto>>> GetMyTipsAsync(int currentUserId);
         Task<ApiResponse<TipDto>> CreateAsync(CreateTipRequest request, int currentUserId, string userRole);

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { recipeApi, tipApi, categoryApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
+import { EmptyState } from '../../components/common/EmptyState';
 
-export const RecipesPage = () => {
-  const [activeTab, setActiveTab] = useState('recipes'); // 'recipes' or 'tips'
+export const RecipesPage = ({ initialTab = 'recipes' }) => {
+  const [activeTab, setActiveTab] = useState(initialTab); // 'recipes' or 'tips'
   const [recipes, setRecipes] = useState([]);
   const [tips, setTips] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -13,6 +15,10 @@ export const RecipesPage = () => {
   const [tierFilter, setTierFilter] = useState('all'); // 'all', 'free', 'members'
   const [formatFilter, setFormatFilter] = useState('ALL'); // 'ALL', 'ARTICLE', 'VIDEO', 'TALKSHOW', 'LIVESHOW'
   const [loading, setLoading] = useState(true);
+  const [selectedTip, setSelectedTip] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 12;
+  const [totalItems, setTotalItems] = useState(0);
 
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -30,12 +36,21 @@ export const RecipesPage = () => {
     fetchCategories();
   }, []);
 
-  // Fetch recipes or tips based on filters
+  // Reset page when filters or tab change
   useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter]);
+
+  // Fetch recipes or tips based on filters & page
+  useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const params = {};
+        const params = {
+          page: currentPage,
+          pageSize,
+        };
         if (selectedCategory) params.categoryId = selectedCategory;
         if (tierFilter === 'free') params.isFreeOnly = true;
         else if (tierFilter === 'members') params.isFreeOnly = false;
@@ -44,27 +59,52 @@ export const RecipesPage = () => {
         if (activeTab === 'recipes') {
           if (searchTerm.trim()) params.search = searchTerm.trim();
           const res = await recipeApi.getAll(params);
+          if (!isMounted) return;
           if (res.data?.success) {
-            let data = res.data.data || [];
-            if (formatFilter !== 'ALL') {
-              data = data.filter((r) => (r.contentType || 'ARTICLE').toUpperCase() === formatFilter.toUpperCase());
+            let data = res.data.data;
+            if (Array.isArray(data)) {
+              if (formatFilter !== 'ALL') {
+                data = data.filter((r) => (r.contentType || 'ARTICLE').toUpperCase() === formatFilter.toUpperCase());
+              }
+              setRecipes(data);
+              setTotalItems(data.length);
+            } else if (data && Array.isArray(data.items)) {
+              let items = data.items;
+              if (formatFilter !== 'ALL') {
+                items = items.filter((r) => (r.contentType || 'ARTICLE').toUpperCase() === formatFilter.toUpperCase());
+              }
+              setRecipes(items);
+              setTotalItems(data.totalCount || items.length);
             }
-            setRecipes(data);
           }
         } else {
           if (searchTerm.trim()) params.search = searchTerm.trim();
           const res = await tipApi.getAll(params);
-          if (res.data?.success) setTips(res.data.data || []);
+          if (!isMounted) return;
+          if (res.data?.success) {
+            let data = res.data.data;
+            if (Array.isArray(data)) {
+              setTips(data);
+              setTotalItems(data.length);
+            } else if (data && Array.isArray(data.items)) {
+              setTips(data.items);
+              setTotalItems(data.totalCount || data.items.length);
+            }
+          }
         }
       } catch (err) {
+        if (!isMounted) return;
         console.error('Error loading recipes/tips:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
-  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter]);
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter, currentPage]);
 
   const handleCardClick = (item, isRecipe = true) => {
     if (!item.isFree && !isAuthenticated) {
@@ -75,6 +115,8 @@ export const RecipesPage = () => {
     }
     if (isRecipe) {
       navigate(`/recipes/${item.recipeId}`);
+    } else {
+      setSelectedTip(item);
     }
   };
 
@@ -133,14 +175,48 @@ export const RecipesPage = () => {
 
   return (
     <div className="container py-5 luxury-recipes">
-      {/* Architectural Section Header */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
+      {/* 5-Star Hotel Haute Cuisine Header Banner */}
+      <div
+        className="p-4 p-md-5 mb-4 text-white position-relative overflow-hidden"
+        style={{
+          backgroundColor: 'var(--dp-color-field)',
+          borderTop: '2px solid var(--dp-color-accent)',
+          borderBottom: '1px solid var(--dp-color-accent)',
+          backgroundImage: 'linear-gradient(rgba(28, 26, 23, 0.86), rgba(28, 26, 23, 0.90)), url("https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1600&q=80")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="row align-items-center g-4">
+          <div className="col-lg-8">
+            <div className="d-flex align-items-center gap-2 mb-2 font-monospace small" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.14em' }}>
+              <span>LE MENU GASTRONOMIQUE</span>
+            </div>
+            <div className="roman-numeral mb-1" style={{ color: 'var(--dp-color-accent)' }}>
+              III &middot; ARCHITECTURAL CATALOG
+            </div>
+            <h1 className="brand-font display-5 mb-2 text-white">Culinary Library</h1>
+            <p className="small text-white-50 mb-0" style={{ maxWidth: '650px', lineHeight: '1.65' }}>
+              Exclusive gastronomy formulated in the 5-star kitchens of The Grand Palace by Executive Chef James Thew across Juices, Vegetarian, Non-Vegetarian, and Italian classics.
+            </p>
+          </div>
+          <div className="col-lg-4 text-lg-end">
+            <div className="d-inline-block p-3 border text-start" style={{ borderColor: 'var(--dp-color-accent)', backgroundColor: 'rgba(0,0,0,0.45)', minWidth: '220px' }}>
+              <div className="font-monospace small fw-bold" style={{ color: 'var(--dp-color-accent)' }}>TABLESIDE ATELIER</div>
+              <div className="text-white-50 small mt-1">&star; 3-Michelin Techniques</div>
+              <div className="text-white-50 small">&star; Sommelier Pairings</div>
+              <div className="text-white-50 small">&star; 100% Chef Verified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Catalog Subheader & Tab Switcher */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
         <div>
-          <div className="roman-numeral mb-1">III &middot; ARCHITECTURAL CATALOG</div>
-          <h1 className="brand-font display-5 mb-0 text-dark">Culinary Library</h1>
-          <p className="text-muted small mt-2 mb-0">
-            Exclusive gastronomy formulated by Executive Chef James Thew across Juices, Vegetarian, Non-Vegetarian, and Italian classics.
-          </p>
+          <span className="font-monospace small text-uppercase text-muted" style={{ letterSpacing: '0.12em' }}>
+            ARCHIVAL GASTRONOMY &middot; FIVE-STAR COLLECTION
+          </span>
         </div>
 
         {/* Tab Switcher: Recipes vs Tips */}
@@ -420,11 +496,7 @@ export const RecipesPage = () => {
 
       {/* Main Content Grid */}
       {loading ? (
-        <div className="d-flex justify-content-center align-items-center py-5 min-vh-25">
-          <div className="spinner-border text-danger" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
+        <CulinarySkeleton count={6} />
       ) : activeTab === 'recipes' ? (
         /* Recipes Grid */
         <div className="row g-4">
@@ -516,9 +588,18 @@ export const RecipesPage = () => {
               </div>
             ))
           ) : (
-            <div className="col-12 text-center py-5 text-muted">
-              No recipes match your criteria. Try adjusting your search term or category.
-            </div>
+            <EmptyState
+              title="No Repertoire Found"
+              message="No recipes match your criteria. Try adjusting your search term or category."
+              quote="“Perfection is not when there is nothing left to add, but when there is nothing left to take away.” — Chef James Thew"
+              actionLabel="Reset Search & Filters"
+              onAction={() => {
+                setSearchTerm('');
+                setSelectedCategory(null);
+                setTierFilter('all');
+                setFormatFilter('ALL');
+              }}
+            />
           )}
         </div>
       ) : (
@@ -529,11 +610,17 @@ export const RecipesPage = () => {
               <div key={t.tipId} className="col-md-6">
                 <div
                   className="card h-100 p-4"
+                  role="button"
+                  tabIndex={0}
                   style={{
                     backgroundColor: '#ffffff',
                     border: '1px solid var(--dp-color-rule)',
                     borderRadius: 0,
+                    cursor: 'pointer',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                   }}
+                  onClick={() => handleCardClick(t, false)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCardClick(t, false); } }}
                 >
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <div>
@@ -556,25 +643,134 @@ export const RecipesPage = () => {
                   <h4 className="brand-font mb-2 text-dark" style={{ fontSize: '1.35rem' }}>
                     {t.title}
                   </h4>
-                  <p className="text-muted small mb-4" style={{ lineHeight: '1.7' }}>
+                  <p className="text-muted small mb-3" style={{ lineHeight: '1.7' }}>
                     {t.content}
                   </p>
+
+                  {t.videoUrl && (
+                    <div className="mb-3">
+                      <span className="badge bg-light text-dark border font-monospace" style={{ fontSize: '0.72rem', borderRadius: 0 }}>
+                        ▶ Masterclass Video Included
+                      </span>
+                    </div>
+                  )}
 
                   <div
                     className="mt-auto pt-3 border-top d-flex justify-content-between align-items-center small text-muted font-monospace"
                     style={{ borderColor: 'var(--dp-color-rule)', fontSize: '0.75rem' }}
                   >
                     <span>By {t.authorName}</span>
-                    <span>{new Date(t.createdAt).toLocaleDateString()}</span>
+                    <span className="gold-underline text-uppercase fw-semibold" style={{ fontSize: '0.72rem' }}>
+                      Read Technique &rarr;
+                    </span>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="col-12 text-center py-5 text-muted">
-              No tips found matching your search.
-            </div>
+            <EmptyState
+              title="No Masterclass Tips Found"
+              message="No tips found matching your search."
+              quote="“Culinary technique is the bridge between raw passion and exceptional hospitality.” — Chef James Thew"
+              actionLabel="Reset Tip Search"
+              onAction={() => setSearchTerm('')}
+            />
           )}
+        </div>
+      )}
+
+      {/* Architectural Pagination Controls (PERF-09) */}
+      {totalItems > pageSize && (
+        <nav aria-label="Catalog pagination" className="d-flex justify-content-center align-items-center gap-3 mt-5 pt-3 font-monospace">
+          <button
+            className="btn btn-sm btn-outline-dark"
+            style={{ borderRadius: 0, letterSpacing: '0.1em' }}
+            disabled={currentPage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            &larr; PREVIOUS
+          </button>
+          <span className="small text-muted">
+            PAGE {currentPage} OF {Math.max(1, Math.ceil(totalItems / pageSize))} ({totalItems} ITEMS)
+          </span>
+          <button
+            className="btn btn-sm btn-outline-dark"
+            style={{ borderRadius: 0, letterSpacing: '0.1em' }}
+            disabled={currentPage >= Math.ceil(totalItems / pageSize)}
+            onClick={() => setCurrentPage((p) => Math.min(Math.ceil(totalItems / pageSize), p + 1))}
+          >
+            NEXT &rarr;
+          </button>
+        </nav>
+      )}
+
+      {/* Culinary Technique & Tip Modal */}
+      {selectedTip && (
+        <div
+          className="modal show fade d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(38, 35, 33, 0.75)', zIndex: 1050 }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content" style={{ borderRadius: 0, border: '1px solid var(--dp-color-rule)' }}>
+              <div className="modal-header py-3 px-4" style={{ backgroundColor: 'var(--dp-color-field)', color: '#ffffff' }}>
+                <div className="d-flex align-items-center gap-2">
+                  <span className="font-monospace small" style={{ color: 'var(--dp-color-accent)' }}>KITCHEN TECHNIQUE</span>
+                  <span
+                    className="badge font-monospace"
+                    style={{ backgroundColor: selectedTip.isFree ? '#1b4d3e' : 'var(--dp-color-accent)', borderRadius: 0 }}
+                  >
+                    {selectedTip.isFree ? 'Free Access' : 'Members Only'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedTip(null)}
+                  aria-label="Close"
+                />
+              </div>
+              <div className="modal-body p-4" style={{ backgroundColor: 'var(--dp-color-ground-1)' }}>
+                <h3 className="brand-font mb-3 text-dark" style={{ fontSize: '1.6rem' }}>
+                  {selectedTip.title}
+                </h3>
+                <div className="d-flex gap-3 small text-muted font-monospace mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                  <span>By {selectedTip.authorName || 'Chef James Thew'}</span>
+                  <span>&bull;</span>
+                  <span>Published {new Date(selectedTip.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="lead mb-4" style={{ fontSize: '1.05rem', lineHeight: '1.8', whiteSpace: 'pre-line', color: 'var(--dp-color-ink-1)' }}>
+                  {selectedTip.content}
+                </div>
+                {selectedTip.videoUrl && (
+                  <div className="p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                    <div className="font-monospace small fw-semibold mb-2">Masterclass Video Demonstration</div>
+                    <a
+                      href={selectedTip.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-sm btn-outline-dark font-monospace"
+                      style={{ borderRadius: 0 }}
+                    >
+                      ▶ Open Video Demonstration
+                    </a>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer px-4 py-3 bg-white border-top" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                <button
+                  type="button"
+                  className="btn btn-outline-dark font-monospace"
+                  style={{ borderRadius: 0 }}
+                  onClick={() => setSelectedTip(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

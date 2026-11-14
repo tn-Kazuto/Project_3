@@ -1,6 +1,7 @@
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
+using JamesThew.Shared.Contracts.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
@@ -20,7 +21,7 @@ namespace backend.Services
         public async Task<ApiResponse<IEnumerable<TipDto>>> GetAllAsync(
             string? search, int? currentUserId, string? userRole)
         {
-            var query = _uow.Repository<Tip>().Query()
+            var query = _uow.Repository<Tip>().QueryReadOnly()
                 .Include(t => t.Author)
                 .AsQueryable();
 
@@ -40,15 +41,59 @@ namespace backend.Services
 
             var tips = await query
                 .OrderByDescending(t => t.CreatedAt)
+                .Take(50) // PERF-09: Max 50 items per unpaged query
                 .Select(t => MapToDto(t))
                 .ToListAsync();
 
             return ApiResponse<IEnumerable<TipDto>>.Ok(tips);
         }
 
+        public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<TipDto>>> GetPagedAsync(
+            int page, int pageSize, string? search, int? currentUserId, string? userRole)
+        {
+            var query = _uow.Repository<Tip>().QueryReadOnly()
+                .Include(t => t.Author)
+                .AsQueryable();
+
+            // Content gatekeeping: Guests only see free tips
+            if (currentUserId == null)
+            {
+                query = query.Where(t => t.IsFree);
+            }
+
+            // Keyword search across title and content
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(t => t.Title.ToLower().Contains(term) ||
+                                         t.Content.ToLower().Contains(term));
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageIndex = Math.Max(1, page);
+            var safePageSize = Math.Clamp(pageSize, 1, 50); // PERF-09: Clamp to max 50 items/page
+
+            var items = await query
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((pageIndex - 1) * safePageSize)
+                .Take(safePageSize)
+                .Select(t => MapToDto(t))
+                .ToListAsync();
+
+            var pagedResult = new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<TipDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = safePageSize
+            };
+
+            return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<TipDto>>.Ok(pagedResult);
+        }
+
         public async Task<ApiResponse<TipDto>> GetByIdAsync(int id, int? currentUserId, string? userRole)
         {
-            var tip = await _uow.Repository<Tip>().Query()
+            var tip = await _uow.Repository<Tip>().QueryReadOnly()
                 .Include(t => t.Author)
                 .FirstOrDefaultAsync(t => t.TipId == id);
 
@@ -68,7 +113,7 @@ namespace backend.Services
             if (!tip.IsFree && currentUserId != null)
             {
                 var normalizedRole = userRole?.Trim().ToUpperInvariant();
-                if (normalizedRole == "MEMBER")
+                if (normalizedRole == AppConstants.Roles.Member)
                 {
                     var user = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
                     var subscriptionEnd = user?.SubscriptionEnd;
@@ -85,7 +130,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<IEnumerable<TipDto>>> GetMyTipsAsync(int currentUserId)
         {
-            var tips = await _uow.Repository<Tip>().Query()
+            var tips = await _uow.Repository<Tip>().QueryReadOnly()
                 .Include(t => t.Author)
                 .Where(t => t.AuthorId == currentUserId)
                 .OrderByDescending(t => t.CreatedAt)
@@ -98,7 +143,7 @@ namespace backend.Services
         public async Task<ApiResponse<TipDto>> CreateAsync(
             CreateTipRequest request, int currentUserId, string userRole)
         {
-            bool isFree = userRole == "ADMIN" ? request.IsFree : false;
+            bool isFree = userRole == AppConstants.Roles.Admin ? request.IsFree : false;
 
             var tip = new Tip
             {
@@ -129,7 +174,7 @@ namespace backend.Services
             }
 
             // Ownership check: Members can only update their own tips; Admin can moderate any tip
-            if (userRole != "ADMIN" && tip.AuthorId != currentUserId)
+            if (userRole != AppConstants.Roles.Admin && tip.AuthorId != currentUserId)
             {
                 return ApiResponse<TipDto>.Fail(
                     "FORBIDDEN: You do not have permission to update tips authored by another user.");
@@ -140,7 +185,7 @@ namespace backend.Services
             tip.VideoUrl = request.VideoUrl?.Trim();
             tip.UpdatedAt = DateTime.UtcNow;
 
-            if (userRole == "ADMIN")
+            if (userRole == AppConstants.Roles.Admin)
             {
                 tip.IsFree = request.IsFree;
             }
@@ -160,7 +205,7 @@ namespace backend.Services
             }
 
             // Ownership check: Members can only delete their own tips; Admin can moderate any tip
-            if (userRole != "ADMIN" && tip.AuthorId != currentUserId)
+            if (userRole != AppConstants.Roles.Admin && tip.AuthorId != currentUserId)
             {
                 return ApiResponse.Fail(
                     "FORBIDDEN: You do not have permission to delete tips authored by another user.");

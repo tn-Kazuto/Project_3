@@ -12,15 +12,18 @@ namespace backend.Services
         private readonly IUnitOfWork _uow;
         private readonly INotificationService? _notificationService;
         private readonly IEmailService? _emailService;
+        private readonly ILogger<UserService>? _logger;
 
         public UserService(
             IUnitOfWork uow,
             INotificationService? notificationService = null,
-            IEmailService? emailService = null)
+            IEmailService? emailService = null,
+            ILogger<UserService>? logger = null)
         {
             _uow = uow;
             _notificationService = notificationService;
             _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<ApiResponse<UserDto>> GetProfileAsync(int userId)
@@ -148,9 +151,9 @@ namespace backend.Services
                     _ = _emailService.SendWelcomeMembershipEmailAsync(user.Email, user.FullName, user.SubscriptionPlan ?? "VIP", amount);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Non-blocking notification/email dispatch
+                _logger?.LogWarning(ex, "Non-blocking notification/email dispatch failed while renewing subscription for user {UserId}", user.UserId);
             }
 
             return ApiResponse<UserDto>.Ok(MapToDto(user), "Subscription pass successfully renewed!");

@@ -22,7 +22,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<IEnumerable<NotificationDto>>> GetUserNotificationsAsync(int userId)
         {
-            var notifications = await _uow.Repository<Notification>().Query()
+            var notifications = await _uow.Repository<Notification>().QueryReadOnly()
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
                 .Select(n => MapToDto(n))
@@ -33,7 +33,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<NotificationSummaryDto>> GetUserSummaryAsync(int userId)
         {
-            var all = await _uow.Repository<Notification>().Query()
+            var all = await _uow.Repository<Notification>().QueryReadOnly()
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
                 .Select(n => MapToDto(n))
@@ -117,7 +117,7 @@ namespace backend.Services
         {
             try
             {
-                var userIds = await _uow.Repository<User>().Query()
+                var userIds = await _uow.Repository<User>().QueryReadOnly()
                     .Select(u => u.UserId)
                     .ToListAsync();
 

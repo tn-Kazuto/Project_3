@@ -3,9 +3,10 @@
 > **eProject Sem 3 - Modern Full-Stack Culinary Web & Microservices Platform**  
 > Built strictly according to the **[Project Topic Charter (topic.md)](./topic.md)**, **[Software Requirements Specification (srs.md)](./srs.md)**, and **[Spec-Driven Architecture Standards (rules.md)](./rules.md)**.
 
-[![Backend Tests](https://img.shields.io/badge/.NET%2010%20xUnit%20Tests-61%2F61%20PASS-brightgreen)](#)
-[![Frontend Tests](https://img.shields.io/badge/Vitest%20Component%20Tests-96%2F96%20PASS-brightgreen)](#)
-[![Total Test Coverage](https://img.shields.io/badge/Total%20Automated%20Tests-157%2F157%20PASS%20100%25-success)](#)
+[![Backend Tests](https://img.shields.io/badge/.NET%2010%20xUnit%20Tests-65%2F65%20PASS-brightgreen)](#)
+[![Frontend Tests](https://img.shields.io/badge/Vitest%20Component%20Tests-98%2F98%20PASS-brightgreen)](#)
+[![Frontend CI](https://img.shields.io/badge/GitHub%20Actions%20CI-Passing-brightgreen?logo=github)](#)
+[![Total Test Coverage](https://img.shields.io/badge/Total%20Automated%20Tests-163%2F163%20PASS%20100%25-success)](#)
 [![Architecture](https://img.shields.io/badge/Architecture-.NET%2010%20Microservices%20%7C%20Docker-blue)](#)
 [![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite%208-61dafb)](#)
 [![Design System](https://img.shields.io/badge/Design%20System-5--Star%20Luxury%20Architectural-gold)](#)
@@ -31,15 +32,15 @@ Nền tảng đáp ứng trọn vẹn 3 nhóm đối tượng theo SRS và Đề
 - **ORM & Database:** Entity Framework Core 10.0.14 (Code-First) + Microsoft SQL Server 2022 + Redis In-Memory Cache (tối ưu hóa tải đọc $P_{99} < 100\text{ ms}$).
 - **Messaging Backbone:** RabbitMQ / Kafka điều phối Choreography Saga (Transactional Outbox Pattern).
 - **Security & Auth:** JWT Bearer Authentication, BCrypt Password Hashing, Claim-based Role Authorization.
-- **Automated Testing:** xUnit, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.EntityFrameworkCore.InMemory` (61/61 tests pass 100%).
+- **Automated Testing:** xUnit, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.EntityFrameworkCore.InMemory` (65/65 tests pass 100%).
 
 ### **Frontend (React 19 SPA)**
 - **Framework:** React 19 + Vite 8
-- **Routing:** React Router Dom v7 (với `ProtectedRoute` hỗ trợ phân quyền `ADMIN` và `MEMBER`)
+- **Routing:** React Router Dom v7 (với `ProtectedRoute` hỗ trợ phân quyền `ADMIN` và `MEMBER`, route riêng biệt `/tips`)
 - **UI Framework & Styling:** 5-Star Luxury Architectural Design System (EB Garamond, Warm Alabaster `#fdfbf7`, Deep Charcoal `#1a1a1a`, Fine Gold rules `#b69355`).
 - **Iconography:** Lucide React
 - **API Client:** Axios (với JWT Interceptor đính kèm Token tự động)
-- **Automated Testing:** Vitest 5, `@testing-library/react`, `@testing-library/dom`, `jsdom` (96/96 tests pass 100%).
+- **Automated Testing:** Vitest 5, `@testing-library/react`, `@testing-library/dom`, `jsdom` (98/98 tests pass trên 23 test suites 100%).
 
 ### **Containerization & Hạ tầng (Docker & Docker Compose)**
 - Multi-stage Dockerfile tối ưu hóa cho .NET 10 (`aspnet:10.0-alpine`) và React 19 (`nginx:alpine`).
@@ -116,26 +117,28 @@ npm run dev
 
 ---
 
-## 🧪 6. Kiểm Thử Tự Động Toàn Diện (Automated Testing - 157 Tests 100% PASS)
+## 🧪 6. Kiểm Thử Tự Động Toàn Diện (Automated Testing - 163 Tests 100% PASS)
 
-Dự án tuân thủ nghiêm ngặt phương pháp **Spec-Driven Development** và **10 Luật Vàng (`rules.md`)** với **157/157 Test Cases vượt qua thành công (100% Pass Rate)**:
+Dự án tuân thủ nghiêm ngặt phương pháp **Spec-Driven Development** và **10 Luật Vàng (`rules.md`)** với **163/163 Test Cases vượt qua thành công (100% Pass Rate)**:
 
-### **Kiểm thử Backend (xUnit): 61/61 Tests PASS ✓**
+### **Kiểm thử Backend (xUnit): 65/65 Tests PASS ✓**
 ```powershell
 dotnet test tests/backend.tests/backend.tests.csproj
 ```
 - **Authentication & Subscription:** Đăng ký gói $10/$100 kèm thanh toán mock nguyên tử, Gia hạn gói (`subscription/renew`), Đăng nhập, Profile, Đổi mật khẩu.
 - **Culinary Content & Gatekeeping:** Quản lý công thức/mẹo đa phương tiện (`ContentType`, `VideoUrl`), Content Gatekeeping (`IsFree`), Lọc theo `isFreeOnly`, Phân quyền tác giả (`AuthorId == currentUserId`).
+- **Phân trang Kiến trúc & Giới hạn Tải (PERF-09 & TC-RCP-08):** Hỗ trợ `PagedResult<T>`, chặn trần cứng tối đa 50 phần tử trên mỗi trang (`PaginationTests.cs`).
 - **Contests, Voting & Announcements:** Cuộc thi ẩm thực, Bài dự thi của Guest & Member, Hệ thống bình chọn cộng đồng chống spam vote (`ContestVote`), Chấm giải Winner, Tự động xuất bản Announcement vinh danh.
 - **Feedbacks & FAQ Engine:** Góp ý món ăn kèm ảnh/video thực hành (`MediaUrl`), Đánh giá sao (1-5 sao), Góp ý website, Quản lý feedback cho Admin, 7 câu hỏi FAQ chuẩn đề bài Aptech.
 - **Upgrades & In-App Notification Center:** Kiểm thử chuông thông báo Header và dịch vụ Email tự động.
 
-### **Kiểm thử Frontend (Vitest): 96/96 Tests PASS trên 22 Test Files ✓**
+### **Kiểm thử Frontend (Vitest): 98/98 Tests PASS trên 23 Test Suites ✓**
 ```powershell
 cd frontend
-npm test -- --run
+npm test
 ```
 - **Hệ thống Kiểm thử Chức năng Nâng cao (Functional Phases F1 - F5):** Profile VIP Member Pass, Modal gia hạn/nâng cấp gói cước, Bộ lọc Access Tier & Content Type, Tiện ích Print Culinary Card chuẩn `@media print`, Form nộp bài thi cho Guest/Member, Cổng chấm giải Quán quân, Bảng vàng Quán quân (Hall of Fame), Bảng điều hành Executive Atelier Intelligence.
+- **Tips & Phân trang Kiến trúc (TipsAndPaginationPhase):** Điều hướng `/tips`, Modal kỹ thuật Masterclass video demo, Bộ điều khiển phân trang kiến trúc (Previous, Next, Current Page indicator).
 - **Hệ thống Kiểm thử Thiết kế Kiến trúc Sang trọng (Luxury Phases L1 - L8):** Kiểm tra toàn diện chuẩn thiết kế Luxury Architectural 5 sao (EB Garamond, góc vuông `border-radius: 0`, Fine Gold rules `#b69355`).
 - **Hệ thống Kiểm thử Tương tác MXH & Cuộc thi:** Bình chọn bài thi thời gian thực, Nút chia sẻ Facebook (Open Graph dialog), Thư viện bình luận kèm ảnh/video thành phẩm.
 
@@ -151,12 +154,14 @@ npm test -- --run
 | `GET` | `/api/users/profile` | Authenticated | Xem chi tiết hồ sơ thành viên và thông tin gói cước |
 | `PUT` | `/api/users/profile` | Authenticated | Cập nhật họ tên và số điện thoại |
 | `POST` | `/api/users/change-password` | Authenticated | Đổi mật khẩu tài khoản |
-| `GET` | `/api/recipes` | Anonymous | Lấy danh sách công thức (Guest chỉ thấy `IsFree=true`) |
+| `GET` | `/api/recipes` | Anonymous | Lấy danh sách công thức (Guest chỉ thấy `IsFree=true`, chặn trần 50 bản ghi) |
+| `GET` | `/api/recipes/paged` | Anonymous | Phân trang công thức chuẩn PERF-09 (`page`, `pageSize` max 50) |
 | `GET` | `/api/recipes/{id}` | Anonymous / Auth | Xem chi tiết công thức (Kiểm tra quyền nếu bài trả phí) |
 | `POST` | `/api/recipes` | Member / Admin | Tạo mới công thức món ăn |
 | `PUT` | `/api/recipes/{id}` | Author / Admin | Cập nhật công thức; Admin có quyền chỉnh `IsFree` |
 | `DELETE` | `/api/recipes/{id}` | Author / Admin | Xóa công thức món ăn |
-| `GET` | `/api/tips` | Anonymous | Lấy danh sách mẹo làm bếp |
+| `GET` | `/api/tips` | Anonymous | Lấy danh sách mẹo làm bếp (Chặn trần 50 bản ghi) |
+| `GET` | `/api/tips/paged` | Anonymous | Phân trang mẹo làm bếp chuẩn PERF-09 (`page`, `pageSize` max 50) |
 | `GET` | `/api/contests` | Anonymous | Danh sách cuộc thi ẩm thực |
 | `POST` | `/api/contests` | Admin | Khởi tạo cuộc thi nấu ăn mới |
 | `POST` | `/api/contests/{id}/entries` | Anonymous / Member | Nộp bài dự thi (Hỗ trợ cả Guest và Member) |
@@ -175,7 +180,7 @@ npm test -- --run
 `	ext
 Project_3/
 ├── backend/                       # ASP.NET Core 10 Web API & Microservices Core
-│   ├── Controllers/               # 9 API Controllers đầy đủ XML Documentation
+│   ├── Controllers/               # 10 API Controllers đầy đủ XML Documentation
 │   ├── Data/                      # ApplicationDbContext & DbInitializer (Seeding 11 Entities)
 │   ├── DTOs/                      # Data Transfer Objects & Validation Attributes
 │   ├── Entities/                  # 12 Domain Entities theo chuẩn SRP (Tách riêng từng class)
@@ -184,7 +189,7 @@ Project_3/
 │   │   └── Interfaces/            # IGenericRepository & IUnitOfWork contracts
 │   ├── Services/                  # Business Logic Layer (Interfaces/ riêng biệt - ISP/DIP)
 │   │   ├── Interfaces/            # 12 Service Contracts
-│   │   └── EventBus/              # InMemoryMessageBus & Integration Events
+│   │   └── EventBus/              # InMemoryMessageBus & RabbitMQ Integration Events
 │   └── Program.cs                 # Configuration, JWT Bearer, Swagger & DI Setup
 │
 ├── gateway/                       # YARP API Reverse Gateway (Port 8000)
@@ -192,7 +197,7 @@ Project_3/
 │   └── Program.cs                 # YARP Middleware & Header Forwarding
 │
 ├── shared/                        # Shared Class Libraries & DTOs
-│   └── JamesThew.Shared.Contracts/# Domain Contracts, Integration Events, Common DTOs
+│   └── JamesThew.Shared.Contracts/# Domain Contracts, Integration Events, Common DTOs (PagedResult)
 │
 ├── database/                      # Database Initialization & Seed Scripts
 │   └── seed-data.sql              # Raw SQL Seed Data cho SQL Server / Docker
@@ -205,15 +210,16 @@ Project_3/
 │   │   │   ├── auth/              # LoginPage, RegisterPage (Plan selection + Mock Payment)
 │   │   │   ├── member/            # MyRecipesPage, ProfilePage (Direct Edit)
 │   │   │   ├── admin/             # AdminDashboardPage (Recipes, Tips, Contests, Announcements, Feedbacks)
-│   │   │   └── public/            # HomePage, RecipesPage, RecipeDetailPage, ContestsPage, AnnouncementsPage, FeedbackPage, FaqPage, NotFoundPage
-│   │   ├── services/              # Axios API Client & Modules
+│   │   │   └── public/            # HomePage, RecipesPage (Recipes & Tips + Pagination), RecipeDetailPage, ContestsPage, AnnouncementsPage, FeedbackPage, FaqPage, NotFoundPage
+│   │   ├── services/              # Axios API Client & Modules (Paged Endpoints)
 │   │   ├── styles/                # 5-Star Luxury Architectural Theme
-│   │   └── __tests__/             # 22 Test Suites (96 Vitest Tests PASS 100%)
+│   │   └── __tests__/             # 23 Test Suites (98 Vitest Tests PASS 100%)
 │   ├── Dockerfile                 # Multi-stage Dockerfile cho Frontend (Node Build + Nginx Alpine)
 │   └── nginx.conf                 # Cấu hình Nginx Reverse Proxy & Client Routing
 │
 ├── tests/
-│   └── backend.tests/             # 62 xUnit Integration Tests (.NET 10 LTS - 100% PASS)
+│   ├── backend.tests/             # 65 xUnit Integration Tests (.NET 10 LTS - 100% PASS)
+│   └── load-tests/                # k6 Load, Stress & Spike Performance Test Scripts
 │
 ├── docs/                          # Hồ sơ Tài Liệu Dự Án & Báo Cáo Aptech
 │   ├── APTECH_PROJECT_REPORT_DOSSIER.md # 13 Đề mục Báo cáo Toàn diện eProject Aptech

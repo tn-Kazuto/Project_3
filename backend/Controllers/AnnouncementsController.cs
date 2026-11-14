@@ -1,5 +1,6 @@
 using backend.DTOs;
 using backend.Services;
+using JamesThew.Shared.Contracts.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,7 +54,7 @@ namespace backend.Controllers
         /// Publishes a new announcement. Restricted to Admin (Chef James Thew).
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse<AnnouncementDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -82,7 +83,7 @@ namespace backend.Controllers
         /// Deletes an announcement. Restricted to Admin.
         /// </summary>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)

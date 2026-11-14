@@ -35,7 +35,30 @@ export const ProfilePage = () => {
   const [renewError, setRenewError] = useState('');
 
   useEffect(() => {
-    fetchProfile();
+    let isMounted = true;
+    const fetch = async () => {
+      try {
+        setLoading(true);
+        const res = await authApi.getProfile();
+        if (!isMounted) return;
+        if (res.data && res.data.success) {
+          const data = res.data.data;
+          setProfile(data);
+          setFullName(data.fullName || '');
+          setPhone(data.phone || '');
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error(err);
+        setError('Unable to load your profile details.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetch();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchProfile = async () => {
@@ -183,11 +206,20 @@ export const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
-        <div className="spinner-border" style={{ color: 'var(--dp-color-accent)' }} role="status">
-          <span className="visually-hidden">Loading profile...</span>
+      <div className="container py-5 luxury-profile" role="status" aria-label="Loading member profile">
+        <div className="p-4 p-md-5 bg-white border mb-4" style={{ borderColor: 'var(--dp-color-rule)' }}>
+          <div className="culinary-skeleton-block mb-3" style={{ width: '180px', height: '1.25rem' }} />
+          <div className="culinary-skeleton-block mb-4" style={{ width: '320px', height: '2.5rem' }} />
+          <div className="row g-4">
+            <div className="col-md-6">
+              <div className="culinary-skeleton-block" style={{ height: '220px', width: '100%' }} />
+            </div>
+            <div className="col-md-6">
+              <div className="culinary-skeleton-block" style={{ height: '220px', width: '100%' }} />
+            </div>
+          </div>
         </div>
-        <p className="text-muted mt-2">Loading member profile...</p>
+        <span className="visually-hidden">Loading member profile...</span>
       </div>
     );
   }
@@ -225,7 +257,7 @@ export const ProfilePage = () => {
           {/* Left Column: VIP Membership Card & Account Overview */}
           <div className="col-lg-5">
             <div
-              className="p-4 p-md-5 mb-4"
+              className="p-4 p-md-5 mb-4 vip-gold-sheen position-relative overflow-hidden"
               style={{
                 backgroundColor: 'var(--dp-color-field)',
                 color: 'var(--dp-color-on-field)',

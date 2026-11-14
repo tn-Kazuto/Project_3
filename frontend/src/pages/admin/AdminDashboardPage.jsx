@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   recipeApi,
   tipApi,
@@ -72,13 +72,19 @@ export const AdminDashboardPage = () => {
   // Feedback filter state
   const [feedbackFilter, setFeedbackFilter] = useState('ALL');
 
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
+    isMountedRef.current = true;
     loadAllDashboardData();
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const loadAllDashboardData = async () => {
     try {
-      setLoading(true);
+      if (isMountedRef.current) setLoading(true);
       const [catRes, recRes, tipRes, contRes, annRes, fbRes] = await Promise.all([
         categoryApi.getAll(),
         recipeApi.getAll(),
@@ -88,6 +94,7 @@ export const AdminDashboardPage = () => {
         feedbackApi.getAll(),
       ]);
 
+      if (!isMountedRef.current) return;
       if (catRes.data?.success) setCategories(catRes.data.data || []);
       if (recRes.data?.success) setRecipes(recRes.data.data || []);
       if (tipRes.data?.success) setTips(tipRes.data.data || []);
@@ -95,10 +102,11 @@ export const AdminDashboardPage = () => {
       if (annRes.data?.success) setAnnouncements(annRes.data.data || []);
       if (fbRes.data?.success) setFeedbacks(fbRes.data.data || []);
     } catch (err) {
+      if (!isMountedRef.current) return;
       console.error(err);
       setStatusMessage({ type: 'danger', text: 'Error loading dashboard metrics.' });
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 

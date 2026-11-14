@@ -79,14 +79,37 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 
-// 5. CORS Policy
+// 5. CORS Policy - Restrict to allowed frontend origins according to SEC-TRN-01 & rules.md
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:3000", "http://localhost:5173", "http://localhost:8000" };
+
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("JamesThewCors", policy =>
+    {
+        if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
+        {
+            policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || origin.StartsWith("http://127.0.0.1"))
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+    });
+
+    // Backward-compatibility alias
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -140,7 +163,7 @@ using (var scope = app.Services.CreateScope())
 // 8. Middleware Pipeline
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment() || true)
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
@@ -150,7 +173,7 @@ if (app.Environment.IsDevelopment() || true)
     });
 }
 
-app.UseCors("AllowAll");
+app.UseCors("JamesThewCors");
 
 app.UseAuthentication();
 app.UseMiddleware<IdentityPropagationMiddleware>();

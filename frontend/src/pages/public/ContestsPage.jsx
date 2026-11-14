@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { contestApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
 
 export const ContestsPage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -36,7 +37,27 @@ export const ContestsPage = () => {
   const [submittingVote, setSubmittingVote] = useState(false);
 
   useEffect(() => {
-    fetchContests();
+    let isMounted = true;
+    const fetch = async () => {
+      try {
+        setLoading(true);
+        const res = await contestApi.getAll();
+        if (!isMounted) return;
+        if (res.data && res.data.success) {
+          setContests(res.data.data || []);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error(err);
+        setError('Failed to load culinary contests. Please try again later.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetch();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchContests = async () => {
@@ -230,10 +251,14 @@ export const ContestsPage = () => {
           backgroundPosition: 'center',
         }}
       >
-        <div className="roman-numeral mb-2">IV &middot; COMPETITIVE ARENA</div>
+        <div className="d-inline-flex align-items-center gap-2 mb-2 px-3 py-1 bg-white border" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
+          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
+          <span className="roman-numeral mb-0" style={{ fontSize: '0.8rem' }}>IV &middot; COMPETITIVE ARENA</span>
+          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
+        </div>
         <h1 className="brand-font display-5 mb-3 text-dark">Culinary Contests by Chef James Thew</h1>
         <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
-          Showcase your cooking skills, secret recipes, and clever kitchen tips. Open to all registered members and enthusiastic home cooks alike!
+          The Grand Palace Hotel invites culinarians, passionate artisans, and gifted home cooks to challenge culinary frontiers. Showcase your cooking skills, secret recipes, and clever kitchen tips. Open to all registered members and enthusiastic home cooks alike!
         </p>
         <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
           <span
@@ -242,9 +267,20 @@ export const ContestsPage = () => {
               backgroundColor: 'var(--dp-color-field)',
               color: 'var(--dp-color-on-field)',
               borderRadius: 0,
+              border: '1px solid var(--dp-color-panel-line)',
             }}
           >
             Free for Everyone to Enter
+          </span>
+          <span
+            className="badge font-monospace px-3 py-2"
+            style={{
+              backgroundColor: 'var(--dp-color-accent)',
+              color: '#ffffff',
+              borderRadius: 0,
+            }}
+          >
+            &star; $5,000 Bursary &amp; Grand Trophy
           </span>
           <span
             className="badge font-monospace px-3 py-2"
@@ -262,24 +298,36 @@ export const ContestsPage = () => {
       {/* 3-Step Visual Submission Guide (Eliminates wall of text) */}
       <div className="row g-3 mb-5">
         <div className="col-md-4">
-          <div className="p-3 bg-white h-100 border text-center" style={{ borderColor: 'var(--dp-color-rule)' }}>
-            <span className="badge bg-light text-dark font-monospace mb-2">STEP 01</span>
-            <h6 className="brand-font mb-1 text-dark" style={{ fontSize: '1.1rem' }}>Submit Recipe or Tip</h6>
-            <p className="small text-muted mb-0">Free entry for everyone. Provide clear ingredients and instructions.</p>
+          <div className="p-4 bg-white h-100 border text-center position-relative" style={{ borderColor: 'var(--dp-color-rule)', borderTop: '2px solid var(--dp-color-ink-2)' }}>
+            <span className="badge font-monospace mb-2" style={{ backgroundColor: 'var(--dp-color-ground-2)', color: 'var(--dp-color-ink)', border: '1px solid var(--dp-color-panel-line)', borderRadius: 0 }}>
+              STEP 01
+            </span>
+            <h6 className="brand-font mb-2 text-dark" style={{ fontSize: '1.15rem' }}>Submit Recipe or Tip</h6>
+            <p className="small text-muted mb-0" style={{ lineHeight: '1.6' }}>
+              Free entry for everyone. Provide clear ingredients and instructions.
+            </p>
           </div>
         </div>
         <div className="col-md-4">
-          <div className="p-3 bg-white h-100 border text-center" style={{ borderColor: 'var(--dp-color-rule)' }}>
-            <span className="badge bg-light text-dark font-monospace mb-2">STEP 02</span>
-            <h6 className="brand-font mb-1 text-dark" style={{ fontSize: '1.1rem' }}>Community Voting</h6>
-            <p className="small text-muted mb-0">Members and verified guests vote for the most creative culinary entries.</p>
+          <div className="p-4 bg-white h-100 border text-center position-relative" style={{ borderColor: 'var(--dp-color-rule)', borderTop: '2px solid var(--dp-color-accent)' }}>
+            <span className="badge font-monospace mb-2" style={{ backgroundColor: 'var(--dp-color-accent)', color: '#ffffff', borderRadius: 0 }}>
+              STEP 02
+            </span>
+            <h6 className="brand-font mb-2 text-dark" style={{ fontSize: '1.15rem' }}>Community Voting</h6>
+            <p className="small text-muted mb-0" style={{ lineHeight: '1.6' }}>
+              Members and verified guests vote for the most creative culinary entries.
+            </p>
           </div>
         </div>
         <div className="col-md-4">
-          <div className="p-3 bg-white h-100 border text-center" style={{ borderColor: 'var(--dp-color-rule)' }}>
-            <span className="badge font-monospace mb-2" style={{ backgroundColor: 'var(--dp-color-accent)', color: '#ffffff' }}>STEP 03 &middot; PRIZES</span>
-            <h6 className="brand-font mb-1 text-dark" style={{ fontSize: '1.1rem' }}>Chef James Awards</h6>
-            <p className="small text-muted mb-0">Grand prize winners featured in the Hall of Fame announcement board.</p>
+          <div className="p-4 bg-white h-100 border text-center position-relative" style={{ borderColor: 'var(--dp-color-rule)', borderTop: '2px solid #1b4d3e' }}>
+            <span className="badge font-monospace mb-2" style={{ backgroundColor: '#1b4d3e', color: '#ffffff', borderRadius: 0 }}>
+              STEP 03 &middot; PRIZES
+            </span>
+            <h6 className="brand-font mb-2 text-dark" style={{ fontSize: '1.15rem' }}>Chef James Awards</h6>
+            <p className="small text-muted mb-0" style={{ lineHeight: '1.6' }}>
+              Grand prize winners featured in the Hall of Fame announcement board.
+            </p>
           </div>
         </div>
       </div>
@@ -291,11 +339,8 @@ export const ContestsPage = () => {
       )}
 
       {loading ? (
-        <div className="text-center py-5">
-          <div className="spinner-border" style={{ color: 'var(--dp-color-accent)' }} role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2 text-muted">Loading culinary contests...</p>
+        <div className="py-4">
+          <CulinarySkeleton count={3} />
         </div>
       ) : contests.length === 0 ? (
         <div
@@ -317,7 +362,7 @@ export const ContestsPage = () => {
             return (
               <div key={c.contestId} className="col-lg-6">
                 <div
-                  className="card h-100 p-4 d-flex flex-column"
+                  className="card h-100 p-4 d-flex flex-column atelier-card-hover"
                   style={{
                     backgroundColor: '#ffffff',
                     border: '1px solid var(--dp-color-rule)',
@@ -692,9 +737,8 @@ export const ContestsPage = () => {
                 </div>
 
                 {loadingVotingEntries ? (
-                  <div className="text-center py-5">
-                    <div className="spinner-border luxury-gold-spinner mb-3" role="status"></div>
-                    <p className="text-muted font-monospace small">Loading community submissions...</p>
+                  <div className="py-4">
+                    <CulinarySkeleton count={2} />
                   </div>
                 ) : votingEntries.length === 0 ? (
                   <div className="text-center py-5 bg-white border p-4" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
@@ -722,7 +766,7 @@ export const ContestsPage = () => {
                       return (
                         <div key={entry.entryId} className="col-12 col-lg-6">
                           <div
-                            className="card h-100 shadow-sm"
+                            className="card h-100 shadow-sm atelier-card-hover"
                             style={{
                               backgroundColor: '#ffffff',
                               border: isTopVoted ? '1px solid var(--dp-color-accent)' : '1px solid var(--dp-color-panel-line)',

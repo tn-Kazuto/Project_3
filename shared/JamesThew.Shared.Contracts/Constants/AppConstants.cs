@@ -16,6 +16,7 @@ public static class AppConstants
     {
         public const string Monthly = "MONTHLY";
         public const string Annual = "ANNUAL";
+        public const string Yearly = "YEARLY";
 
         public const decimal MonthlyPrice = 10.00m;
         public const decimal AnnualPrice = 100.00m;

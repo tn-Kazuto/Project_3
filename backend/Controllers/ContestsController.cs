@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using backend.DTOs;
 using backend.Services;
+using JamesThew.Shared.Contracts.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,7 +61,7 @@ namespace backend.Controllers
         /// Creates a new contest. Restricted to Admin (Chef James Thew).
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse<ContestDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -95,7 +96,7 @@ namespace backend.Controllers
         /// Deletes a contest. Restricted to Admin.
         /// </summary>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
@@ -143,7 +144,7 @@ namespace backend.Controllers
         /// Retrieves all submissions for a contest. Restricted to Admin.
         /// </summary>
         [HttpGet("{id:int}/entries")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<ContestEntryDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -207,7 +208,7 @@ namespace backend.Controllers
         /// Marks a contest entry as the winner. Restricted to Admin.
         /// </summary>
         [HttpPut("entries/{entryId:int}/winner")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse<ContestEntryDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> SelectWinner(int entryId)

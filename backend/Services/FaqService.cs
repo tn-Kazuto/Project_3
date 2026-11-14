@@ -19,7 +19,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<IEnumerable<FaqDto>>> GetAllAsync()
         {
-            var faqs = await _uow.Repository<Faq>().Query()
+            var faqs = await _uow.Repository<Faq>().QueryReadOnly()
                 .OrderBy(f => f.DisplayOrder)
                 .Select(f => new FaqDto
                 {

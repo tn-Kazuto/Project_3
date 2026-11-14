@@ -36,6 +36,7 @@ export const RecipeDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [preppedIngredients, setPreppedIngredients] = useState({});
 
   // Feedback form state
   const [comment, setComment] = useState('');
@@ -48,8 +49,45 @@ export const RecipeDetailPage = () => {
   const [feedbackError, setFeedbackError] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+    const loadRecipeData = async () => {
+      try {
+        setLoading(true);
+        const [resRecipe, resFeedback] = await Promise.all([
+          recipeApi.getById(id),
+          feedbackApi.getByRecipe(id),
+        ]);
+        if (!isMounted) return;
+        if (resRecipe.data?.success) {
+          setRecipe(resRecipe.data.data);
+        } else {
+          setError(resRecipe.data?.message || 'Recipe not found');
+        }
+        if (resFeedback.data?.success) {
+          setFeedbacks(resFeedback.data.data);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        if (err.response?.status === 403) {
+          setError(err.response?.data?.message || 'This recipe is exclusive to registered members. Please subscribe or log in to view.');
+        } else {
+          setError('Failed to load recipe details.');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadRecipeData();
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
   const fetchRecipe = async () => {
     try {
+      setLoading(true);
       const res = await recipeApi.getById(id);
       if (res.data?.success) {
         setRecipe(res.data.data);
@@ -77,11 +115,6 @@ export const RecipeDetailPage = () => {
       console.error('Error fetching feedbacks:', err);
     }
   };
-
-  useEffect(() => {
-    fetchRecipe();
-    fetchFeedbacks();
-  }, [id]);
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
@@ -166,10 +199,30 @@ export const RecipeDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
-        <div className="spinner-border" style={{ color: 'var(--dp-color-accent)' }} role="status">
-          <span className="visually-hidden">Loading...</span>
+      <div className="container py-5 luxury-recipe-detail" role="status" aria-label="Loading culinary recipe">
+        <div className="mb-4">
+          <div className="culinary-skeleton-block mb-3" style={{ width: '220px', height: '1.25rem' }} />
+          <div className="culinary-skeleton-block mb-3" style={{ width: '70%', height: '3rem' }} />
         </div>
+        <div className="culinary-skeleton-block mb-5" style={{ aspectRatio: '21/9', width: '100%' }} />
+        <div className="row g-5">
+          <div className="col-lg-5">
+            <div className="p-4 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
+              <div className="culinary-skeleton-block mb-3" style={{ width: '50%', height: '1.5rem' }} />
+              <div className="culinary-skeleton-block mb-2" style={{ width: '90%', height: '1rem' }} />
+              <div className="culinary-skeleton-block mb-2" style={{ width: '80%', height: '1rem' }} />
+              <div className="culinary-skeleton-block mb-2" style={{ width: '85%', height: '1rem' }} />
+            </div>
+          </div>
+          <div className="col-lg-7">
+            <div className="p-4 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
+              <div className="culinary-skeleton-block mb-3" style={{ width: '60%', height: '1.5rem' }} />
+              <div className="culinary-skeleton-block mb-3" style={{ width: '100%', height: '1rem' }} />
+              <div className="culinary-skeleton-block mb-3" style={{ width: '95%', height: '1rem' }} />
+            </div>
+          </div>
+        </div>
+        <span className="visually-hidden">Loading recipe details...</span>
       </div>
     );
   }
@@ -463,22 +516,68 @@ export const RecipeDetailPage = () => {
               <h2 className="brand-font h4 mb-3 pb-2 border-bottom" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
                 Ingredients
               </h2>
-              <ul className="list-unstyled d-flex flex-column gap-0 mb-0">
-                {ingredientList.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="d-flex align-items-start gap-2 py-2"
-                    style={{
-                      borderBottom: '1px solid var(--dp-color-panel-line)',
-                      color: 'var(--dp-color-ink)',
-                      fontSize: '0.92rem',
-                    }}
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span className="small text-muted font-monospace" style={{ fontSize: '0.72rem' }}>
+                  MISE EN PLACE (CLICK TO CHECK OFF)
+                </span>
+                {Object.values(preppedIngredients).some(Boolean) && (
+                  <button
+                    type="button"
+                    onClick={() => setPreppedIngredients({})}
+                    className="btn btn-link btn-sm p-0 text-decoration-none font-monospace"
+                    style={{ fontSize: '0.7rem', color: 'var(--dp-color-ink-2)' }}
                   >
-                    <span className="font-monospace text-muted mt-1">&bull;</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
+                    [Reset]
+                  </button>
+                )}
+              </div>
+              <ul className="list-unstyled d-flex flex-column gap-0 mb-0">
+                {ingredientList.map((item, idx) => {
+                  const isPrepped = Boolean(preppedIngredients[idx]);
+                  return (
+                    <li
+                      key={idx}
+                      onClick={() => setPreppedIngredients((prev) => ({ ...prev, [idx]: !prev[idx] }))}
+                      role="checkbox"
+                      aria-checked={isPrepped}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' || e.key === 'Enter') {
+                          e.preventDefault();
+                          setPreppedIngredients((prev) => ({ ...prev, [idx]: !prev[idx] }));
+                        }
+                      }}
+                      className={`mise-en-place-item d-flex align-items-start gap-2 py-2 ${isPrepped ? 'is-prepped' : ''}`}
+                      style={{
+                        borderBottom: '1px solid var(--dp-color-panel-line)',
+                        color: 'var(--dp-color-ink)',
+                        fontSize: '0.92rem',
+                      }}
+                    >
+                      <span className="font-monospace mt-1" style={{ color: isPrepped ? 'var(--dp-color-accent)' : 'var(--dp-color-ink-2)' }}>
+                        {isPrepped ? '✓' : '•'}
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  );
+                })}
               </ul>
+
+              {/* Sommelier & Cellar Recommendation */}
+              <div className="sommelier-note-card mt-4">
+                <div className="small font-monospace text-uppercase fw-bold mb-1" style={{ color: 'var(--dp-color-accent-text)', fontSize: '0.72rem', letterSpacing: '0.12em' }}>
+                  🍷 Cellar &amp; Pairing Recommendation
+                </div>
+                <p className="small mb-0" style={{ color: 'var(--dp-color-ink)', lineHeight: '1.55', fontStyle: 'italic' }}>
+                  {recipe.categoryName === 'Italian'
+                    ? 'Pairs sublimely with an aged Barolo or crisp Pinot Grigio from Friuli. Serve at 16°C.'
+                    : recipe.categoryName === 'Vegetarian'
+                    ? 'Best accompanied by an aromatic Sauvignon Blanc or chilled restorative herbal infusion.'
+                    : recipe.categoryName === 'Juices'
+                    ? 'Enjoy fresh within 20 minutes of cold-press extraction to preserve active botanical enzymes.'
+                    : 'Pairs exceptionally with a full-bodied Cabernet Sauvignon or Tuscan Chianti Classico.'}
+                </p>
+              </div>
             </div>
           </div>
 

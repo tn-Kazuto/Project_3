@@ -96,7 +96,7 @@ describe('Functional Phase F4 - Announcements & Feedback Moderation', () => {
     expect(await screen.findByText(/Winner Announcements & News/i)).toBeInTheDocument();
 
     // Verify Contest Winner card details
-    expect(screen.getByText('Official Winner Declaration: Master Risotto Championship')).toBeInTheDocument();
+    expect(await screen.findByText('Official Winner Declaration: Master Risotto Championship')).toBeInTheDocument();
     expect(screen.getByText(/HONORED WINNER/i)).toBeInTheDocument();
     expect(screen.getByText('Chef Antoine Laurent')).toBeInTheDocument();
     expect(screen.getByText(/Competition: Autumn Risotto Challenge/i)).toBeInTheDocument();

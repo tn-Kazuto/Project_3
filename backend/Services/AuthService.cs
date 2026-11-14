@@ -2,6 +2,7 @@ using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
 using backend.Services.EventBus;
+using JamesThew.Shared.Contracts.Constants;
 using JamesThew.Shared.Contracts.Events;
 
 namespace backend.Services
@@ -21,33 +22,36 @@ namespace backend.Services
         private readonly INotificationService? _notificationService;
         private readonly IEmailService? _emailService;
         private readonly IEventBus? _eventBus;
+        private readonly ILogger<AuthService>? _logger;
 
         public AuthService(
             IUnitOfWork uow, 
             ITokenService tokenService,
             INotificationService? notificationService = null,
             IEmailService? emailService = null,
-            IEventBus? eventBus = null)
+            IEventBus? eventBus = null,
+            ILogger<AuthService>? logger = null)
         {
             _uow = uow;
             _tokenService = tokenService;
             _notificationService = notificationService;
             _emailService = emailService;
             _eventBus = eventBus;
+            _logger = logger;
         }
 
         public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterRequest request)
         {
             // 1. Validate subscription plan
             var planUpper = request.PlanType.Trim().ToUpperInvariant();
-            if (planUpper != "MONTHLY" && planUpper != "YEARLY")
+            if (planUpper != AppConstants.Plans.Monthly && planUpper != AppConstants.Plans.Yearly && planUpper != AppConstants.Plans.Annual)
             {
                 return ApiResponse<AuthResponseDto>.Fail(
                     "Invalid subscription plan. Allowed options: 'MONTHLY' ($10) or 'YEARLY' ($100).");
             }
 
-            decimal amount = planUpper == "MONTHLY" ? 10.00m : 100.00m;
-            int validityDays = planUpper == "MONTHLY" ? 30 : 365;
+            decimal amount = planUpper == AppConstants.Plans.Monthly ? AppConstants.Plans.MonthlyPrice : AppConstants.Plans.AnnualPrice;
+            int validityDays = planUpper == AppConstants.Plans.Monthly ? AppConstants.Plans.MonthlyDurationDays : AppConstants.Plans.AnnualDurationDays;
 
             // 2. Validate mock payment fields
             if (string.IsNullOrWhiteSpace(request.CardNumber) ||
@@ -88,7 +92,7 @@ namespace backend.Services
                     FullName = request.FullName.Trim(),
                     Phone = request.Phone?.Trim(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                    Role = "MEMBER",
+                    Role = AppConstants.Roles.Member,
                     SubscriptionPlan = planUpper,
                     SubscriptionAmount = amount,
                     SubscriptionStart = now,
@@ -148,9 +152,9 @@ namespace backend.Services
                             ));
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Non-blocking notification/email dispatch
+                    _logger?.LogWarning(ex, "Non-blocking dispatch failed during registration for user {UserId}", user.UserId);
                 }
 
                 // 5. Generate token
@@ -215,7 +219,7 @@ namespace backend.Services
 
         private static UserDto MapToUserDto(User user)
         {
-            bool isActiveSubscription = user.Role == "ADMIN" ||
+            bool isActiveSubscription = user.Role == AppConstants.Roles.Admin ||
                 (user.SubscriptionEnd.HasValue && user.SubscriptionEnd.Value > DateTime.UtcNow);
 
             return new UserDto

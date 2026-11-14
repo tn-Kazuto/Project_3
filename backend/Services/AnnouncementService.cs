@@ -17,16 +17,18 @@ namespace backend.Services
     {
         private readonly IUnitOfWork _uow;
         private readonly IEventBus? _eventBus;
+        private readonly ILogger<AnnouncementService>? _logger;
 
-        public AnnouncementService(IUnitOfWork uow, IEventBus? eventBus = null)
+        public AnnouncementService(IUnitOfWork uow, IEventBus? eventBus = null, ILogger<AnnouncementService>? logger = null)
         {
             _uow = uow;
             _eventBus = eventBus;
+            _logger = logger;
         }
 
         public async Task<ApiResponse<IEnumerable<AnnouncementDto>>> GetAllAsync()
         {
-            var announcements = await _uow.Repository<Announcement>().Query()
+            var announcements = await _uow.Repository<Announcement>().QueryReadOnly()
                 .Include(a => a.Contest)
                 .Include(a => a.WinnerEntry)
                     .ThenInclude(w => w!.User)
@@ -39,7 +41,7 @@ namespace backend.Services
 
         public async Task<ApiResponse<AnnouncementDto>> GetByIdAsync(int id)
         {
-            var announcement = await _uow.Repository<Announcement>().Query()
+            var announcement = await _uow.Repository<Announcement>().QueryReadOnly()
                 .Include(a => a.Contest)
                 .Include(a => a.WinnerEntry)
                     .ThenInclude(w => w!.User)
@@ -121,9 +123,9 @@ namespace backend.Services
                             ));
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Non-blocking event publish
+                    _logger?.LogWarning(ex, "Non-blocking event publish failed for announcement {AnnouncementId}", announcement.AnnouncementId);
                 }
             }
 
