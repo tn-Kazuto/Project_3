@@ -606,16 +606,23 @@ export const MyRecipesPage = () => {
                       value={formData.imageUrl}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     />
-
                     {formData.imageUrl && (
-                      <div className="mt-2 p-2 border rounded" style={{ backgroundColor: 'var(--dp-color-ground-2)' }}>
-                        <small className="text-muted d-block mb-1">Xem trước ảnh:</small>
-                        <img
-                          src={formData.imageUrl}
-                          alt="Dish Preview"
-                          style={{ maxHeight: '120px', maxWidth: '100%', objectFit: 'cover', borderRadius: '4px' }}
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
+                      <div className="mt-2 p-2 bg-light border d-flex align-items-center gap-3" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
+                        <div style={{ width: '80px', height: '60px', overflow: 'hidden', backgroundColor: '#e9ecef', flexShrink: 0 }}>
+                          <img
+                            src={formData.imageUrl}
+                            alt="Recipe Preview"
+                            className="w-100 h-100"
+                            style={{ objectFit: 'cover' }}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=400&q=80';
+                            }}
+                          />
+                        </div>
+                        <div className="small font-monospace text-muted">
+                          Live Image Preview
+                        </div>
                       </div>
                     )}
                   </div>

@@ -1,6 +1,8 @@
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
+using backend.Services.EventBus;
+using JamesThew.Shared.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
@@ -19,17 +21,20 @@ namespace backend.Services
         private readonly INotificationService? _notificationService;
         private readonly IEmailService? _emailService;
         private readonly ILogger<ContestService>? _logger;
+        private readonly IEventBus? _eventBus;
 
         public ContestService(
             IUnitOfWork uow,
             INotificationService? notificationService = null,
             IEmailService? emailService = null,
-            ILogger<ContestService>? logger = null)
+            ILogger<ContestService>? logger = null,
+            IEventBus? eventBus = null)
         {
             _uow = uow;
             _notificationService = notificationService;
             _emailService = emailService;
             _logger = logger;
+            _eventBus = eventBus;
         }
 
         public async Task<ApiResponse<IEnumerable<ContestDto>>> GetAllAsync(bool? activeOnly = null)
@@ -344,6 +349,23 @@ namespace backend.Services
                         submitterName,
                         entry.Contest?.Title ?? "Culinary Contest",
                         entry.Title);
+                }
+
+                if (_eventBus != null)
+                {
+                    await _eventBus.PublishAsync(
+                        "jamesthew.events",
+                        "contest.announced",
+                        new ContestWinnerAnnouncedEvent(
+                            entry.ContestId,
+                            entry.Contest?.Title ?? "Culinary Contest",
+                            entry.EntryId,
+                            submitterName,
+                            recipientEmail ?? string.Empty,
+                            "Official Grand Champion Prize",
+                            null,
+                            DateTime.UtcNow,
+                            entry.UserId));
                 }
 
                 if (_notificationService != null)

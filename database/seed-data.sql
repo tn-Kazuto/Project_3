@@ -104,8 +104,8 @@ BEGIN
     '2. Layer salted heirloom tomato slices, fold pastry edges over in rustic pleats, egg wash with farm yolk.' + CHAR(13) + CHAR(10) +
     '3. Bake at 210°C for 30 minutes until edges are golden bronze and crisp.' + CHAR(13) + CHAR(10) +
     '4. Tear smoked burrata across the warm galette center, spoon molecular basil caviar over top and serve immediately.',
-    'https://images.unsplash.com/photo-1592417817098-8f3d6910985b?auto=format&fit=crop&w=1200&q=80', 0, 'TALKSHOW', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    'https://images.unsplash.com/photo-1592417817098-8f3d6910985b?auto=format&fit=crop&w=600&q=80', 145, DATEADD(day, -6, SYSUTCDATETIME()));
+    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80', 0, 'TALKSHOW', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=600&q=80', 145, DATEADD(day, -6, SYSUTCDATETIME()));
 END;
 
 IF NOT EXISTS (SELECT 1 FROM Recipes WHERE Title = 'Herb-Crusted Australian Rack of Lamb with Red Wine & Rosemary Jus')
@@ -250,7 +250,7 @@ Fresh Thyme, Fleur de Sel, Coarse Black Pepper',
 4. Boil parsnips in salted water until knife-tender; blend in high-speed blender with milk and butter until silky smooth.
 5. In the same pan, sauté shallots in 1 tbsp duck fat, deglaze with Port wine, and reduce by half. Add demi-glace and fresh blackberries; simmer until syrupy.
 6. Carve duck breast into thick angled medallions, fan across parsnip purée, and spoon glossy blackberry reduction along the side.',
-    N'https://images.unsplash.com/photo-1514944298352-f418579435b8?auto=format&fit=crop&w=1200&q=80', 1, N'ARTICLE', NULL, NULL, 56, SYSUTCDATETIME());
+    N'https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=1200&q=80', 1, N'ARTICLE', NULL, NULL, 56, SYSUTCDATETIME());
 END;
 
 IF NOT EXISTS (SELECT 1 FROM Recipes WHERE Title = N'Prime Australian Wagyu Ribeye MB7+ with Charred Scallion Chimichurri & Bone Marrow Butter')
@@ -290,7 +290,7 @@ Coarse Sea Salt for pasta water',
 6. In a warm serving skillet, melt truffle butter with 3 tablespoons of starchy pasta water to form an emulsified creamy glaze.
 7. Transfer pasta directly into pan, swirl vigorously with grated Vacche Rosse Parmigiano until coated.
 8. Twirl into high nests on preheated porcelain bowls and shave fresh white truffle tableside.',
-    N'https://images.unsplash.com/photo-1621996346565-e3d5d6281e04?auto=format&fit=crop&w=1200&q=80', 1, N'ARTICLE', NULL, NULL, 88, SYSUTCDATETIME());
+    N'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=1200&q=80', 1, N'ARTICLE', NULL, NULL, 88, SYSUTCDATETIME());
 END;
 
 IF NOT EXISTS (SELECT 1 FROM Recipes WHERE Title = N'Traditional Roman Spaghetti alla Carbonara with Crispy Guanciale & Organic Egg Crema')
@@ -477,7 +477,7 @@ BEGIN
     INSERT INTO Feedbacks (RecipeId, UserId, SenderName, SenderEmail, Comment, MediaUrl, Rating, CreatedAt)
     VALUES (@FettuccineId, @SophiaId, 'Sophia Laurent', 'sophia@culinaryart.com',
     'Followed Chef James''s resting time for the pasta dough — the texture was silky and restaurant-grade! Shaving the fresh truffle over the mantecatura glaze elevated dinner into an unforgettable experience. Here is my plate from Sunday dinner with my family.',
-    'https://images.unsplash.com/photo-1621996346565-e3d5d6281e04?auto=format&fit=crop&w=800&q=80', 5, DATEADD(day, -3, SYSUTCDATETIME()));
+    'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=800&q=80', 5, DATEADD(day, -3, SYSUTCDATETIME()));
 END;
 
 IF NOT EXISTS (SELECT 1 FROM Feedbacks WHERE SenderEmail = 'marcus@greenkitchen.org') AND @SeaBassId IS NOT NULL

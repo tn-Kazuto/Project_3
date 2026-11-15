@@ -19,7 +19,10 @@ services:
       - Jwt__Audience=JamesThewClient
       - ReverseProxy__Clusters__backend-cluster__Destinations__primary__Address=http://backend:5000
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+      notification-service:
+        condition: service_healthy
     networks:
       - jamesthew-internal-net
     healthcheck:
@@ -79,10 +82,62 @@ services:
         condition: service_healthy
     networks:
       - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
   # =========================================================================
-  # 4. DATABASE: MICROSOFT SQL SERVER 2022
+  # 4. NOTIFICATION MICROSERVICE (API, SIGNALR, RABBITMQ CONSUMER)
+  # =========================================================================
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification/Dockerfile
+    container_name: jamesthew-notification-service
+    expose:
+      - "5007"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5007
+      - ConnectionStrings__NotificationConnection=Server=sqlserver,1433;Database=JamesThewNotificationDb;User Id=sa;Password=${SQL_PASSWORD:-JamesThew@2026SecurePass!};TrustServerCertificate=True;
+      - ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:-JamesThew@2026SecurePass!};TrustServerCertificate=True;
+      - Jwt__Key=${JWT_KEY:-JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore}
+      - Jwt__Issuer=JamesThewApi
+      - Jwt__Audience=JamesThewClient
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=${RABBITMQ_USER:-admin}
+      - RabbitMQ__Password=${RABBITMQ_PASS:-Admin@123456}
+      - Smtp__Host=${SMTP_HOST:-}
+      - Smtp__Port=${SMTP_PORT:-587}
+      - Smtp__Username=${SMTP_USERNAME:-}
+      - Smtp__Password=${SMTP_PASSWORD:-}
+      - Smtp__FromEmail=${SMTP_FROM_EMAIL:-concierge@jamesthew-culinary.com}
+      - Smtp__FromName=${SMTP_FROM_NAME:-Chef James Thew Culinary Atelier}
+      - Smtp__EnableSsl=${SMTP_ENABLE_SSL:-true}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5007/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # =========================================================================
+  # 5. DATABASE: MICROSOFT SQL SERVER 2022
   # =========================================================================
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -106,7 +161,7 @@ services:
     restart: unless-stopped
 
   # =========================================================================
-  # 5. CACHE: REDIS 7 ALPINE
+  # 6. CACHE: REDIS 7 ALPINE
   # =========================================================================
   redis:
     image: redis:7-alpine
@@ -126,7 +181,7 @@ services:
     restart: unless-stopped
 
   # =========================================================================
-  # 6. MESSAGE BROKER: RABBITMQ 3.13 (WITH MANAGEMENT DASHBOARD)
+  # 7. MESSAGE BROKER: RABBITMQ 3.13 (WITH MANAGEMENT DASHBOARD)
   # =========================================================================
   rabbitmq:
     image: rabbitmq:3.13-management-alpine

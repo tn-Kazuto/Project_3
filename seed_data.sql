@@ -13,6 +13,19 @@ UPDATE Recipes
 SET Title = N'Classic Venetian Tiramisù with Single-Origin Espresso & Zabaglione Cream'
 WHERE RecipeId = 10;
 
+-- Fix broken image URLs in existing recipes
+UPDATE Recipes
+SET ImageUrl = N'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80'
+WHERE RecipeId = 1 OR ImageUrl LIKE '%1621996346565%';
+
+UPDATE Recipes
+SET ImageUrl = N'https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=1200&q=80'
+WHERE ImageUrl LIKE '%1514944298352%';
+
+UPDATE Recipes
+SET ImageUrl = N'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80'
+WHERE ImageUrl LIKE '%1592417817098%';
+
 -- 2. Fix tip encoding
 UPDATE Tips 
 SET Content = REPLACE(CAST(Content AS NVARCHAR(MAX)), N'100??C', N'100°C')
@@ -125,7 +138,7 @@ N'1. Score the duck breast skin in a tight 5mm diamond crosshatch pattern withou
 4. Boil parsnips in salted water until knife-tender; blend in high-speed blender with milk and butter until silky smooth.
 5. In the same pan, sauté shallots in 1 tbsp duck fat, deglaze with Port wine, and reduce by half. Add demi-glace and fresh blackberries; simmer until syrupy.
 6. Carve duck breast into thick angled medallions, fan across parsnip purée, and spoon glossy blackberry reduction along the side.',
-N'https://images.unsplash.com/photo-1514944298352-f418579435b8?auto=format&fit=crop&w=1200&q=80',
+N'https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=1200&q=80',
 1, N'ARTICLE', NULL, NULL, 56, SYSUTCDATETIME());
 
 INSERT INTO Recipes (AuthorId, CategoryId, Title, Ingredients, CookingProcedure, ImageUrl, IsFree, ContentType, VideoUrl, ThumbnailUrl, ShareCount, CreatedAt)
@@ -164,7 +177,7 @@ N'1. Sift flour onto wooden pasta board. Create a wide well and drop in eggs and
 6. In a warm serving skillet, melt truffle butter with 3 tablespoons of starchy pasta water to form an emulsified creamy glaze.
 7. Transfer pasta directly into pan, swirl vigorously with grated Vacche Rosse Parmigiano until coated.
 8. Twirl into high nests on preheated porcelain bowls and shave fresh white truffle tableside.',
-N'https://images.unsplash.com/photo-1621996346565-e3d5d6281e04?auto=format&fit=crop&w=1200&q=80',
+N'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=1200&q=80',
 1, N'ARTICLE', NULL, NULL, 88, SYSUTCDATETIME());
 
 INSERT INTO Recipes (AuthorId, CategoryId, Title, Ingredients, CookingProcedure, ImageUrl, IsFree, ContentType, VideoUrl, ThumbnailUrl, ShareCount, CreatedAt)

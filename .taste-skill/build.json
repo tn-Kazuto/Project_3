@@ -1,0 +1,11 @@
+{
+ "page": null,
+ "url": "http://localhost:5173/",
+ "root": null,
+ "kind": "service",
+ "category": "Culinary recipes, tips and contests",
+ "primary": "Explore recipes",
+ "rounds": 3,
+ "start": "2026-11-14T10:59:14.281Z",
+ "by": "gate.mjs --start"
+}

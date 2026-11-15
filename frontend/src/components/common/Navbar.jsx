@@ -573,6 +573,10 @@ export const Navbar = () => {
                         src={user.avatarUrl}
                         alt={user.fullName || user.username}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
+                        }}
                       />
                     ) : (
                       (user.fullName || user.username || 'U').charAt(0).toUpperCase()

@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
 import { EmptyState } from '../../components/common/EmptyState';
 
+const FALLBACK_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80';
+
 export const RecipesPage = ({ initialTab = 'recipes' }) => {
   const [activeTab, setActiveTab] = useState(initialTab); // 'recipes' or 'tips'
   const [recipes, setRecipes] = useState([]);
@@ -546,17 +548,19 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                     </span>
                   </div>
 
-                  {r.imageUrl && (
-                    <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
-                      <img
-                        src={r.imageUrl}
-                        alt={r.title}
-                        className="w-100 h-100"
-                        style={{ objectFit: 'cover' }}
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
+                  <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
+                    <img
+                      src={r.imageUrl || FALLBACK_RECIPE_IMAGE}
+                      alt={r.title}
+                      className="w-100 h-100"
+                      style={{ objectFit: 'cover' }}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                      }}
+                    />
+                  </div>
 
                   <h4 className="brand-font mb-2 text-dark" style={{ fontSize: '1.35rem' }}>
                     {r.title}

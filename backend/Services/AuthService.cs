@@ -143,7 +143,7 @@ namespace backend.Services
 
                     if (_eventBus != null)
                     {
-                        _ = _eventBus.PublishAsync(
+                        await _eventBus.PublishAsync(
                             "jamesthew.events",
                             "subscription.activated",
                             new SubscriptionActivatedEvent(

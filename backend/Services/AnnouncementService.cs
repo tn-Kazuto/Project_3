@@ -108,7 +108,7 @@ namespace backend.Services
                             ? (entry.User?.Email ?? "")
                             : (entry.GuestEmail ?? "");
 
-                        _ = _eventBus.PublishAsync(
+                        await _eventBus.PublishAsync(
                             "jamesthew.events",
                             "contest.announced",
                             new ContestWinnerAnnouncedEvent(
@@ -119,7 +119,8 @@ namespace backend.Services
                                 winnerEmail,
                                 "Official Grand Champion Prize",
                                 announcement.Content,
-                                announcement.PublishedAt
+                                announcement.PublishedAt,
+                                entry.UserId
                             ));
                     }
                 }
