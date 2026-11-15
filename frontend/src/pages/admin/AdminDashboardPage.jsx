@@ -1251,6 +1251,25 @@ export const AdminDashboardPage = () => {
                         value={recipeForm.thumbnailUrl}
                         onChange={(e) => setRecipeForm({ ...recipeForm, thumbnailUrl: e.target.value })}
                       />
+                      {recipeForm.thumbnailUrl && (
+                        <div className="mt-2 p-2 bg-white border d-flex align-items-center gap-3">
+                          <div style={{ width: '80px', height: '60px', overflow: 'hidden', backgroundColor: '#e9ecef', flexShrink: 0 }}>
+                            <img
+                              src={recipeForm.thumbnailUrl}
+                              alt="Thumbnail Preview"
+                              className="w-100 h-100"
+                              style={{ objectFit: 'cover' }}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=400&q=80';
+                              }}
+                            />
+                          </div>
+                          <div className="small font-monospace text-muted">
+                            Live Cover Preview
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="col-12">

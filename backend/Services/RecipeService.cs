@@ -1,7 +1,9 @@
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
+using backend.Services.EventBus;
 using JamesThew.Shared.Contracts.Constants;
+using JamesThew.Shared.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
@@ -17,10 +19,14 @@ namespace backend.Services
     public class RecipeService : IRecipeService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IEventBus? _eventBus;
+        private readonly ILogger<RecipeService>? _logger;
 
-        public RecipeService(IUnitOfWork uow)
+        public RecipeService(IUnitOfWork uow, IEventBus? eventBus = null, ILogger<RecipeService>? logger = null)
         {
             _uow = uow;
+            _eventBus = eventBus;
+            _logger = logger;
         }
 
         public async Task<ApiResponse<IEnumerable<RecipeDto>>> GetAllAsync(
@@ -237,6 +243,29 @@ namespace backend.Services
 
             await _uow.Repository<Recipe>().AddAsync(recipe);
             await _uow.SaveChangesAsync();
+
+            if (_eventBus != null)
+            {
+                try
+                {
+                    var category = await _uow.Repository<Category>().GetByIdAsync(recipe.CategoryId);
+                    await _eventBus.PublishAsync(
+                        "jamesthew.events",
+                        "recipe.published",
+                        new RecipePublishedEvent(
+                            recipe.RecipeId,
+                            recipe.Title,
+                            category?.CategoryName ?? "Culinary",
+                            recipe.IsFree,
+                            recipe.ContentType,
+                            recipe.AuthorId,
+                            recipe.CreatedAt));
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Failed to publish recipe event for recipe {RecipeId}", recipe.RecipeId);
+                }
+            }
 
             // Reload with relations for complete DTO
             return await GetByIdAsync(recipe.RecipeId, currentUserId, userRole);

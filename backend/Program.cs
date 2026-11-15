@@ -35,14 +35,9 @@ builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
 
-// RabbitMQ Event Bus & Background Worker
+// Domain services publish events; the Notification Service owns consumption and delivery.
 builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
-if (!builder.Environment.IsEnvironment("Testing"))
-{
-    builder.Services.AddHostedService<RabbitMqConsumerWorker>();
-}
 
 // 3. Authentication & JWT Bearer Configuration
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -178,6 +173,19 @@ app.UseCors("JamesThewCors");
 app.UseAuthentication();
 app.UseMiddleware<IdentityPropagationMiddleware>();
 app.UseAuthorization();
+
+app.MapGet("/health", async (ApplicationDbContext context, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        await context.Users.AsNoTracking().Select(user => user.UserId).Take(1).ToListAsync(cancellationToken);
+        return Results.Ok(new { status = "healthy" });
+    }
+    catch (Exception)
+    {
+        return Results.Problem("Backend database is unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
 
 app.MapControllers();
 

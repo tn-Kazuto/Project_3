@@ -1,0 +1,22 @@
+{
+  "scanned": "2026-11-14",
+  "findings": {
+    "fonts": "EB Garamond for display and Instrument Sans for interface text (DESIGN.md:40-44; frontend/src/styles/luxury-tokens.css:35-44)",
+    "palette": "Locked warm alabaster, charcoal, taupe and antique-gold tokens (DESIGN.md:17-35; frontend/src/styles/luxury-tokens.css:14-33)",
+    "motion": "Existing CSS transitions and reduced-motion support; no animation dependency (frontend/src/styles/custom.css:136-1365; frontend/package.json:12-25)",
+    "spacing": "Existing dp spacing tokens and shared luxury CSS system (frontend/src/styles/luxury-tokens.css)",
+    "framework": "React + Vite + React Router; Bootstrap is already installed (frontend/package.json:1-25)",
+    "shell": "Shared skip link, main landmark, Navbar and Footer remain in Layout (frontend/src/components/common/Layout.jsx:6-17)",
+    "data": "Homepage uses existing recipe, contest and announcement API clients (frontend/src/services/api.js:31-75)"
+  },
+  "preserve": [
+    "Locked DESIGN.md visual system, tokens, font pair, square corners and reduced-motion behavior",
+    "Shared navigation, footer, skip link and route shell",
+    "Homepage routes, API wiring, source copy, claims, quotes and page sections"
+  ],
+  "introduce": [
+    "Hallmark Index-First composition with the recipe index leading the first screen",
+    "Page-local responsive editorial layout, semantic interaction states and loading/empty/error/success states",
+    "Taste photo-chapters moment using the existing salon photographs as temporary stand-ins"
+  ]
+}

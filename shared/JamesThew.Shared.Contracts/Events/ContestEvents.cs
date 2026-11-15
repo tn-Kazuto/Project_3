@@ -11,7 +11,8 @@ public record ContestWinnerAnnouncedEvent(
     string WinnerEmail,
     string PrizeDetails,
     string? AdminComment,
-    DateTime PublishedAt
+    DateTime PublishedAt,
+    int? WinnerUserId = null
 );
 
 /// <summary>

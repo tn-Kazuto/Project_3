@@ -1,6 +1,8 @@
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
+using backend.Services.EventBus;
+using JamesThew.Shared.Contracts.Events;
 
 namespace backend.Services
 {
@@ -12,17 +14,20 @@ namespace backend.Services
         private readonly IUnitOfWork _uow;
         private readonly INotificationService? _notificationService;
         private readonly IEmailService? _emailService;
+        private readonly IEventBus? _eventBus;
         private readonly ILogger<UserService>? _logger;
 
         public UserService(
             IUnitOfWork uow,
             INotificationService? notificationService = null,
             IEmailService? emailService = null,
+            IEventBus? eventBus = null,
             ILogger<UserService>? logger = null)
         {
             _uow = uow;
             _notificationService = notificationService;
             _emailService = emailService;
+            _eventBus = eventBus;
             _logger = logger;
         }
 
@@ -149,6 +154,21 @@ namespace backend.Services
                 if (_emailService != null)
                 {
                     _ = _emailService.SendWelcomeMembershipEmailAsync(user.Email, user.FullName, user.SubscriptionPlan ?? "VIP", amount);
+                }
+
+                if (_eventBus != null)
+                {
+                    await _eventBus.PublishAsync(
+                        "jamesthew.events",
+                        "subscription.activated",
+                        new SubscriptionActivatedEvent(
+                            user.UserId,
+                            user.Email,
+                            user.SubscriptionPlan ?? planUpper,
+                            amount,
+                            now,
+                            newSubscriptionEnd,
+                            now));
                 }
             }
             catch (Exception ex)

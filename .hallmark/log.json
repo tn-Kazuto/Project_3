@@ -1,0 +1,32 @@
+[
+ {
+  "date": "2026-11-14",
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "page",
+  "shape": "Index-First",
+  "theme": "locked DESIGN.md",
+  "axes": "light/roman-serif/warm",
+  "hero": "Index",
+  "nav": "project",
+  "footer": "project",
+  "imagery": "Existing Unsplash salon photographs retained as stand-ins in the Taste photo-chapters moment",
+  "photos": [],
+  "entry": "Latest free recipes; primary action: Explore recipes",
+  "fingerprint": "Hanging|Asymmetric spans|Hairline|Solid|Tightly cropped to the grid|Fade-up stagger",
+  "sections": [
+   "latest free recipes",
+   "salon photo-chapters",
+   "culinary academy",
+   "contests",
+   "announcements",
+   "press quotes"
+  ],
+  "signature": "Live recipe index",
+  "waived": [
+   "WARN 76 remains on existing hotlinked Unsplash imagery; approved replacement photos unavailable",
+   "Taste browser gate could not run because Chrome exited before rendering; do not rerun per gate instruction"
+  ],
+  "prompt": "Chef James Thew culinary portal homepage"
+ }
+]

@@ -670,61 +670,143 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* ── FIVE-STAR HOTEL CRITICS REVIEWS & CONCIERGE RESIDENCE ── */}
-      <section className="py-5 border-top" style={{ backgroundColor: 'var(--dp-color-ground-2)', borderColor: 'var(--dp-color-panel-line)' }}>
+      {/* ── WEEKEND CULINARY ACADEMY (MEMBERSHIP & LIVE MASTERCLASSES) ── */}
+      <section
+        className="field-taupe py-5 border-top"
+        style={{
+          backgroundColor: 'var(--dp-color-ground-2, #EDE8DF)',
+          borderColor: 'var(--dp-color-panel-line, rgba(0, 0, 0, 0.08))',
+        }}
+        aria-labelledby="weekend-academy-cta"
+      >
         <div className="container py-lg-4">
-          <div className="text-center max-w-700 mx-auto mb-5">
-            <span className="font-monospace small text-uppercase" style={{ letterSpacing: '0.16em', color: 'var(--dp-color-accent)' }}>
-              THE GRAND PALACE GUESTBOOK &middot; CRITICS PRAISE
-            </span>
-            <h2 className="brand-font display-6 text-dark mt-2 mb-3">
-              An Unrivaled Five-Star Gastronomic Legacy
-            </h2>
-            <p className="text-muted small" style={{ lineHeight: '1.7' }}>
-              Celebrated by international culinary reviewers, luxury epicureans, and hotel patrons across Paris, London, and New York.
-            </p>
-          </div>
+          <div className="row g-5 align-items-center">
+            {/* Left Content Column */}
+            <div className="col-lg-6">
+              <h3
+                id="weekend-academy-cta"
+                className="brand-font mb-0"
+                style={{
+                  fontSize: 'clamp(2.35rem, 4.2vw, 3.5rem)',
+                  lineHeight: '1.08',
+                  letterSpacing: '-0.025em',
+                  color: 'var(--dp-color-ink, #1C1917)',
+                  fontWeight: 500,
+                }}
+              >
+                Weekend Culinary Academy
+              </h3>
 
-          <div className="row g-4">
-            <div className="col-md-4">
-              <div className="p-4 bg-white h-100 border text-center atelier-card-hover" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                <div className="mb-2" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.2em' }}>
-                  &star;&star;&star;&star;&star;
+              <p
+                className="mt-3 mb-4"
+                style={{
+                  color: 'var(--dp-color-ink-2, #6B635B)',
+                  fontSize: '1.0625rem',
+                  lineHeight: '1.65',
+                  maxWidth: '44ch',
+                }}
+              >
+                Weekend classes, member recipes, technique videos, talk shows and live masterclasses.
+              </p>
+
+              <div
+                className="py-3 my-4"
+                style={{
+                  borderTop: '1px solid var(--dp-color-panel-line, rgba(0, 0, 0, 0.12))',
+                  borderBottom: '1px solid var(--dp-color-panel-line, rgba(0, 0, 0, 0.12))',
+                }}
+              >
+                <div className="row g-4">
+                  <div className="col-sm-6">
+                    <div
+                      className="small fw-semibold text-uppercase"
+                      style={{
+                        letterSpacing: '0.08em',
+                        color: 'var(--dp-color-accent-text, #8C7355)',
+                        fontSize: '0.8125rem',
+                      }}
+                    >
+                      Classes
+                    </div>
+                    <div
+                      className="mt-1 fw-medium"
+                      style={{
+                        color: 'var(--dp-color-ink, #1C1917)',
+                        fontSize: '1.05rem',
+                      }}
+                    >
+                      Saturday &amp; Sunday
+                    </div>
+                  </div>
+                  <div className="col-sm-6">
+                    <div
+                      className="small fw-semibold text-uppercase"
+                      style={{
+                        letterSpacing: '0.08em',
+                        color: 'var(--dp-color-accent-text, #8C7355)',
+                        fontSize: '0.8125rem',
+                      }}
+                    >
+                      Membership
+                    </div>
+                    <div
+                      className="mt-1 fw-medium"
+                      style={{
+                        color: 'var(--dp-color-ink, #1C1917)',
+                        fontSize: '1.05rem',
+                      }}
+                    >
+                      $10 monthly or $100 yearly
+                    </div>
+                  </div>
                 </div>
-                <p className="small mb-3 fst-italic" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.65' }}>
-                  "Chef James Thew at The Grand Palace bridges architectural purity and profound seasonal flavor. The white truffle risotto was pure poetry."
-                </p>
-                <div className="font-monospace small text-uppercase fw-bold" style={{ fontSize: '0.75rem', color: 'var(--dp-color-ink)' }}>
-                  &mdash; Le Guide Gastronomique
-                </div>
+              </div>
+
+              <div className="pt-2">
+                <Link
+                  to="/register"
+                  className="btn text-white fw-semibold px-4 py-3"
+                  style={{
+                    backgroundColor: 'var(--dp-color-field, #1E1B18)',
+                    borderRadius: 0,
+                    fontSize: '0.9375rem',
+                    letterSpacing: '0.03em',
+                    transition: 'all 180ms ease',
+                    display: 'inline-block',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dp-color-field-deep, #141210)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dp-color-field, #1E1B18)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Join the membership
+                </Link>
               </div>
             </div>
 
-            <div className="col-md-4">
-              <div className="p-4 bg-white h-100 border text-center atelier-card-hover" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                <div className="mb-2" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.2em' }}>
-                  &star;&star;&star;&star;&star;
-                </div>
-                <p className="small mb-3 fst-italic" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.65' }}>
-                  "A masterclass in 5-star hotel hospitality. The private atelier weekend session gave me techniques I will cherish for a lifetime."
-                </p>
-                <div className="font-monospace small text-uppercase fw-bold" style={{ fontSize: '0.75rem', color: 'var(--dp-color-ink)' }}>
-                  &mdash; European Epicurean Quarterly
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-4">
-              <div className="p-4 bg-white h-100 border text-center atelier-card-hover" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                <div className="mb-2" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.2em' }}>
-                  &star;&star;&star;&star;&star;
-                </div>
-                <p className="small mb-3 fst-italic" style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.65' }}>
-                  "From the cold-pressed Sicilian botanical tonic to the dry-aged Wagyu MB7+, every dish honors the grand tradition of luxury dining."
-                </p>
-                <div className="font-monospace small text-uppercase fw-bold" style={{ fontSize: '0.75rem', color: 'var(--dp-color-ink)' }}>
-                  &mdash; Haute Living International
-                </div>
+            {/* Right Visual Column */}
+            <div className="col-lg-6">
+              <div
+                className="overflow-hidden"
+                style={{
+                  aspectRatio: '16/11',
+                  borderBottom: '2px solid var(--dp-color-accent, #B69355)',
+                  backgroundColor: 'var(--dp-color-ground-2, #EDE8DF)',
+                }}
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1300&q=85"
+                  alt="Weekend Culinary Academy Masterclass with Chef James Thew"
+                  className="w-100 h-100"
+                  style={{ objectFit: 'cover', display: 'block' }}
+                  loading="lazy"
+                  width="1300"
+                  height="900"
+                />
               </div>
             </div>
           </div>

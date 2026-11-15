@@ -26,11 +26,11 @@ Nền tảng đáp ứng trọn vẹn 3 nhóm đối tượng theo SRS và Đề
 
 ## 🛠️ 2. Kiến Trúc & Công Nghệ (Technology Stack)
 
-### **Backend (.NET 10 Microservices & Web API)**
+### **Backend (.NET 10 Web APIs)**
 - **Framework:** ASP.NET Core Web API (.NET 10 LTS - `net10.0`, C# 14)
-- **Kiến trúc:** Microservices phân tách 7 Domain Services (Identity, Subscription, Catalog, Contest, Community, Media, Notification) điều phối qua API Gateway (YARP).
+- **Kiến trúc hiện tại:** API Gateway (YARP) đứng trước Core API; Notification đã được tách thành service chạy độc lập. Identity, Subscription, Catalog, Contest và Community vẫn nằm trong Core API, tiếp tục tách theo lộ trình Strangler Fig.
 - **ORM & Database:** Entity Framework Core 10.0.14 (Code-First) + Microsoft SQL Server 2022 + Redis In-Memory Cache (tối ưu hóa tải đọc $P_{99} < 100\text{ ms}$).
-- **Messaging Backbone:** RabbitMQ / Kafka điều phối Choreography Saga (Transactional Outbox Pattern).
+- **Messaging Backbone:** RabbitMQ chuyển sự kiện đăng ký/gia hạn, công thức mới và công bố quán quân sang Notification Service. Transactional Outbox và Saga vẫn là phần việc của các phase tiếp theo.
 - **Security & Auth:** JWT Bearer Authentication, BCrypt Password Hashing, Claim-based Role Authorization.
 - **Automated Testing:** xUnit, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.EntityFrameworkCore.InMemory` (65/65 tests pass 100%).
 
@@ -82,7 +82,7 @@ Khi backend khởi động lần đầu, `DbInitializer.cs` sẽ tự động se
 ## 🚀 5. Hướng Dẫn Cài Đặt & Khởi Chạy (Getting Started)
 
 ### Cách 1: Khởi chạy Nhanh bằng Docker Compose (Khuyến nghị)
-Chạy toàn bộ hệ sinh thái (Backend .NET, Frontend React, SQL Server, Redis, RabbitMQ) chỉ với 1 câu lệnh duy nhất:
+Chạy toàn bộ hệ sinh thái (YARP Gateway, Core Backend, Notification Service, Frontend, SQL Server, Redis, RabbitMQ) chỉ với 1 câu lệnh duy nhất:
 ```powershell
 docker compose up --build
 ```
@@ -107,13 +107,35 @@ dotnet run
 - Backend API sẽ khởi chạy tại: `http://localhost:5000` (hoặc `https://localhost:5001`)
 - Swagger UI tài liệu API: `http://localhost:5000/swagger`
 
-#### **Bước 2: Chạy Frontend**
+#### **Bước 2: Chạy Notification Service**
+Mở terminal mới tại thư mục gốc. Cấu hình các biến môi trường bên dưới; `Jwt__Key` phải giống cấu hình của Backend và Gateway. Lần khởi động đầu, service sao chép notification history và danh sách tài khoản từ `JamesThewDb` sang database riêng `JamesThewNotificationDb`.
+```powershell
+$env:ConnectionStrings__NotificationConnection = "Server=localhost;Database=JamesThewNotificationDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ConnectionStrings__LegacyConnection = "Server=localhost;Database=JamesThewDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ASPNETCORE_URLS = "http://localhost:5007"
+$env:Jwt__Key = "<same value as Jwt:Key in backend/appsettings.json>"
+$env:RabbitMQ__HostName = "localhost"
+$env:RabbitMQ__Port = "5672"
+$env:RabbitMQ__UserName = "admin"
+$env:RabbitMQ__Password = "<same password configured in RabbitMQ>"
+dotnet run --project services/notification/JamesThew.NotificationService.csproj
+```
+
+#### **Bước 3: Chạy API Gateway**
+Mở terminal mới tại thư mục gốc:
+```powershell
+$env:ASPNETCORE_URLS = "http://localhost:8000"
+dotnet run --project gateway/JamesThew.Gateway.csproj
+```
+Gateway chạy tại `http://localhost:8000` và chuyển các API notification cùng SignalR Hub sang Notification Service.
+
+#### **Bước 4: Chạy Frontend**
 ```powershell
 cd e:\project\Project_3\frontend
 npm install
 npm run dev
 ```
-- Frontend ứng dụng web sẽ khởi chạy tại: `http://localhost:5173`
+- Frontend ứng dụng web sẽ khởi chạy tại: `http://localhost:3000`
 
 ---
 
@@ -195,6 +217,13 @@ Project_3/
 ├── gateway/                       # YARP API Reverse Gateway (Port 8000)
 │   ├── appsettings.json           # Reverse Proxy Route Config & Cluster Rules
 │   └── Program.cs                 # YARP Middleware & Header Forwarding
+│
+├── services/
+│   └── notification/              # Notification API, RabbitMQ consumer & SignalR Hub (Port 5007)
+│       ├── Controllers/           # Notification center API
+│       ├── Data/                  # Notification-owned database & legacy-history import
+│       ├── Messaging/             # RabbitMQ consumer and readiness health
+│       └── Dockerfile
 │
 ├── shared/                        # Shared Class Libraries & DTOs
 │   └── JamesThew.Shared.Contracts/# Domain Contracts, Integration Events, Common DTOs (PagedResult)

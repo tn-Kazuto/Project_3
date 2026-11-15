@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { recipeApi, feedbackApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
+const FALLBACK_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80';
+
 const toRoman = (num) => {
   const map = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
   return map[num - 1] || num.toString();
@@ -446,13 +448,17 @@ export const RecipeDetailPage = () => {
         </div>
 
         {/* Recipe Hero Image if not video */}
-        {!recipe.videoUrl && recipe.imageUrl && (
-          <div className="mb-4 overflow-hidden" style={{ maxHeight: '440px', border: '1px solid var(--dp-color-panel-line)' }}>
+        {!recipe.videoUrl && (
+          <div className="mb-4 overflow-hidden" style={{ maxHeight: '440px', border: '1px solid var(--dp-color-panel-line)', backgroundColor: 'var(--dp-color-ground-2)' }}>
             <img
-              src={recipe.imageUrl}
+              src={recipe.imageUrl || FALLBACK_RECIPE_IMAGE}
               alt={recipe.title}
               className="w-100"
               style={{ objectFit: 'cover', maxHeight: '440px' }}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+              }}
             />
           </div>
         )}

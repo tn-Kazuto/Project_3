@@ -2,6 +2,9 @@
   <Folder Name="/gateway/">
     <Project Path="gateway/JamesThew.Gateway.csproj" />
   </Folder>
+  <Folder Name="/services/notification/">
+    <Project Path="services/notification/JamesThew.NotificationService.csproj" />
+  </Folder>
   <Folder Name="/shared/">
     <Project Path="shared/JamesThew.Shared.Contracts/JamesThew.Shared.Contracts.csproj" />
   </Folder>
