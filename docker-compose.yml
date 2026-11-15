@@ -60,6 +60,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:-JamesThew@2026SecurePass!};TrustServerCertificate=True;
+      - ConnectionStrings__Redis=redis:6379,abortConnect=false
+      - Redis__Configuration=redis:6379,abortConnect=false
       - Jwt__Key=${JWT_KEY:-JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore}
       - Jwt__Issuer=JamesThewApi
       - Jwt__Audience=JamesThewClient

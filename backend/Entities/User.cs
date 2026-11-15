@@ -93,6 +93,9 @@ namespace backend.Entities
 
         /// <summary>Contest votes cast by this user.</summary>
         public ICollection<ContestVote> ContestVotes { get; set; } = new List<ContestVote>();
+
+        /// <summary>Cryptographic refresh tokens issued to this user.</summary>
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }
 

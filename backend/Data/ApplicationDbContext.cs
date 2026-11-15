@@ -26,6 +26,7 @@ namespace backend.Data
         public DbSet<Faq> Faqs => Set<Faq>();
         public DbSet<ContestVote> ContestVotes => Set<ContestVote>();
         public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -145,6 +146,16 @@ namespace backend.Data
                 entity.HasOne(n => n.User)
                       .WithMany(u => u.Notifications)
                       .HasForeignKey(n => n.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // RefreshToken relationships & indices
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasIndex(r => r.Token).IsUnique();
+                entity.HasOne(r => r.User)
+                      .WithMany(u => u.RefreshTokens)
+                      .HasForeignKey(r => r.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
         }

@@ -105,5 +105,18 @@ export const notificationApi = {
   markAllAsRead: () => api.put('/notifications/read-all'),
 };
 
+export const uploadApi = {
+  uploadImage: (file, folder = 'recipes') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    return api.post('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+};
+
 export default api;
 
