@@ -138,8 +138,8 @@ describe('Phase 5 Frontend Tests', () => {
     renderWithRouter(<HomePage />);
 
     expect(screen.getByRole('heading', { level: 1, name: /chef james thew/i })).toBeInTheDocument();
-    expect(screen.getByText(/weekend culinary academy/i)).toBeInTheDocument();
-    expect(screen.getByText(/saturday & sunday/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/weekend culinary academy/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/saturday & sunday/i)[0]).toBeInTheDocument();
     expect(screen.getByText(/latest free recipes/i)).toBeInTheDocument();
     expect(screen.getByText(/culinary contests/i)).toBeInTheDocument();
     expect(screen.getByText(/contest winner announcements/i)).toBeInTheDocument();

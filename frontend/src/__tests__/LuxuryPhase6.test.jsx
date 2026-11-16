@@ -99,9 +99,9 @@ describe('Luxury Phase L6 Tests - Auth & Member Portal (Login, Register, Profile
 
     await waitFor(() => {
       expect(screen.getByText(/IV · REPERTOIRE MANAGEMENT/i)).toBeInTheDocument();
+      expect(screen.getByText(/You have not published any recipes yet/i)).toBeInTheDocument();
     });
 
     expect(screen.getByRole('button', { name: /add new recipe/i })).toBeInTheDocument();
-    expect(screen.getByText(/You have not published any recipes yet/i)).toBeInTheDocument();
   });
 });
