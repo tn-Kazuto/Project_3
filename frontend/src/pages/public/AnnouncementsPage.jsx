@@ -1,241 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { announcementApi } from '../../services/api';
-import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
+import React from 'react';
+import {
+  AnnouncementHeroBanner,
+  AnnouncementSpotlightBar,
+  AnnouncementList,
+  useAnnouncements,
+} from './announcements';
 
 export const AnnouncementsPage = () => {
-  const [announcements, setAnnouncements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetch = async () => {
-      try {
-        setLoading(true);
-        const res = await announcementApi.getAll();
-        if (!isMounted) return;
-        if (res.data && res.data.success) {
-          setAnnouncements(res.data.data || []);
-        }
-      } catch (err) {
-        if (!isMounted) return;
-        console.error(err);
-        setError('Unable to load announcements at this moment. Please check back later.');
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-    fetch();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { announcements, loading, error } = useAnnouncements();
+  const honoreesCount = announcements.filter((a) => a.winnerName).length;
 
   return (
     <div className="container py-5 luxury-announcements">
-      {/* Header Banner */}
-      <div
-        className="field-taupe p-4 p-md-5 mb-5 text-center position-relative overflow-hidden"
-        style={{
-          backgroundColor: 'var(--dp-color-ground-2)',
-          border: '1px solid var(--dp-color-panel-line)',
-          backgroundImage: 'linear-gradient(rgba(244, 240, 234, 0.90), rgba(244, 240, 234, 0.95)), url("https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=1600&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="d-inline-flex align-items-center gap-2 mb-2 px-3 py-1 bg-white border" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
-          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
-          <span className="roman-numeral mb-0" style={{ fontSize: '0.8rem' }}>V &middot; HALL OF FAME</span>
-          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
-        </div>
-        <h1 className="brand-font display-5 mb-3 text-dark">Winner Announcements & News</h1>
-        <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
-          The Grand Palace Hotel gazette celebrates culinary mastery, crowning our esteemed competition laureates and announcing distinguished epicurean dispatches from Chef James Thew.
-        </p>
-        <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-          <span
-            className="badge font-monospace px-3 py-2"
-            style={{
-              backgroundColor: 'var(--dp-color-field)',
-              color: 'var(--dp-color-on-field)',
-              borderRadius: 0,
-            }}
-          >
-            Permanent Culinary Honor Roll
-          </span>
-          <span
-            className="badge font-monospace px-3 py-2"
-            style={{
-              backgroundColor: 'var(--dp-color-accent)',
-              color: '#ffffff',
-              borderRadius: 0,
-            }}
-          >
-            &star; Certified by Chef James Thew
-          </span>
-        </div>
-      </div>
+      {/* 1. Header Hero Banner */}
+      <AnnouncementHeroBanner />
 
-      {/* Hall of Fame Spotlight Bar */}
-      <div
-        className="p-4 mb-5 text-white position-relative overflow-hidden"
-        style={{
-          backgroundColor: 'var(--dp-color-field)',
-          borderTop: '2px solid var(--dp-color-accent)',
-          borderBottom: '1px solid var(--dp-color-accent)',
-          backgroundImage: 'linear-gradient(rgba(28, 26, 23, 0.85), rgba(28, 26, 23, 0.90)), url("https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1600&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="row align-items-center g-4">
-          <div className="col-md-8">
-            <span className="font-monospace small text-uppercase" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.16em' }}>
-              CHEF JAMES THEW &middot; EXCLUSIVE RECOGNITION
-            </span>
-            <h4 className="brand-font mt-2 mb-2 text-white" style={{ fontSize: '1.4rem' }}>
-              Celebrating Masterful Home Cooks & Emerging Culinary Talents
-            </h4>
-            <p className="small text-white-50 mb-0" style={{ lineHeight: '1.6' }}>
-              Every winning recipe is permanently archived into our culinary annals, endorsed with Chef James Thew's signature certification and monetary accolades.
-            </p>
-          </div>
-          <div className="col-md-4 text-md-end">
-            <div className="d-inline-block p-3 border text-start" style={{ borderColor: 'var(--dp-color-accent)', backgroundColor: 'rgba(0,0,0,0.4)', minWidth: '180px' }}>
-              <div className="font-monospace small fw-bold" style={{ color: 'var(--dp-color-accent)' }}>TOTAL HONOREES</div>
-              <div className="brand-font h3 mb-0 text-white mt-1">{announcements.filter((a) => a.winnerName).length} Winners</div>
-              <div className="small text-white-50 font-monospace" style={{ fontSize: '0.7rem' }}>CROWNED BY CHEF THEW</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* 2. Hall of Fame Spotlight Bar */}
+      <AnnouncementSpotlightBar honoreesCount={honoreesCount} />
 
-      {error && (
-        <div className="alert alert-danger mb-4" style={{ borderRadius: 0 }}>
-          <span>{error}</span>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="py-4">
-          <CulinarySkeleton count={2} />
-        </div>
-      ) : announcements.length === 0 ? (
-        <div
-          className="p-5 text-center mb-4"
-          style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid var(--dp-color-rule)',
-          }}
-        >
-          <h4 className="brand-font mb-2">No Announcements Published Yet</h4>
-          <p className="text-muted mb-0">
-            Contest results and official winner declarations by Chef James Thew will appear here.
-          </p>
-        </div>
-      ) : (
-        <div className="row g-4">
-          {announcements.map((a) => {
-            const hasWinner = Boolean(a.winnerName);
-            return (
-              <div key={a.announcementId} className="col-lg-6">
-                <div
-                  className="card h-100 p-4 d-flex flex-column atelier-card-hover"
-                  style={{
-                    backgroundColor: '#ffffff',
-                    border: '1px solid var(--dp-color-rule)',
-                    borderTop: hasWinner ? '2px solid var(--dp-color-accent)' : '2px solid var(--dp-color-field)',
-                    borderRadius: 0,
-                  }}
-                >
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <span
-                      className="badge font-monospace"
-                      style={{
-                        backgroundColor: hasWinner ? 'var(--dp-color-accent)' : 'var(--dp-color-field)',
-                        color: '#ffffff',
-                        borderRadius: 0,
-                      }}
-                    >
-                      {hasWinner ? '🏆 Contest Winner Announcement' : '📢 Official News'}
-                    </span>
-                    <span className="small text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                      {new Date(a.publishedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-
-                  <h3 className="brand-font mb-3 text-dark" style={{ fontSize: '1.45rem' }}>
-                    {a.title}
-                  </h3>
-
-                  {/* Winner Highlight Box if winner exists */}
-                  {hasWinner && (
-                    <div
-                      className="p-3 mb-3 d-flex align-items-center gap-3"
-                      style={{
-                        backgroundColor: 'var(--dp-color-ground-2)',
-                        border: '1px solid var(--dp-color-accent)',
-                      }}
-                    >
-                      <div
-                        className="p-2 d-flex align-items-center justify-content-center flex-shrink-0 font-monospace fw-bold"
-                        style={{
-                          backgroundColor: 'var(--dp-color-field)',
-                          color: 'var(--dp-color-accent)',
-                          minWidth: '36px',
-                        }}
-                      >
-                        [1st]
-                      </div>
-                      <div>
-                        <div className="roman-numeral mb-0" style={{ fontSize: '0.8rem' }}>HONORED WINNER</div>
-                        <div className="brand-font h5 fw-bold text-dark mb-0">{a.winnerName}</div>
-                        {a.contestTitle && (
-                          <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                            Competition: {a.contestTitle}
-                          </small>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div
-                    className="card-text mb-4 flex-grow-1"
-                    style={{
-                      color: 'var(--dp-color-ink-2)',
-                      whiteSpace: 'pre-line',
-                      lineHeight: '1.75',
-                    }}
-                  >
-                    {a.content}
-                  </div>
-
-                  <div
-                    className="border-top pt-3 mt-auto d-flex align-items-center justify-content-between text-muted small"
-                    style={{ borderColor: 'var(--dp-color-rule)' }}
-                  >
-                    <span>
-                      Published by: <strong>{a.authorName || 'Chef James Thew'}</strong>
-                    </span>
-                    <span
-                      className="badge font-monospace"
-                      style={{
-                        backgroundColor: 'var(--dp-color-ground-2)',
-                        color: 'var(--dp-color-ink)',
-                        border: '1px solid var(--dp-color-panel-line)',
-                        borderRadius: 0,
-                      }}
-                    >
-                      Verified Announcement
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* 3. Announcements List & States (Loading, Error, Empty, Success) */}
+      <AnnouncementList announcements={announcements} loading={loading} error={error} />
     </div>
   );
 };
