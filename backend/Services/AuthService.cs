@@ -1,3 +1,4 @@
+using System.Globalization;
 using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
@@ -5,16 +6,13 @@ using backend.Services.EventBus;
 using JamesThew.Shared.Contracts.Constants;
 using JamesThew.Shared.Contracts.DTOs.Billing;
 using JamesThew.Shared.Contracts.Events;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
 {
     /// <summary>
-    /// Implements registration with mandatory subscription payment, login, and user context operations.
-    /// Follows the SRS specifications:
-    /// - Monthly plan: $10.00, valid for 30 days
-    /// - Yearly plan: $100.00, valid for 365 days
-    /// - Customer can register provided he makes the payment
-    /// - All in a single database transaction
+    /// Implements registration with mandatory subscription payment, login,
+    /// and refresh token lifecycle (token rotation, revocation, and validation).
     /// </summary>
     public class AuthService : IAuthService
     {
@@ -44,14 +42,14 @@ namespace backend.Services
             _billingServiceClient = billingServiceClient ?? throw new InvalidOperationException("Billing service client is required.");
         }
 
-        public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterRequest request)
+        public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterRequest request, string? ipAddress = null)
         {
             return _billingServiceClient.IsEnabled
-                ? await RegisterWithBillingAsync(request)
-                : await RegisterLegacyAsync(request);
+                ? await RegisterWithBillingAsync(request, ipAddress)
+                : await RegisterLegacyAsync(request, ipAddress);
         }
 
-        private async Task<ApiResponse<AuthResponseDto>> RegisterWithBillingAsync(RegisterRequest request)
+        private async Task<ApiResponse<AuthResponseDto>> RegisterWithBillingAsync(RegisterRequest request, string? ipAddress = null)
         {
             var plan = request.PlanType.Trim().ToUpperInvariant();
             if (plan != AppConstants.Plans.Monthly && plan != AppConstants.Plans.Yearly && plan != AppConstants.Plans.Annual)
@@ -88,6 +86,11 @@ namespace backend.Services
                 var subscription = await _billingServiceClient.CreateRegistrationCheckoutAsync(user, request);
                 ApplySubscription(user, subscription);
                 userRepo.Update(user);
+
+                var refreshToken = _tokenService.GenerateRefreshToken(ipAddress);
+                refreshToken.UserId = user.UserId;
+                await _uow.Repository<RefreshToken>().AddAsync(refreshToken);
+
                 await _uow.SaveChangesAsync();
 
                 var (token, expiresAt) = _tokenService.GenerateJwtToken(user);
@@ -95,6 +98,7 @@ namespace backend.Services
                 {
                     Token = token,
                     ExpiresAt = expiresAt,
+                    RefreshToken = refreshToken.Token,
                     User = MapToUserDto(user)
                 }, "Registration and subscription payment completed successfully!");
             }
@@ -120,7 +124,7 @@ namespace backend.Services
             }
         }
 
-        private async Task<ApiResponse<AuthResponseDto>> RegisterLegacyAsync(RegisterRequest request)
+        private async Task<ApiResponse<AuthResponseDto>> RegisterLegacyAsync(RegisterRequest request, string? ipAddress = null)
         {
             // 1. Validate subscription plan
             var planUpper = request.PlanType.Trim().ToUpperInvariant();
@@ -144,6 +148,7 @@ namespace backend.Services
 
             var userRepo = _uow.Repository<User>();
             var paymentRepo = _uow.Repository<Payment>();
+            var tokenRepo = _uow.Repository<RefreshToken>();
 
             // 3. Check for duplicates
             var emailExists = await userRepo.AnyAsync(u => u.Email.ToLower() == request.Email.ToLower());
@@ -158,7 +163,7 @@ namespace backend.Services
                 return ApiResponse<AuthResponseDto>.Fail("Username is already taken. Please choose another.");
             }
 
-            // 4. Begin transaction for atomic User + Payment creation
+            // 4. Begin transaction for atomic User + Payment + RefreshToken creation
             await _uow.BeginTransactionAsync();
             try
             {
@@ -193,20 +198,26 @@ namespace backend.Services
                 };
 
                 await paymentRepo.AddAsync(payment);
-                await _uow.SaveChangesAsync();
 
+                // Generate and persist refresh token
+                var refreshToken = _tokenService.GenerateRefreshToken(ipAddress);
+                refreshToken.UserId = user.UserId;
+                await tokenRepo.AddAsync(refreshToken);
+
+                await _uow.SaveChangesAsync();
                 await _uow.CommitTransactionAsync();
 
-                // Trigger in-app notification & transactional welcome email (Phase U5)
+                // Trigger in-app notification & transactional welcome email
                 try
                 {
                     if (_notificationService != null)
                     {
+                        var formattedAmount = amount.ToString("F2", CultureInfo.InvariantCulture);
                         await _notificationService.CreateNotificationAsync(new CreateNotificationRequest
                         {
                             UserId = user.UserId,
                             Title = "Welcome to Chef James Thew VIP Pass!",
-                            Message = $"Your {planUpper} pass (${amount:N2}) is activated. Enjoy full access to exclusive recipes, masterclasses, and community contests.",
+                            Message = $"Your {planUpper} pass (${formattedAmount}) is activated. Enjoy full access to exclusive recipes, masterclasses, and community contests.",
                             TargetUrl = "/recipes"
                         });
                     }
@@ -237,15 +248,15 @@ namespace backend.Services
                     _logger?.LogWarning(ex, "Non-blocking dispatch failed during registration for user {UserId}", user.UserId);
                 }
 
-                // 5. Generate token
+                // 5. Generate JWT Access token
                 var (token, expiresAt) = _tokenService.GenerateJwtToken(user);
-
                 var userDto = MapToUserDto(user);
 
                 return ApiResponse<AuthResponseDto>.Ok(new AuthResponseDto
                 {
                     Token = token,
                     ExpiresAt = expiresAt,
+                    RefreshToken = refreshToken.Token,
                     User = userDto
                 }, "Registration and subscription payment completed successfully!");
             }
@@ -256,9 +267,10 @@ namespace backend.Services
             }
         }
 
-        public async Task<ApiResponse<AuthResponseDto>> LoginAsync(LoginRequest request)
+        public async Task<ApiResponse<AuthResponseDto>> LoginAsync(LoginRequest request, string? ipAddress = null)
         {
             var userRepo = _uow.Repository<User>();
+            var tokenRepo = _uow.Repository<RefreshToken>();
             var identifier = request.EmailOrUsername.Trim().ToLowerInvariant();
 
             var user = await userRepo.FirstOrDefaultAsync(u =>
@@ -275,15 +287,99 @@ namespace backend.Services
                 return ApiResponse<AuthResponseDto>.Fail("Invalid email/username or password.");
             }
 
+            // Generate JWT token & Refresh Token
             var (token, expiresAt) = _tokenService.GenerateJwtToken(user);
+            var refreshToken = _tokenService.GenerateRefreshToken(ipAddress);
+            refreshToken.UserId = user.UserId;
+
+            await tokenRepo.AddAsync(refreshToken);
+            await _uow.SaveChangesAsync();
+
             var userDto = MapToUserDto(user);
 
             return ApiResponse<AuthResponseDto>.Ok(new AuthResponseDto
             {
                 Token = token,
                 ExpiresAt = expiresAt,
+                RefreshToken = refreshToken.Token,
                 User = userDto
             }, "Login successful!");
+        }
+
+        public async Task<ApiResponse<AuthResponseDto>> RefreshTokenAsync(string token, string? ipAddress = null)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Refresh token is required.");
+            }
+
+            var tokenRepo = _uow.Repository<RefreshToken>();
+            var refreshToken = await tokenRepo.Query()
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Token == token);
+
+            if (refreshToken == null)
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Invalid refresh token.");
+            }
+
+            if (refreshToken.IsRevoked)
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Refresh token has been revoked.");
+            }
+
+            if (refreshToken.IsExpired)
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Refresh token has expired.");
+            }
+
+            // Rotate refresh token: revoke old token and issue new one
+            var newRefreshToken = _tokenService.GenerateRefreshToken(ipAddress);
+            newRefreshToken.UserId = refreshToken.UserId;
+
+            refreshToken.RevokedAt = DateTime.UtcNow;
+            refreshToken.RevokedByIp = ipAddress;
+            refreshToken.ReplacedByToken = newRefreshToken.Token;
+
+            tokenRepo.Update(refreshToken);
+            await tokenRepo.AddAsync(newRefreshToken);
+            await _uow.SaveChangesAsync();
+
+            // Generate new access token
+            var (newJwtToken, expiresAt) = _tokenService.GenerateJwtToken(refreshToken.User);
+            var userDto = MapToUserDto(refreshToken.User);
+
+            return ApiResponse<AuthResponseDto>.Ok(new AuthResponseDto
+            {
+                Token = newJwtToken,
+                ExpiresAt = expiresAt,
+                RefreshToken = newRefreshToken.Token,
+                User = userDto
+            }, "Token refreshed successfully.");
+        }
+
+        public async Task<ApiResponse<bool>> RevokeTokenAsync(string token, string? ipAddress = null)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return ApiResponse<bool>.Fail("Refresh token is required.");
+            }
+
+            var tokenRepo = _uow.Repository<RefreshToken>();
+            var refreshToken = await tokenRepo.FirstOrDefaultAsync(r => r.Token == token);
+
+            if (refreshToken == null || !refreshToken.IsActive)
+            {
+                return ApiResponse<bool>.Fail("Token not found or already inactive.");
+            }
+
+            refreshToken.RevokedAt = DateTime.UtcNow;
+            refreshToken.RevokedByIp = ipAddress;
+
+            tokenRepo.Update(refreshToken);
+            await _uow.SaveChangesAsync();
+
+            return ApiResponse<bool>.Ok(true, "Token revoked successfully.");
         }
 
         public async Task<ApiResponse<UserDto>> GetCurrentUserAsync(int userId)
@@ -328,4 +424,3 @@ namespace backend.Services
         }
     }
 }
-

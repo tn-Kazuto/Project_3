@@ -8,6 +8,7 @@ namespace backend.Services
     public interface ITokenService
     {
         (string Token, DateTime ExpiresAt) GenerateJwtToken(User user);
+        RefreshToken GenerateRefreshToken(string? ipAddress = null);
     }
 }
 

@@ -9,6 +9,11 @@ import * as apiModule from '../services/api';
 describe('Upgrade Phase U3 Tests - Media Feedback & Community Creations Gallery', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    if (apiModule.recipeApi?.getShareCount) {
+      vi.spyOn(apiModule.recipeApi, 'getShareCount').mockResolvedValue({
+        data: { success: true, data: 8 },
+      });
+    }
   });
 
   const mockRecipe = {

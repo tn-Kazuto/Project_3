@@ -74,7 +74,26 @@ namespace backend.DTOs
     {
         public string Token { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
+        public string? RefreshToken { get; set; }
         public UserDto User { get; set; } = null!;
+    }
+
+    /// <summary>
+    /// Request DTO for renewing access token.
+    /// In browser environments, token is read directly from HttpOnly cookie.
+    /// For mobile/non-browser clients, token can be passed in request body.
+    /// </summary>
+    public class RefreshTokenRequest
+    {
+        public string? RefreshToken { get; set; }
+    }
+
+    /// <summary>
+    /// Request DTO for revoking a refresh token upon logout.
+    /// </summary>
+    public class RevokeTokenRequest
+    {
+        public string? RefreshToken { get; set; }
     }
 }
 

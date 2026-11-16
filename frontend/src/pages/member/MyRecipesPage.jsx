@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { recipeApi, tipApi, categoryApi } from '../../services/api';
+import { recipeApi, tipApi, categoryApi, uploadApi } from '../../services/api';
 import { uploadMediaFile } from '../../services/mediaUpload';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
@@ -33,6 +33,28 @@ export const MyRecipesPage = () => {
   const [formSuccess, setFormSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadError(null);
+    try {
+      const res = await uploadApi.uploadImage(file, 'recipes');
+      if (res.data?.success && res.data?.data?.url) {
+        setFormData(prev => ({ ...prev, imageUrl: res.data.data.url }));
+      } else {
+        setUploadError(res.data?.message || 'Upload failed.');
+      }
+    } catch (err) {
+      setUploadError(err.response?.data?.message || 'Failed to upload image. Please verify file format.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -558,14 +580,35 @@ export const MyRecipesPage = () => {
                     </div>
                   )}
 
-                  {/* Optional Image URL */}
+                  {/* Image Upload & URL */}
                   <div className="mb-3">
-                    <label className="form-label small fw-semibold">Image URL (Optional)</label>
+                    <label className="form-label small fw-semibold">Hình ảnh món ăn (Dish Image)</label>
+                    <div className="d-flex gap-2 align-items-center mb-2">
+                      <label 
+                        className={`btn btn-sm ${uploadingImage ? 'btn-secondary disabled' : 'btn-outline-dark'}`}
+                        style={{ cursor: 'pointer', borderColor: 'var(--dp-color-rule)' }}
+                      >
+                        {uploadingImage ? '⏳ Đang tải ảnh lên...' : '📷 Chọn ảnh từ máy tính'}
+                        <input
+                          type="file"
+                          accept="image/png, image/jpeg, image/webp, image/gif"
+                          onChange={handleFileUpload}
+                          style={{ display: 'none' }}
+                          disabled={uploadingImage}
+                        />
+                      </label>
+                      <span className="small text-muted">hoặc dán URL</span>
+                    </div>
+
+                    {uploadError && (
+                      <div className="alert alert-danger py-1 px-2 small mb-2">{uploadError}</div>
+                    )}
+
                     <input
-                      type="url"
-                      className="form-control"
+                      type="text"
+                      className="form-control form-control-sm"
                       style={{ borderColor: 'var(--dp-color-rule)' }}
-                      placeholder="https://images.unsplash.com/..."
+                      placeholder="https://... hoặc /api/upload/recipes/..."
                       value={formData.imageUrl}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     />

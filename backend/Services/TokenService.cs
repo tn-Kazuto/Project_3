@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using backend.Entities;
 using JamesThew.Shared.Contracts.Security;
@@ -8,7 +9,9 @@ using Microsoft.IdentityModel.Tokens;
 namespace backend.Services
 {
     /// <summary>
-    /// JWT token generation service adding standard role, email, and user ID claims.
+    /// JWT and Refresh Token generation service.
+    /// Access tokens are short-lived (15 minutes by default) to limit exposure.
+    /// Refresh tokens are cryptographically random 64-byte strings valid for 7 days.
     /// </summary>
     public class TokenService : ITokenService
     {
@@ -24,7 +27,9 @@ namespace backend.Services
             var jwtKey = JwtKeyValidator.GetRequiredKey(_config["Jwt:Key"]);
             var issuer = _config["Jwt:Issuer"] ?? "JamesThewApi";
             var audience = _config["Jwt:Audience"] ?? "JamesThewClient";
-            var expireDays = int.TryParse(_config["Jwt:ExpireDays"], out var days) ? days : 7;
+
+            // Short-lived Access Token: defaults to 15 minutes for security
+            var accessMinutes = int.TryParse(_config["Jwt:AccessTokenDurationMinutes"], out var minutes) ? minutes : 15;
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -43,7 +48,7 @@ namespace backend.Services
                 claims.Add(new Claim("SubscriptionPlan", user.SubscriptionPlan));
             }
 
-            var expiresAt = DateTime.UtcNow.AddDays(expireDays);
+            var expiresAt = DateTime.UtcNow.AddMinutes(accessMinutes);
 
             var token = new JwtSecurityToken(
                 issuer: issuer,
@@ -54,6 +59,22 @@ namespace backend.Services
 
             return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
         }
+
+        public RefreshToken GenerateRefreshToken(string? ipAddress = null)
+        {
+            var randomBytes = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+
+            var refreshDays = int.TryParse(_config["Jwt:RefreshTokenExpireDays"], out var days) ? days : 7;
+
+            return new RefreshToken
+            {
+                Token = Convert.ToBase64String(randomBytes),
+                ExpiresAt = DateTime.UtcNow.AddDays(refreshDays),
+                CreatedAt = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            };
+        }
     }
 }
-

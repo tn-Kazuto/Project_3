@@ -1,8 +1,10 @@
 using System.Text;
 using backend.Data;
+using backend.Hubs;
 using backend.Middlewares;
 using backend.Repositories;
 using backend.Services;
+using backend.Services.Interfaces;
 using backend.Services.EventBus;
 using JamesThew.Shared.Contracts.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -43,10 +45,35 @@ builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHttpClient<IBillingServiceClient, BillingServiceClient>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 // Domain services publish events; the Notification Service owns consumption and delivery.
 builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 builder.Services.AddHostedService<RabbitMqConsumerWorker>();
+
+// Distributed Redis Caching
+var redisConfig = builder.Configuration["Redis:Configuration"] 
+    ?? builder.Configuration.GetConnectionString("Redis") 
+    ?? "localhost:6379,abortConnect=false";
+
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConfig;
+        options.InstanceName = "JamesThew:";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+
+builder.Services.AddSingleton<ICacheService, RedisCacheService>();
+
+// Real-time SignalR Hub for instant notifications & alerts
+builder.Services.AddSignalR();
 
 // 3. Authentication & JWT Bearer Configuration
 var jwtKey = JwtKeyValidator.GetRequiredKey(builder.Configuration["Jwt:Key"]);
@@ -70,6 +97,21 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero
+    };
+
+    // Support SignalR query string JWT token (?access_token=...)
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -175,6 +217,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("JamesThewCors");
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseMiddleware<IdentityPropagationMiddleware>();
@@ -194,6 +237,7 @@ app.MapGet("/health", async (ApplicationDbContext context, CancellationToken can
 });
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hub/notifications");
 
 app.Run();
 
