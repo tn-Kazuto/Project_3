@@ -12,11 +12,13 @@ import { AuthProvider } from '../context/AuthContext';
 vi.mock('../services/api', () => ({
   announcementApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
   },
   feedbackApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     getByRecipe: vi.fn(),
     getByRecipeId: vi.fn(),
     create: vi.fn(),
@@ -24,7 +26,11 @@ vi.mock('../services/api', () => ({
   },
   recipeApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     getById: vi.fn(),
+    getShareCount: vi.fn().mockResolvedValue({
+      data: { success: true, data: 0 },
+    }),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
@@ -35,6 +41,8 @@ vi.mock('../services/api', () => ({
   },
   contestApi: {
     getAll: vi.fn(),
+    getSummary: vi.fn(),
+    getPaged: vi.fn(),
     getById: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -44,6 +52,7 @@ vi.mock('../services/api', () => ({
   },
   tipApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
@@ -54,9 +63,19 @@ vi.mock('../services/api', () => ({
 }));
 
 describe('Functional Phase F4 - Announcements & Feedback Moderation', () => {
+  const pageResponse = (items = [], totalCount = items.length, pageSize = 10) => ({
+    data: { success: true, data: { items, totalCount, pageIndex: 1, pageSize, totalPages: Math.ceil(totalCount / pageSize) } },
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    recipeApi.getPaged.mockResolvedValue(pageResponse());
+    tipApi.getPaged.mockResolvedValue(pageResponse());
+    contestApi.getPaged.mockResolvedValue(pageResponse());
+    contestApi.getSummary.mockResolvedValue({ data: { success: true, data: { totalContests: 0, activeContests: 0, totalSubmissions: 0 } } });
+    announcementApi.getPaged.mockResolvedValue(pageResponse());
+    feedbackApi.getPaged.mockResolvedValue(pageResponse());
   });
 
   it('renders Contest Winner Announcements and Hall of Fame properly', async () => {
@@ -259,6 +278,14 @@ describe('Functional Phase F4 - Announcements & Feedback Moderation', () => {
         success: true,
         data: mockFeedbacks,
       },
+    });
+    feedbackApi.getPaged.mockImplementation(({ feedbackType }) => {
+      const items = feedbackType === 'RECIPE'
+        ? [mockFeedbacks[0]]
+        : feedbackType === 'GENERAL'
+          ? [mockFeedbacks[1]]
+          : mockFeedbacks;
+      return Promise.resolve(pageResponse(items));
     });
 
     feedbackApi.delete.mockResolvedValueOnce({

@@ -30,6 +30,7 @@ public sealed class NotificationDbContext(DbContextOptions<NotificationDbContext
         {
             entity.ToTable("NotificationRecipients");
             entity.HasKey(recipient => recipient.UserId);
+            entity.Property(recipient => recipient.UserId).ValueGeneratedNever();
             entity.Property(recipient => recipient.Email).HasMaxLength(150).IsRequired();
             entity.HasIndex(recipient => recipient.IsActive);
         });

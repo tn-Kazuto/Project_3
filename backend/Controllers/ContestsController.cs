@@ -39,6 +39,27 @@ namespace backend.Controllers
             return Ok(result);
         }
 
+        [HttpGet("summary")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResponse<ContestSummaryDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetSummary()
+        {
+            var result = await _contestService.GetSummaryAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("paged")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] bool? activeOnly = null)
+        {
+            var result = await _contestService.GetPagedAsync(page, pageSize, activeOnly);
+            return Ok(result);
+        }
+
         /// <summary>
         /// Retrieves contest details by ID.
         /// </summary>
@@ -146,12 +167,24 @@ namespace backend.Controllers
         [HttpGet("{id:int}/entries")]
         [Authorize(Roles = AppConstants.Roles.Admin)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<ContestEntryDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestEntryDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetEntries(int id, [FromQuery] bool? orderByVotes)
+        public async Task<IActionResult> GetEntries(
+            int id,
+            [FromQuery] bool? orderByVotes,
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize)
         {
             var userId = GetCurrentUserId();
             var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            if (page.HasValue)
+            {
+                var pagedResult = await _contestService.GetPagedEntriesByContestAsync(
+                    id, page.Value, pageSize ?? 10, userId, clientIp, orderByVotes);
+                return pagedResult.Success ? Ok(pagedResult) : NotFound(pagedResult);
+            }
+
             var result = await _contestService.GetEntriesByContestAsync(id, userId, clientIp, orderByVotes);
             if (!result.Success)
             {

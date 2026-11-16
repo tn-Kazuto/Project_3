@@ -3,9 +3,9 @@
 -- James Thew Culinary Portal - Theme-Accurate Comprehensive Dataset
 USE JamesThewDb;
 
--- 1. Insert VIP Members (with BCrypt password hash for 'Member@123456')
--- Hash for 'Member@123456' generated via BCrypt
-DECLARE @MemberHash NVARCHAR(255) = '$2a$11$0zI7/6o1O22QhO5vX2uL6OU4B9bWdI3uM4cE1mF4K2Q8E9sD8W0Q.';
+-- 1. Insert VIP Members with an unknown one-time random password hash.
+-- Set DEMO_MEMBER_PASSWORD and let the backend seed these accounts first to enable demo logins.
+DECLARE @MemberHash NVARCHAR(255) = '$2a$11$NN4Ij0y8dWV6rgBWHEbWU.dZmAW5OlLnhmjv1w6p/HD.HeLjzHdH6';
 
 IF NOT EXISTS (SELECT 1 FROM Users WHERE Email = 'sophia@culinaryart.com')
 BEGIN

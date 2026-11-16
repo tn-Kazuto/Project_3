@@ -33,8 +33,8 @@ public sealed class RabbitMqNotificationWorker(
         {
             HostName = configuration["RabbitMQ:HostName"] ?? "localhost",
             Port = configuration.GetValue("RabbitMQ:Port", 5672),
-            UserName = configuration["RabbitMQ:UserName"] ?? "guest",
-            Password = configuration["RabbitMQ:Password"] ?? "guest"
+            UserName = configuration["RabbitMQ:UserName"] ?? string.Empty,
+            Password = configuration["RabbitMQ:Password"] ?? string.Empty
         };
 
         while (!stoppingToken.IsCancellationRequested)

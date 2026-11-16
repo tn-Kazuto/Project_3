@@ -30,7 +30,7 @@ namespace backend.tests
             var res = await _client.PostAsJsonAsync("/api/auth/login", new LoginRequest
             {
                 EmailOrUsername = "james@jamesthew.com",
-                Password = "Admin@123456"
+                Password = "TestOnlyAdminSeedPassword!2026"
             });
             var body = await res.Content.ReadFromJsonAsync<ApiResponse<AuthResponseDto>>();
             return (body!.Data!.Token, body.Data.User.UserId);

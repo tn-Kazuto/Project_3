@@ -48,11 +48,8 @@ docker compose up -d
 
 ---
 
-## 🔑 Tài Khoản Thử Nghiệm Nhanh
-Màn hình Login đã tích hợp 2 nút bấm tự động điền tài khoản mẫu:
-- **Thành viên VIP (Member):** `member_monthly` / `Member@123` (Xem toàn bộ công thức)
-- **Quản trị viên (Admin Chef):** `james` / `Admin@123456`
-- **Khách vãng lai (Guest):** Bấm nút *"Tiếp tục với tư cách Khách"* để xem các công thức miễn phí.
+## 🔑 Tài Khoản Đăng Nhập
+Không có tài khoản hoặc mật khẩu dùng chung trong ứng dụng. Dùng thông tin đăng nhập đã được cấp cho môi trường; với database mới, cấu hình `ADMIN_SEED_PASSWORD` trước lần khởi động đầu tiên. Có thể đặt `DEMO_MEMBER_PASSWORD` trước khi backend seed member mẫu; nếu để trống, các tài khoản mẫu nhận mật khẩu ngẫu nhiên không được ghi log. Khách vãng lai có thể bấm *"Tiếp tục với tư cách Khách"* để xem nội dung miễn phí.
 
 ---
 

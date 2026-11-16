@@ -50,8 +50,8 @@ namespace backend.Services.EventBus
                     {
                         HostName = _config["RabbitMQ:HostName"] ?? "localhost",
                         Port = int.TryParse(_config["RabbitMQ:Port"], out var p) ? p : 5672,
-                        UserName = _config["RabbitMQ:UserName"] ?? "admin",
-                        Password = _config["RabbitMQ:Password"] ?? "Admin@123456"
+                        UserName = _config["RabbitMQ:UserName"] ?? string.Empty,
+                        Password = _config["RabbitMQ:Password"] ?? string.Empty
                     };
 
                     _logger.LogInformation("RabbitMQ Worker initializing connection to {Host}:{Port}...", factory.HostName, factory.Port);
@@ -157,9 +157,18 @@ namespace backend.Services.EventBus
                         var subEvent = JsonSerializer.Deserialize<SubscriptionActivatedEvent>(message);
                         if (subEvent != null)
                         {
+                            await ApplySubscriptionProjectionAsync(subEvent, stoppingToken);
                             _logger.LogInformation(
                                 "💳 [Event-Driven Processor] Subscription payment processed! User: {UserId} ({Email}) - Plan: {Plan} (${Amount})",
                                 subEvent.UserId, subEvent.Email, subEvent.PlanType, subEvent.Amount);
+                        }
+                    }
+                    else if (routingKey == "subscription.expired")
+                    {
+                        var expiredEvent = JsonSerializer.Deserialize<SubscriptionExpiredEvent>(message);
+                        if (expiredEvent != null)
+                        {
+                            await ApplySubscriptionExpiryAsync(expiredEvent, stoppingToken);
                         }
                     }
 
@@ -170,7 +179,12 @@ namespace backend.Services.EventBus
                 {
                     _logger.LogError(ex, "Error processing message from RabbitMQ queue {Queue}", queueName);
                     // Requeue or Nack if necessary
-                    await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false, cancellationToken: stoppingToken);
+                    var retrySubscriptionEvent = routingKey.StartsWith("subscription.", StringComparison.Ordinal);
+                    await _channel.BasicNackAsync(
+                        ea.DeliveryTag,
+                        multiple: false,
+                        requeue: retrySubscriptionEvent,
+                        cancellationToken: stoppingToken);
                 }
             };
 
@@ -180,6 +194,41 @@ namespace backend.Services.EventBus
                 consumer: consumer,
                 cancellationToken: stoppingToken
             );
+        }
+
+        private async Task ApplySubscriptionProjectionAsync(
+            SubscriptionActivatedEvent message,
+            CancellationToken cancellationToken)
+        {
+            await using var scope = _serviceProvider.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<backend.Data.ApplicationDbContext>();
+            var user = await dbContext.Users.FindAsync([message.UserId], cancellationToken);
+            if (user is null || (user.SubscriptionEnd.HasValue && user.SubscriptionEnd.Value >= message.EndDate))
+            {
+                return;
+            }
+
+            user.SubscriptionPlan = message.PlanType;
+            user.SubscriptionAmount = message.Amount;
+            user.SubscriptionStart = message.StartDate;
+            user.SubscriptionEnd = message.EndDate;
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        private async Task ApplySubscriptionExpiryAsync(
+            SubscriptionExpiredEvent message,
+            CancellationToken cancellationToken)
+        {
+            await using var scope = _serviceProvider.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<backend.Data.ApplicationDbContext>();
+            var user = await dbContext.Users.FindAsync([message.UserId], cancellationToken);
+            if (user is null || user.SubscriptionEnd is null || user.SubscriptionEnd.Value > message.ExpiredAt)
+            {
+                return;
+            }
+
+            user.SubscriptionEnd = message.ExpiredAt;
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)

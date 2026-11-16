@@ -26,8 +26,8 @@ namespace backend.Services.EventBus
             {
                 HostName = _config["RabbitMQ:HostName"] ?? "localhost",
                 Port = int.TryParse(_config["RabbitMQ:Port"], out var p) ? p : 5672,
-                UserName = _config["RabbitMQ:UserName"] ?? "admin",
-                Password = _config["RabbitMQ:Password"] ?? "Admin@123456"
+                UserName = _config["RabbitMQ:UserName"] ?? string.Empty,
+                Password = _config["RabbitMQ:Password"] ?? string.Empty
             };
         }
 

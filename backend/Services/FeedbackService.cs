@@ -151,6 +151,53 @@ namespace backend.Services
             return ApiResponse<IEnumerable<FeedbackDto>>.Ok(feedbacks);
         }
 
+        public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<FeedbackDto>>> GetPagedAsync(
+            int page, int pageSize, string? feedbackType = null)
+        {
+            var query = _uow.Repository<Feedback>().QueryReadOnly().AsQueryable();
+            var normalizedType = feedbackType?.Trim().ToUpperInvariant();
+            if (normalizedType == "RECIPE")
+            {
+                query = query.Where(feedback => feedback.RecipeId != null);
+            }
+            else if (normalizedType == "GENERAL")
+            {
+                query = query.Where(feedback => feedback.RecipeId == null);
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageIndex = Math.Max(1, page);
+            var safePageSize = Math.Clamp(pageSize, 1, 50);
+            var feedbacks = await query
+                .OrderByDescending(feedback => feedback.CreatedAt)
+                .ThenByDescending(feedback => feedback.FeedbackId)
+                .Skip((pageIndex - 1) * safePageSize)
+                .Take(safePageSize)
+                .Select(feedback => new FeedbackDto
+                {
+                    FeedbackId = feedback.FeedbackId,
+                    RecipeId = feedback.RecipeId,
+                    RecipeTitle = feedback.Recipe != null ? feedback.Recipe.Title : null,
+                    UserId = feedback.UserId,
+                    SenderName = feedback.SenderName,
+                    SenderEmail = feedback.SenderEmail,
+                    Comment = feedback.Comment,
+                    MediaUrl = feedback.MediaUrl,
+                    Rating = feedback.Rating,
+                    CreatedAt = feedback.CreatedAt,
+                    IsGuest = feedback.UserId == null
+                })
+                .ToListAsync();
+
+            return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<FeedbackDto>>.Ok(new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<FeedbackDto>
+            {
+                Items = feedbacks,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = safePageSize
+            });
+        }
+
         public async Task<ApiResponse> DeleteAsync(int id)
         {
             var repo = _uow.Repository<Feedback>();

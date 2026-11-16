@@ -10,18 +10,33 @@ services:
       dockerfile: gateway/Dockerfile
     container_name: jamesthew-gateway
     ports:
-      - "8000:8000"
+      - "${GATEWAY_PORT:-8000}:8000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8000
-      - Jwt__Key=${JWT_KEY:-JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore}
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
       - Jwt__Issuer=JamesThewApi
       - Jwt__Audience=JamesThewClient
+      - "Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:?FRONTEND_ORIGIN_required}"
       - ReverseProxy__Clusters__backend-cluster__Destinations__primary__Address=http://backend:5000
+      - ReverseProxy__Clusters__billing-cluster__Destinations__primary__Address=http://billing-service:5002
+      - ReverseProxy__Clusters__contest-cluster__Destinations__primary__Address=http://contest-service:5004
+      - ReverseProxy__Clusters__community-cluster__Destinations__primary__Address=http://community-service:5008
+      - ReverseProxy__Clusters__catalog-cluster__Destinations__primary__Address=http://catalog-service:5003
     depends_on:
       backend:
         condition: service_started
       notification-service:
+        condition: service_healthy
+      media-service:
+        condition: service_healthy
+      billing-service:
+        condition: service_healthy
+      contest-service:
+        condition: service_healthy
+      community-service:
+        condition: service_healthy
+      catalog-service:
         condition: service_healthy
     networks:
       - jamesthew-internal-net
@@ -42,7 +57,7 @@ services:
       dockerfile: Dockerfile
     container_name: jamesthew-frontend
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - gateway
     networks:
@@ -62,15 +77,20 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:-JamesThew@2026SecurePass!};TrustServerCertificate=True;
-      - Jwt__Key=${JWT_KEY:-JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore}
+      - "ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
       - Jwt__Issuer=JamesThewApi
       - Jwt__Audience=JamesThewClient
+      - "Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:?FRONTEND_ORIGIN_required}"
+      - "Seed__AdminPassword=${ADMIN_SEED_PASSWORD:?ADMIN_SEED_PASSWORD_required}"
+      - "Seed__DemoMemberPassword=${DEMO_MEMBER_PASSWORD:-}"
       - RabbitMQ__HostName=rabbitmq
       - RabbitMQ__Port=5672
-      - RabbitMQ__UserName=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASS:-Admin@123456}
+      - "RabbitMQ__UserName=${RABBITMQ_USER:?RABBITMQ_USER_required}"
+      - "RabbitMQ__Password=${RABBITMQ_PASS:?RABBITMQ_PASS_required}"
       - RabbitMQ__Enabled=true
+      - Billing__BaseUrl=http://billing-service:5002
+      - "Billing__ServiceKey=${BILLING_SERVICE_KEY:?BILLING_SERVICE_KEY_required}"
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -101,15 +121,15 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5007
-      - ConnectionStrings__NotificationConnection=Server=sqlserver,1433;Database=JamesThewNotificationDb;User Id=sa;Password=${SQL_PASSWORD:-JamesThew@2026SecurePass!};TrustServerCertificate=True;
-      - ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:-JamesThew@2026SecurePass!};TrustServerCertificate=True;
-      - Jwt__Key=${JWT_KEY:-JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore}
+      - "ConnectionStrings__NotificationConnection=Server=sqlserver,1433;Database=JamesThewNotificationDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
       - Jwt__Issuer=JamesThewApi
       - Jwt__Audience=JamesThewClient
       - RabbitMQ__HostName=rabbitmq
       - RabbitMQ__Port=5672
-      - RabbitMQ__UserName=${RABBITMQ_USER:-admin}
-      - RabbitMQ__Password=${RABBITMQ_PASS:-Admin@123456}
+      - "RabbitMQ__UserName=${RABBITMQ_USER:?RABBITMQ_USER_required}"
+      - "RabbitMQ__Password=${RABBITMQ_PASS:?RABBITMQ_PASS_required}"
       - Smtp__Host=${SMTP_HOST:-}
       - Smtp__Port=${SMTP_PORT:-587}
       - Smtp__Username=${SMTP_USERNAME:-}
@@ -135,7 +155,206 @@ services:
     restart: unless-stopped
 
   # =========================================================================
-  # 5. DATABASE: MICROSOFT SQL SERVER 2022
+  # 5. MEDIA MICROSERVICE (SIGNED CLOUDINARY UPLOADS)
+  # =========================================================================
+  media-service:
+    build:
+      context: .
+      dockerfile: services/media/Dockerfile
+    container_name: jamesthew-media-service
+    expose:
+      - "5006"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5006
+      - "ConnectionStrings__MediaConnection=Server=sqlserver,1433;Database=JamesThewMediaDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
+      - Jwt__Issuer=JamesThewApi
+      - Jwt__Audience=JamesThewClient
+      - Cloudinary__CloudName=${CLOUDINARY_CLOUD_NAME:-}
+      - Cloudinary__ApiKey=${CLOUDINARY_API_KEY:-}
+      - Cloudinary__ApiSecret=${CLOUDINARY_API_SECRET:-}
+      - Cloudinary__SignatureAlgorithm=${CLOUDINARY_SIGNATURE_ALGORITHM:-SHA1}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5006/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # =========================================================================
+  # 6. SUBSCRIPTION & BILLING MICROSERVICE (TRANSACTIONAL OUTBOX)
+  # =========================================================================
+  billing-service:
+    build:
+      context: .
+      dockerfile: services/billing/Dockerfile
+    container_name: jamesthew-billing-service
+    expose:
+      - "5002"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5002
+      - "ConnectionStrings__BillingConnection=Server=sqlserver,1433;Database=JamesThewBillingDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
+      - Jwt__Issuer=JamesThewApi
+      - Jwt__Audience=JamesThewClient
+      - "Billing__ServiceKey=${BILLING_SERVICE_KEY:?BILLING_SERVICE_KEY_required}"
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - "RabbitMQ__UserName=${RABBITMQ_USER:?RABBITMQ_USER_required}"
+      - "RabbitMQ__Password=${RABBITMQ_PASS:?RABBITMQ_PASS_required}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5002/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    restart: unless-stopped
+
+  # =========================================================================
+  # 7. CONTEST & GAMIFICATION MICROSERVICE (REDIS VOTE COUNTER + OUTBOX)
+  # =========================================================================
+  contest-service:
+    build:
+      context: .
+      dockerfile: services/contest/Dockerfile
+    container_name: jamesthew-contest-service
+    expose:
+      - "5004"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5004
+      - "ConnectionStrings__ContestConnection=Server=sqlserver,1433;Database=JamesThewContestDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
+      - Jwt__Issuer=JamesThewApi
+      - Jwt__Audience=JamesThewClient
+      - Redis__Host=redis
+      - Redis__Port=6379
+      - "Redis__Password=${REDIS_PASSWORD:?REDIS_PASSWORD_required}"
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - "RabbitMQ__UserName=${RABBITMQ_USER:?RABBITMQ_USER_required}"
+      - "RabbitMQ__Password=${RABBITMQ_PASS:?RABBITMQ_PASS_required}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5004/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    restart: unless-stopped
+
+  # =========================================================================
+  # 8. CULINARY CATALOG MICROSERVICE (RECIPES, TIPS, CATEGORIES, FAQS)
+  # =========================================================================
+  catalog-service:
+    build:
+      context: .
+      dockerfile: services/catalog/Dockerfile
+    container_name: jamesthew-catalog-service
+    expose:
+      - "5003"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5003
+      - "ConnectionStrings__CatalogConnection=Server=sqlserver,1433;Database=JamesThewCatalogDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
+      - Jwt__Issuer=JamesThewApi
+      - Jwt__Audience=JamesThewClient
+      - Billing__BaseUrl=http://billing-service:5002
+      - Redis__Host=redis
+      - Redis__Port=6379
+      - "Redis__Password=${REDIS_PASSWORD:?REDIS_PASSWORD_required}"
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - "RabbitMQ__UserName=${RABBITMQ_USER:?RABBITMQ_USER_required}"
+      - "RabbitMQ__Password=${RABBITMQ_PASS:?RABBITMQ_PASS_required}"
+      - RabbitMQ__Enabled=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      billing-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5003/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    restart: unless-stopped
+
+  # =========================================================================
+  # 9. COMMUNITY & FEEDBACK MICROSERVICE (REVIEWS, RATINGS, SHARE LOGS)
+  # =========================================================================
+  community-service:
+    build:
+      context: .
+      dockerfile: services/community/Dockerfile
+    container_name: jamesthew-community-service
+    expose:
+      - "5008"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5008
+      - "ConnectionStrings__CommunityConnection=Server=sqlserver,1433;Database=JamesThewCommunityDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
+      - Jwt__Issuer=JamesThewApi
+      - Jwt__Audience=JamesThewClient
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5008/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    restart: unless-stopped
+
+  # =========================================================================
+  # 10. DATABASE: MICROSOFT SQL SERVER 2022
   # =========================================================================
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -143,15 +362,13 @@ services:
     user: root
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SQL_PASSWORD:-JamesThew@2026SecurePass!}
-    ports:
-      - "1433:1433"
+      - "MSSQL_SA_PASSWORD=${SQL_PASSWORD:?SQL_PASSWORD_required}"
     volumes:
       - sqlserver_data:/var/opt/mssql/data
     networks:
       - jamesthew-internal-net
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${SQL_PASSWORD:-JamesThew@2026SecurePass!}' -Q 'SELECT 1' -C || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${SQL_PASSWORD:-JamesThew@2026SecurePass!}' -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -C || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -159,19 +376,20 @@ services:
     restart: unless-stopped
 
   # =========================================================================
-  # 6. CACHE: REDIS 7 ALPINE
+  # 11. CACHE: REDIS 7 ALPINE
   # =========================================================================
   redis:
     image: redis:7-alpine
     container_name: jamesthew-redis
-    ports:
-      - "6379:6379"
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\""]
+    environment:
+      - "REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD_required}"
     volumes:
       - redis_data:/data
     networks:
       - jamesthew-internal-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -179,17 +397,14 @@ services:
     restart: unless-stopped
 
   # =========================================================================
-  # 7. MESSAGE BROKER: RABBITMQ 3.13 (WITH MANAGEMENT DASHBOARD)
+  # 12. MESSAGE BROKER: RABBITMQ 3.13 (WITH MANAGEMENT DASHBOARD)
   # =========================================================================
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: jamesthew-rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-Admin@123456}
+      - "RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:?RABBITMQ_USER_required}"
+      - "RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS_required}"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:

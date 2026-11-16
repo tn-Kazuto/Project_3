@@ -84,6 +84,20 @@ namespace backend.Controllers
             return Ok(result);
         }
 
+        [HttpGet("paged")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<FeedbackDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? feedbackType = null)
+        {
+            var result = await _feedbackService.GetPagedAsync(page, pageSize, feedbackType);
+            return Ok(result);
+        }
+
         /// <summary>
         /// Deletes a feedback item. Restricted to Admin (Chef James Thew).
         /// </summary>

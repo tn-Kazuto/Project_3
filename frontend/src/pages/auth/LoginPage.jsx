@@ -122,52 +122,6 @@ export const LoginPage = () => {
               </Link>
             </div>
 
-            {/* Quick Credentials Card for Demo / Evaluation */}
-            <div
-              className="mt-4 p-3 small"
-              style={{
-                backgroundColor: 'var(--dp-color-cream, #fdfbf7)',
-                border: '1px dashed var(--dp-color-gold, #b69355)',
-              }}
-            >
-              <div
-                className="fw-semibold text-uppercase mb-2"
-                style={{
-                  fontSize: '0.72rem',
-                  letterSpacing: '0.08em',
-                  color: 'var(--dp-color-gold, #b69355)',
-                }}
-              >
-                Quick Credentials (SRS Seeded)
-              </div>
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <span className="text-muted">Admin (James Thew):</span>
-                <button
-                  type="button"
-                  className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold"
-                  style={{ color: 'var(--dp-color-ink, #1a1a1a)' }}
-                  onClick={() => {
-                    setEmailOrUsername('james');
-                    setPassword('Admin@123456');
-                  }}
-                >
-                  james / Admin@123456
-                </button>
-              </div>
-              <div className="d-flex justify-content-between align-items-center">
-                <span className="text-muted">VIP Member:</span>
-                <button
-                  type="button"
-                  className="btn btn-link btn-sm p-0 text-decoration-none text-muted"
-                  onClick={() => {
-                    setEmailOrUsername('sophia@culinaryart.com');
-                    setPassword('Member@123456');
-                  }}
-                >
-                  sophia@culinaryart.com / Member@123456
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -173,7 +173,7 @@ describe('Upgrade Phase U2 Tests - Multimedia Content Hub & Facebook Share Engin
       '_blank',
       expect.any(String)
     );
-    expect(shareSpy).toHaveBeenCalledWith(101);
+    expect(shareSpy).toHaveBeenCalledWith(101, 'facebook');
 
     // Test Copy Link button click
     fireEvent.click(screen.getByText(/Copy Link/i));

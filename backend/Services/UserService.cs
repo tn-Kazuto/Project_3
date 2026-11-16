@@ -2,6 +2,7 @@ using backend.DTOs;
 using backend.Entities;
 using backend.Repositories;
 using backend.Services.EventBus;
+using JamesThew.Shared.Contracts.DTOs.Billing;
 using JamesThew.Shared.Contracts.Events;
 
 namespace backend.Services
@@ -16,19 +17,22 @@ namespace backend.Services
         private readonly IEmailService? _emailService;
         private readonly IEventBus? _eventBus;
         private readonly ILogger<UserService>? _logger;
+        private readonly IBillingServiceClient _billingServiceClient;
 
         public UserService(
             IUnitOfWork uow,
             INotificationService? notificationService = null,
             IEmailService? emailService = null,
             IEventBus? eventBus = null,
-            ILogger<UserService>? logger = null)
+            ILogger<UserService>? logger = null,
+            IBillingServiceClient? billingServiceClient = null)
         {
             _uow = uow;
             _notificationService = notificationService;
             _emailService = emailService;
             _eventBus = eventBus;
             _logger = logger;
+            _billingServiceClient = billingServiceClient ?? throw new InvalidOperationException("Billing service client is required.");
         }
 
         public async Task<ApiResponse<UserDto>> GetProfileAsync(int userId)
@@ -82,7 +86,41 @@ namespace backend.Services
             return ApiResponse.Ok("Password changed successfully.");
         }
 
-        public async Task<ApiResponse<UserDto>> RenewSubscriptionAsync(int userId, RenewSubscriptionRequest request)
+        public async Task<ApiResponse<UserDto>> RenewSubscriptionAsync(
+            int userId,
+            RenewSubscriptionRequest request,
+            string idempotencyKey)
+        {
+            return _billingServiceClient.IsEnabled
+                ? await RenewWithBillingAsync(userId, request, idempotencyKey)
+                : await RenewLegacyAsync(userId, request);
+        }
+
+        private async Task<ApiResponse<UserDto>> RenewWithBillingAsync(
+            int userId,
+            RenewSubscriptionRequest request,
+            string idempotencyKey)
+        {
+            var userRepo = _uow.Repository<User>();
+            var user = await userRepo.GetByIdAsync(userId);
+            if (user is null) return ApiResponse<UserDto>.Fail("User account not found.");
+
+            try
+            {
+                var subscription = await _billingServiceClient.RenewSubscriptionAsync(user, request, idempotencyKey);
+                ApplySubscription(user, subscription);
+                userRepo.Update(user);
+                await _uow.SaveChangesAsync();
+                return ApiResponse<UserDto>.Ok(MapToDto(user), "Subscription pass successfully renewed!");
+            }
+            catch (BillingServiceException exception)
+            {
+                _logger?.LogWarning(exception, "Billing checkout could not be confirmed for user {UserId}.", userId);
+                return ApiResponse<UserDto>.Fail(exception.Message);
+            }
+        }
+
+        private async Task<ApiResponse<UserDto>> RenewLegacyAsync(int userId, RenewSubscriptionRequest request)
         {
             var planUpper = request.PlanType.Trim().ToUpperInvariant();
             if (planUpper != "MONTHLY" && planUpper != "YEARLY" && planUpper != "ANNUAL")
@@ -199,6 +237,14 @@ namespace backend.Services
                 IsSubscriptionActive = isActiveSubscription,
                 CreatedAt = user.CreatedAt
             };
+        }
+
+        private static void ApplySubscription(User user, BillingSubscriptionDto subscription)
+        {
+            user.SubscriptionPlan = subscription.PlanType;
+            user.SubscriptionAmount = subscription.Amount;
+            user.SubscriptionStart = subscription.StartDate;
+            user.SubscriptionEnd = subscription.EndDate;
         }
     }
 }

@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.Entities;
+using JamesThew.Shared.Contracts.Security;
 using Microsoft.IdentityModel.Tokens;
 
 namespace backend.Services
@@ -20,7 +21,7 @@ namespace backend.Services
 
         public (string Token, DateTime ExpiresAt) GenerateJwtToken(User user)
         {
-            var jwtKey = _config["Jwt:Key"] ?? "JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore";
+            var jwtKey = JwtKeyValidator.GetRequiredKey(_config["Jwt:Key"]);
             var issuer = _config["Jwt:Issuer"] ?? "JamesThewApi";
             var audience = _config["Jwt:Audience"] ?? "JamesThewClient";
             var expireDays = int.TryParse(_config["Jwt:ExpireDays"], out var days) ? days : 7;

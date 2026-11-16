@@ -1,6 +1,12 @@
 using JamesThew.Gateway.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? Array.Empty<string>();
+if (allowedOrigins.Length == 0 || allowedOrigins.Any(string.IsNullOrWhiteSpace))
+{
+    throw new InvalidOperationException("Cors:AllowedOrigins must contain at least one frontend origin.");
+}
 
 // 1. Thêm cấu hình YARP Reverse Proxy từ appsettings.json
 builder.Services.AddReverseProxy()
@@ -11,7 +17,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("GatewayCorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });

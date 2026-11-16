@@ -12,6 +12,8 @@ RUN dotnet publish "JamesThew.MediaService.csproj" -c Release -o /app/publish /p
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
+RUN apk add --no-cache icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 USER app
 COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:5006

@@ -24,7 +24,7 @@ In partial fulfillment of the requirements for Semester 3 of the Higher Diploma 
 Software Engineering (HDSE) / Advanced Diploma in Computer Science at Aptech Computer Education.
 
 All deliverables, source code comments, ERD diagrams, algorithms, and comprehensive 
-automated test suites (163 / 163 Tests Passed — 100% Pass Rate) have been inspected 
+automated test suites (172 / 172 Tests Passed — 100% Pass Rate) have been inspected
 and confirmed to strictly adhere to the Aptech Project Guidelines and SRS Standards.
 
 Academic Mentor / Supervisor: __________________________   Date: November 02, 2026
@@ -52,7 +52,7 @@ External Examiner           : __________________________   Center Seal: [ APTECH
 9.  Interface Design Document (Wireframes & Screen Breakdown) ................. Page 20
 10. Task Sheet (Group of 4 Members Workload Allocation) ....................... Page 24
 11. Project Review and Monitoring Report ...................................... Page 26
-12. Unit Testing Checklist & Verification Metrics (163 / 163 Tests Passed) ... Page 28
+12. Unit Testing Checklist & Verification Metrics (172 / 172 Tests Passed) ... Page 28
 13. Final Checklist & Data Backup Policy ...................................... Page 32
 Appendix A: Official Aptech Progress & Submission Emails ...................... Page 34
     A.1. Milestone 1 Status Email (STATUS:)
@@ -81,6 +81,7 @@ To scale his global presence, Chef James requires a dedicated, state-of-the-art 
 
 ### 3.3. Key Technical Innovations
 * **Backend:** ASP.NET Core 10 Web API, Entity Framework Core 10, Repository & Unit of Work Architecture, JWT Bearer Token Authentication, Dual-mode Transactional Email Engine.
+* **Microservice deployment (M6):** YARP routes Recipes, Tips, Categories and FAQs to Catalog Service (port 5003, `JamesThewCatalogDb`). The service imports legacy IDs once, verifies paid access with Billing and caches only free-content queries in Redis; Core retains Identity and User APIs.
 * **Frontend:** React 19 Single Page Application (SPA), React Router v7, Vite 8, Lucide React icons, Axios interceptors.
 * **Aesthetic Philosophy:** 5-Star Luxury Architectural Design System (EB Garamond typography, square corners `border-radius: 0`, Fine Gold `#b69355`, Deep Charcoal `#1a1a1a`, Warm Alabaster `#fdfbf7`, Roman numerals).
 
@@ -442,22 +443,24 @@ Strictly adhering to Section 8 of the Master Upgrade Plan:
 
 ## 12. UNIT TESTING CHECKLIST & VERIFICATION METRICS
 
-### 12.1. Backend Test Suites (65 / 65 Tests Passed — 100%)
+### 12.1. Backend Test Suites (74 / 74 Tests Passed — 100%)
 
 | Test Suite File | Test Count | Scope & Verification Coverage | Status |
 |:---|:---:|:---|:---:|
 | `UnitTest1.cs` | 1 | Basic Smoke Test & Environment Health Check | ✅ PASS |
-| `Phase1Tests.cs` | 5 | User Registration, Mock Payment ($10/$100), JWT Token Claims | ✅ PASS |
-| `Phase2Tests.cs` | 7 | Recipe & Tip CRUD, Category Association, Access Tier Gates | ✅ PASS |
-| `Phase3Tests.cs` | 7 | Contest Creation, Entry Submissions, Winner Announcements | ✅ PASS |
-| `Phase4Tests.cs` | 6 | Recipe Feedback, Star Ratings, 7 FAQ Endpoints, Admin Metrics | ✅ PASS |
-| `UpgradePhaseU1Tests.cs` | 26 | Database Schema Integrity, Relationships, Cascade Rules | ✅ PASS |
+| `Phase1Tests.cs` | 12 | User Registration, Mock Payment ($10/$100), JWT Token Claims | ✅ PASS |
+| `Phase2Tests.cs` | 14 | Recipe & Tip CRUD, Category Association, Access Tier Gates | ✅ PASS |
+| `Phase3Tests.cs` | 12 | Contest Creation, Entry Submissions, Winner Announcements | ✅ PASS |
+| `Phase4Tests.cs` | 7 | Recipe Feedback, Star Ratings, 7 FAQ Endpoints, Admin Metrics | ✅ PASS |
+| `UpgradePhaseU1Tests.cs` | 4 | Database Schema Integrity, Relationships, Cascade Rules | ✅ PASS |
 | `UpgradePhaseU2Tests.cs` | 3 | Media Format Filter, Facebook Share Counter Increment | ✅ PASS |
 | `UpgradePhaseU3Tests.cs` | 3 | Media Feedback with 1-5 Star Ratings & Practiced Dish Photos | ✅ PASS |
 | `UpgradePhaseU4Tests.cs` | 3 | Community Voting, Anti-Fraud Duplicate Prevention, Order By Votes | ✅ PASS |
 | `UpgradePhaseU5Tests.cs` | 3 | In-App Notification Center, Summary, Unread Count & Mark Read | ✅ PASS |
 | `PaginationTests.cs` | 3 | Architectural Pagination (`PagedResult<T>`), 50-item hard ceiling clamp (TC-RCP-08) | ✅ PASS |
-| **Total Backend Tests** | **65** | **Comprehensive Full-Stack Backend Coverage** | **100% PASS** |
+| `CatalogServiceTests.cs` | 5 | Free-content access, entitlement expiry, authorization, cache invalidation | ✅ PASS |
+| `JwtKeyValidatorTests.cs` | 4 | Reject missing/short signing keys and accept keys of at least 32 bytes | ✅ PASS |
+| **Total Backend Tests** | **74** | **Comprehensive Full-Stack Backend Coverage** | **100% PASS** |
 
 ### 12.2. Frontend Test Suites (98 / 98 Tests Passed — 100%)
 
@@ -488,7 +491,11 @@ Strictly adhering to Section 8 of the Master Upgrade Plan:
 | `UpgradePhaseU5.test.jsx` | 3 | In-App Notification Bell, Unread Badge, Mark All As Read | ✅ PASS |
 | **Total Frontend Tests** | **98** | **Comprehensive Full-Stack Frontend Coverage (23 Test Suites)** | **100% PASS** |
 
-**Grand Total:** 65 Backend + 98 Frontend = **163 / 163 Tests Passing (100% Pass Rate)**.
+**Grand Total:** 74 Backend + 98 Frontend = **172 / 172 Tests Passing (100% Pass Rate)**.
+
+> **M6/M7 verification:** The earlier 163-test figure was the pre-Catalog regression snapshot. M7 adds five Catalog tests, bringing the backend suite to 70; all 98 frontend tests also pass. Full isolated Compose runtime verification passed, with Gateway legacy/versioned route smoke checks, Redis cache population, and Catalog entitlement, authorization, and cache-version invalidation tests. `System.Security.Cryptography.Pkcs` is pinned to patched version 10.0.13 for .NET 10.
+
+> **M8 release hardening verification:** The current 74 backend and 98 frontend tests pass. All API services became healthy in an isolated Compose stack; Gateway health, configured/untrusted CORS origins, anonymous free-recipe access, and first-run Admin login were verified. Shared demo passwords were removed from browser/mobile login screens and seed/demo instructions. Production Compose publishes only Gateway and Frontend, while the local override binds SQL Server, Redis, and RabbitMQ to `127.0.0.1`. The existing M7 containers and volumes were preserved.
 
 ---
 
@@ -496,12 +503,13 @@ Strictly adhering to Section 8 of the Master Upgrade Plan:
 
 ### 13.1. Deliverables Final Audit
 * [x] Complete source code in `.NET 10` Web API and `React 19` SPA.
-* [x] Zero build warnings / zero build errors in both Backend and Frontend.
-* [x] 100% automated test pass rate (157 / 157 tests).
+* [x] Current backend/frontend regression suite: 172 / 172 tests passed (74 backend, including 5 Catalog tests and 4 JWT key validation cases; 98 frontend).
+* [x] M8 isolated Docker runtime verification, Gateway CORS and public-route smoke checks, and required-secret/loopback-port Compose validation.
+* [x] `System.Security.Cryptography.Pkcs` pinned to patched version 10.0.13 for .NET 10.
 * [x] XML Documentation Comments (`/// <summary>`) on all C# controllers, services, and repositories.
 * [x] JSDoc comments on all React components and helper modules.
 * [x] 7 Mandatory FAQs matched word-for-word with Aptech SRS Section 2.5.
-* [x] Database seeded with initial Admin account (`james@jamesthew.com`), categories, and FAQs.
+* [x] Database seeded with initial Admin account (`james@jamesthew.com`) using the configured `ADMIN_SEED_PASSWORD`, categories, and FAQs.
 
 ### 13.2. Data Backup & Disaster Recovery Policy
 As explicitly mandated in Section 4.2 of Aptech SRS guidelines:
@@ -587,7 +595,7 @@ Group 04 proudly presents the final deliverable package for our Semester 3 eProj
 1. Project Deliverables Overview:
    - Full Source Code Repository: ASP.NET Core 10 (.NET 10) Web API + React 19 SPA + Vite.
    - Academic Project Report Dossier: 13 mandatory sections strictly conforming to Aptech SRS Guidelines.
-   - Test Verification Summary: 163 / 163 Total Automated Tests Passed (65 Backend Tests + 98 Frontend Tests — 100% Pass Rate).
+   - Test Verification Summary: 168 / 168 Total Automated Tests Passed (70 Backend Tests + 98 Frontend Tests — 100% Pass Rate).
    - Live Demonstration Build: Production Vite bundle compiled with zero errors.
 
 2. Advanced Features Implemented (Master Upgrade Plan v2.0):

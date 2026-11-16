@@ -39,6 +39,32 @@ namespace backend.Services
             return ApiResponse<IEnumerable<AnnouncementDto>>.Ok(announcements);
         }
 
+        public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<AnnouncementDto>>> GetPagedAsync(int page, int pageSize)
+        {
+            var query = _uow.Repository<Announcement>().QueryReadOnly();
+            var totalCount = await query.CountAsync();
+            var pageIndex = Math.Max(1, page);
+            var safePageSize = Math.Clamp(pageSize, 1, 50);
+            var announcements = await query
+                .Include(announcement => announcement.Contest)
+                .Include(announcement => announcement.WinnerEntry)
+                    .ThenInclude(entry => entry!.User)
+                .OrderByDescending(announcement => announcement.PublishedAt)
+                .ThenByDescending(announcement => announcement.AnnouncementId)
+                .Skip((pageIndex - 1) * safePageSize)
+                .Take(safePageSize)
+                .Select(announcement => MapToDto(announcement))
+                .ToListAsync();
+
+            return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<AnnouncementDto>>.Ok(new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<AnnouncementDto>
+            {
+                Items = announcements,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = safePageSize
+            });
+        }
+
         public async Task<ApiResponse<AnnouncementDto>> GetByIdAsync(int id)
         {
             var announcement = await _uow.Repository<Announcement>().QueryReadOnly()

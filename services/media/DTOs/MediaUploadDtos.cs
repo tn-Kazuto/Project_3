@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using JamesThew.MediaService.Services;
 
 namespace JamesThew.MediaService.DTOs;
 
@@ -13,7 +14,7 @@ public sealed class CreateUploadTicketRequest
     [Range(1, CloudinaryUploadProvider.MaxUploadBytes)]
     public long Size { get; init; }
 
-    [Required, RegularExpression("^(image|video)$", RegexOptions.IgnoreCase)]
+    [Required, RegularExpression("(?i)^(image|video)$")]
     public string Kind { get; init; } = string.Empty;
 }
 
@@ -22,7 +23,7 @@ public sealed class CompleteUploadRequest
     [Required, StringLength(200, MinimumLength = 1)]
     public string PublicId { get; init; } = string.Empty;
 
-    [Required, StringLength(40, MinimumLength = 40)]
+    [Required, StringLength(64, MinimumLength = 40)]
     public string Signature { get; init; } = string.Empty;
 
     [Required, StringLength(16, MinimumLength = 1)]

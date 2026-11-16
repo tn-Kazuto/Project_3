@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using JamesThew.MediaService.Data;
+using JamesThew.MediaService.DTOs;
 
 namespace JamesThew.MediaService.Services;
 
@@ -28,11 +29,13 @@ public sealed class CloudinaryUploadProvider(IConfiguration configuration)
     private readonly string _cloudName = configuration["Cloudinary:CloudName"]?.Trim() ?? string.Empty;
     private readonly string _apiKey = configuration["Cloudinary:ApiKey"]?.Trim() ?? string.Empty;
     private readonly string _apiSecret = configuration["Cloudinary:ApiSecret"] ?? string.Empty;
+    private readonly string _signatureAlgorithm = configuration["Cloudinary:SignatureAlgorithm"]?.Trim().ToUpperInvariant() ?? "SHA1";
 
     public bool IsConfigured =>
         IsValidCloudName(_cloudName) &&
         !string.IsNullOrWhiteSpace(_apiKey) &&
-        !string.IsNullOrWhiteSpace(_apiSecret);
+        !string.IsNullOrWhiteSpace(_apiSecret) &&
+        _signatureAlgorithm is "SHA1" or "SHA256";
 
     public bool IsSupportedContentType(string kind, string contentType)
     {
@@ -51,18 +54,21 @@ public sealed class CloudinaryUploadProvider(IConfiguration configuration)
     public UploadTicketResponse CreateTicket(Guid ticketId, int userId, string kind, DateTime expiresAtUtc)
     {
         var resourceType = GetResourceType(kind);
+        var allowedFormats = resourceType == "video" ? "mp4,webm,mov" : "jpg,jpeg,png,webp";
         var publicId = $"jamesthew/users/{userId}/{Guid.NewGuid():N}";
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
         var fields = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
-            ["folder"] = $"jamesthew/users/{userId}",
             ["public_id"] = publicId,
+            ["overwrite"] = "false",
+            ["allowed_formats"] = allowedFormats,
             ["timestamp"] = timestamp,
             ["api_key"] = _apiKey,
             ["signature"] = CreateSignature(new Dictionary<string, string>
             {
-                ["folder"] = $"jamesthew/users/{userId}",
                 ["public_id"] = publicId,
+                ["overwrite"] = "false",
+                ["allowed_formats"] = allowedFormats,
                 ["timestamp"] = timestamp
             })
         };
@@ -89,7 +95,7 @@ public sealed class CloudinaryUploadProvider(IConfiguration configuration)
             bytes < 1 || bytes > ticket.ExpectedBytes ||
             version < 1 ||
             !IsSupportedFormat(ticket.ResourceType, format) ||
-            signature.Length != 40)
+            signature.Length != (_signatureAlgorithm == "SHA256" ? 64 : 40))
         {
             return false;
         }
@@ -133,7 +139,10 @@ public sealed class CloudinaryUploadProvider(IConfiguration configuration)
             parameters.OrderBy(parameter => parameter.Key, StringComparer.Ordinal)
                 .Select(parameter => $"{parameter.Key}={parameter.Value}"));
         var payload = Encoding.UTF8.GetBytes(canonicalParameters + _apiSecret);
-        return Convert.ToHexString(SHA1.HashData(payload)).ToLowerInvariant();
+        var digest = _signatureAlgorithm == "SHA256"
+            ? SHA256.HashData(payload)
+            : SHA1.HashData(payload);
+        return Convert.ToHexString(digest).ToLowerInvariant();
     }
 
     private static bool IsValidCloudName(string cloudName) =>

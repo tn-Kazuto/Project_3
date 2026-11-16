@@ -4,6 +4,7 @@ using JamesThew.NotificationService.Data;
 using JamesThew.NotificationService.Hubs;
 using JamesThew.NotificationService.Messaging;
 using JamesThew.NotificationService.Services;
+using JamesThew.Shared.Contracts.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,8 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("NotificationConnection")
     ?? throw new InvalidOperationException("ConnectionStrings:NotificationConnection is required.");
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key is required.");
+var jwtKey = JwtKeyValidator.GetRequiredKey(builder.Configuration["Jwt:Key"]);
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "JamesThewApi";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "JamesThewClient";
 

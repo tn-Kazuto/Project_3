@@ -79,6 +79,25 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
               setTotalItems(data.totalCount || items.length);
             }
           }
+
+          // Concurrently ensure cooking tips count is available for the tab switcher
+          if (tips.length === 0 || searchTerm.trim()) {
+            const tipParams = {};
+            if (searchTerm.trim()) tipParams.search = searchTerm.trim();
+            tipApi.getAll(tipParams)
+              .then((tipRes) => {
+                if (!isMounted || !tipRes.data?.success) return;
+                const tipData = tipRes.data.data;
+                if (Array.isArray(tipData)) {
+                  setTips(tipData);
+                } else if (tipData && Array.isArray(tipData.items)) {
+                  setTips(tipData.items);
+                }
+              })
+              .catch(() => {
+                // Gracefully ignore if tips endpoint fails or is unmocked in test suites
+              });
+          }
         } else {
           if (searchTerm.trim()) params.search = searchTerm.trim();
           const res = await tipApi.getAll(params);
@@ -92,6 +111,25 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
               setTips(data.items);
               setTotalItems(data.totalCount || data.items.length);
             }
+          }
+
+          // Concurrently ensure recipes count is available for the tab switcher
+          if (recipes.length === 0 || searchTerm.trim()) {
+            const recipeParams = {};
+            if (searchTerm.trim()) recipeParams.search = searchTerm.trim();
+            recipeApi.getAll(recipeParams)
+              .then((recipeRes) => {
+                if (!isMounted || !recipeRes.data?.success) return;
+                const recipeData = recipeRes.data.data;
+                if (Array.isArray(recipeData)) {
+                  setRecipes(recipeData);
+                } else if (recipeData && Array.isArray(recipeData.items)) {
+                  setRecipes(recipeData.items);
+                }
+              })
+              .catch(() => {
+                // Gracefully ignore if recipes endpoint fails or is unmocked
+              });
           }
         }
       } catch (err) {

@@ -20,18 +20,22 @@ vi.mock('../services/api', () => ({
   },
   recipeApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
     update: vi.fn(),
   },
   tipApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
     update: vi.fn(),
   },
   contestApi: {
     getAll: vi.fn(),
+    getSummary: vi.fn(),
+    getPaged: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
     getEntries: vi.fn(),
@@ -39,11 +43,13 @@ vi.mock('../services/api', () => ({
   },
   announcementApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
   },
   feedbackApi: {
     getAll: vi.fn(),
+    getPaged: vi.fn(),
     delete: vi.fn(),
   },
   authApi: {
@@ -57,9 +63,19 @@ vi.mock('../services/api', () => ({
 }));
 
 describe('Functional Phase F5 - Executive Admin Hub & Comprehensive Final Verification', () => {
+  const pageResponse = (items = [], totalCount = items.length, pageSize = 10) => ({
+    data: { success: true, data: { items, totalCount, pageIndex: 1, pageSize, totalPages: Math.ceil(totalCount / pageSize) } },
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    recipeApi.getPaged.mockResolvedValue(pageResponse());
+    tipApi.getPaged.mockResolvedValue(pageResponse());
+    contestApi.getPaged.mockResolvedValue(pageResponse());
+    contestApi.getSummary.mockResolvedValue({ data: { success: true, data: { totalContests: 0, activeContests: 0, totalSubmissions: 0 } } });
+    announcementApi.getPaged.mockResolvedValue(pageResponse());
+    feedbackApi.getPaged.mockResolvedValue(pageResponse());
   });
 
   it('renders Executive Atelier Architecture & System Metrics in Overview tab', async () => {
@@ -114,6 +130,30 @@ describe('Functional Phase F5 - Executive Admin Hub & Comprehensive Final Verifi
       },
     });
 
+    recipeApi.getPaged.mockImplementation(({ isFreeOnly, pageSize = 10 }) => {
+      const totalCount = pageSize === 1
+        ? isFreeOnly === true ? 1 : isFreeOnly === false ? 1 : 2
+        : 0;
+      return Promise.resolve(pageResponse([], totalCount, pageSize));
+    });
+    tipApi.getPaged.mockImplementation(({ isFreeOnly, pageSize = 10 }) => {
+      const totalCount = pageSize === 1
+        ? isFreeOnly === true ? 0 : isFreeOnly === false ? 1 : 1
+        : 0;
+      return Promise.resolve(pageResponse([], totalCount, pageSize));
+    });
+    contestApi.getPaged.mockImplementation(({ activeOnly, pageSize = 10 }) => {
+      const totalCount = pageSize === 1 ? 1 : 0;
+      const items = activeOnly && pageSize === 1 ? [{ contestId: 100, entryCount: 5 }] : [];
+      return Promise.resolve(pageResponse(items, totalCount, pageSize));
+    });
+    contestApi.getSummary.mockResolvedValue({ data: { success: true, data: { totalContests: 1, activeContests: 1, totalSubmissions: 5 } } });
+    announcementApi.getPaged.mockResolvedValue(pageResponse([], 1, 1));
+    feedbackApi.getPaged.mockImplementation(({ feedbackType, pageSize = 10 }) => {
+      const counts = { ALL: 2, RECIPE: 1, GENERAL: 1 };
+      return Promise.resolve(pageResponse([], pageSize === 1 ? counts[feedbackType] : 0, pageSize));
+    });
+
     render(
       <MemoryRouter>
         <AuthProvider>
@@ -129,7 +169,7 @@ describe('Functional Phase F5 - Executive Admin Hub & Comprehensive Final Verifi
     // Verify Architecture Metrics
     expect(screen.getByText('3 Master Items')).toBeInTheDocument(); // 2 recipes + 1 tip
     expect(screen.getByText('2 VIP Reserved')).toBeInTheDocument(); // 1 paid recipe + 1 paid tip
-    expect(screen.getByText('5 Submissions')).toBeInTheDocument(); // 5 contest entries
+    expect(screen.getByText('5 Submissions')).toBeInTheDocument();
     expect(screen.getByText('2 Reviews')).toBeInTheDocument(); // 2 feedbacks
   });
 

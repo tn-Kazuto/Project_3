@@ -10,7 +10,7 @@ namespace backend.Services
         Task<ApiResponse<UserDto>> GetProfileAsync(int userId);
         Task<ApiResponse<UserDto>> UpdateProfileAsync(int userId, UpdateProfileRequest request);
         Task<ApiResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request);
-        Task<ApiResponse<UserDto>> RenewSubscriptionAsync(int userId, RenewSubscriptionRequest request);
+        Task<ApiResponse<UserDto>> RenewSubscriptionAsync(int userId, RenewSubscriptionRequest request, string idempotencyKey);
     }
 }
 

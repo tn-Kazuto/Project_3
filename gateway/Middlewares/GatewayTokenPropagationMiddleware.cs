@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using JamesThew.Shared.Contracts.Constants;
+using JamesThew.Shared.Contracts.Security;
 using Microsoft.IdentityModel.Tokens;
 
 namespace JamesThew.Gateway.Middlewares;
@@ -21,7 +22,7 @@ public class GatewayTokenPropagationMiddleware(RequestDelegate next, IConfigurat
         ValidIssuer = configuration["Jwt:Issuer"] ?? "JamesThewApi",
         ValidAudience = configuration["Jwt:Audience"] ?? "JamesThewClient",
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-            configuration["Jwt:Key"] ?? "JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore")),
+            JwtKeyValidator.GetRequiredKey(configuration["Jwt:Key"]))),
         ClockSkew = TimeSpan.Zero
     };
 

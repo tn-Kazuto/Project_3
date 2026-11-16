@@ -41,6 +41,22 @@ describe('Functional Phase F3 Tests - Contests & Judging System', () => {
     isWinner: false,
   };
 
+  const pagedResponse = (items, pageSize = 10, page = 1) => ({
+    data: {
+      success: true,
+      data: { items, totalCount: items.length, pageIndex: page, pageSize, totalPages: Math.ceil(items.length / pageSize) },
+    },
+  });
+
+  const setupAdminPagedLists = () => {
+    vi.spyOn(apiModule.recipeApi, 'getPaged').mockResolvedValue(pagedResponse([]));
+    vi.spyOn(apiModule.tipApi, 'getPaged').mockResolvedValue(pagedResponse([]));
+    vi.spyOn(apiModule.contestApi, 'getPaged').mockResolvedValue(pagedResponse([mockContest]));
+    vi.spyOn(apiModule.contestApi, 'getSummary').mockResolvedValue({ data: { success: true, data: { totalContests: 1, activeContests: 1, totalSubmissions: 3 } } });
+    vi.spyOn(apiModule.announcementApi, 'getPaged').mockResolvedValue(pagedResponse([]));
+    vi.spyOn(apiModule.feedbackApi, 'getPaged').mockResolvedValue(pagedResponse([]));
+  };
+
   it('TC_F3_FE_1 - ContestsPage opens entry modal and requires guest name/email for unauthenticated visitors', async () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({ isAuthenticated: false, user: null });
     vi.spyOn(apiModule.contestApi, 'getAll').mockResolvedValue({
@@ -99,6 +115,7 @@ describe('Functional Phase F3 Tests - Contests & Judging System', () => {
   it('TC_F3_FE_3 - AdminDashboardPage displays contest entries and allows selecting a winner', async () => {
     const adminUser = { userId: 1, fullName: 'Chef James Thew', role: 'ADMIN' };
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({ isAuthenticated: true, isAdmin: true, user: adminUser });
+    setupAdminPagedLists();
 
     vi.spyOn(apiModule.categoryApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
     vi.spyOn(apiModule.recipeApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
@@ -108,7 +125,7 @@ describe('Functional Phase F3 Tests - Contests & Judging System', () => {
     vi.spyOn(apiModule.feedbackApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
 
     vi.spyOn(apiModule.contestApi, 'getEntries').mockResolvedValue({
-      data: { success: true, data: [mockEntry] },
+      ...pagedResponse([mockEntry]),
     });
     const selectWinnerSpy = vi.spyOn(apiModule.contestApi, 'selectWinner').mockResolvedValue({
       data: { success: true, data: { ...mockEntry, isWinner: true } },
@@ -155,6 +172,7 @@ describe('Functional Phase F3 Tests - Contests & Judging System', () => {
   it('TC_F3_FE_4 - Selecting winner opens Announcement modal with pre-populated content', async () => {
     const adminUser = { userId: 1, fullName: 'Chef James Thew', role: 'ADMIN' };
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({ isAuthenticated: true, isAdmin: true, user: adminUser });
+    setupAdminPagedLists();
 
     vi.spyOn(apiModule.categoryApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
     vi.spyOn(apiModule.recipeApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
@@ -164,7 +182,7 @@ describe('Functional Phase F3 Tests - Contests & Judging System', () => {
     vi.spyOn(apiModule.feedbackApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
 
     vi.spyOn(apiModule.contestApi, 'getEntries').mockResolvedValue({
-      data: { success: true, data: [mockEntry] },
+      ...pagedResponse([mockEntry]),
     });
     vi.spyOn(apiModule.contestApi, 'selectWinner').mockResolvedValue({
       data: { success: true, data: { ...mockEntry, isWinner: true } },

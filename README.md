@@ -3,10 +3,10 @@
 > **eProject Sem 3 - Modern Full-Stack Culinary Web & Microservices Platform**  
 > Built strictly according to the **[Project Topic Charter (topic.md)](./topic.md)**, **[Software Requirements Specification (srs.md)](./srs.md)**, and **[Spec-Driven Architecture Standards (rules.md)](./rules.md)**.
 
-[![Backend Tests](https://img.shields.io/badge/.NET%2010%20xUnit%20Tests-65%2F65%20PASS-brightgreen)](#)
+[![Backend Tests](https://img.shields.io/badge/.NET%2010%20xUnit%20Tests-74%2F74%20PASS-brightgreen)](#)
 [![Frontend Tests](https://img.shields.io/badge/Vitest%20Component%20Tests-98%2F98%20PASS-brightgreen)](#)
 [![Frontend CI](https://img.shields.io/badge/GitHub%20Actions%20CI-Passing-brightgreen?logo=github)](#)
-[![Total Test Coverage](https://img.shields.io/badge/Total%20Automated%20Tests-163%2F163%20PASS%20100%25-success)](#)
+[![Total Test Coverage](https://img.shields.io/badge/Total%20Automated%20Tests-172%2F172%20PASS%20100%25-success)](#)
 [![Architecture](https://img.shields.io/badge/Architecture-.NET%2010%20Microservices%20%7C%20Docker-blue)](#)
 [![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite%208-61dafb)](#)
 [![Design System](https://img.shields.io/badge/Design%20System-5--Star%20Luxury%20Architectural-gold)](#)
@@ -28,11 +28,11 @@ Nền tảng đáp ứng trọn vẹn 3 nhóm đối tượng theo SRS và Đề
 
 ### **Backend (.NET 10 Web APIs)**
 - **Framework:** ASP.NET Core Web API (.NET 10 LTS - `net10.0`, C# 14)
-- **Kiến trúc hiện tại:** API Gateway (YARP) đứng trước Core API; Notification đã được tách thành service chạy độc lập. Identity, Subscription, Catalog, Contest và Community vẫn nằm trong Core API, tiếp tục tách theo lộ trình Strangler Fig.
+- **Kiến trúc hiện tại:** API Gateway (YARP) đứng trước bảy API services: Core Identity/Users, Billing, Notification, Media, Contest, Community và Culinary Catalog. Catalog sở hữu Recipes, Tips, Categories và FAQs trong database riêng; Redis cache các truy vấn nội dung công khai `IsFree=true`.
 - **ORM & Database:** Entity Framework Core 10.0.14 (Code-First) + Microsoft SQL Server 2022 + Redis In-Memory Cache (tối ưu hóa tải đọc $P_{99} < 100\text{ ms}$).
-- **Messaging Backbone:** RabbitMQ chuyển sự kiện đăng ký/gia hạn, công thức mới và công bố quán quân sang Notification Service. Transactional Outbox và Saga vẫn là phần việc của các phase tiếp theo.
+- **Messaging Backbone:** Billing và Contest ghi dữ liệu nghiệp vụ cùng Outbox trong giao dịch SQL rồi phát sự kiện qua RabbitMQ; Identity cập nhật bản chiếu thành viên và Notification xử lý email/thông báo.
 - **Security & Auth:** JWT Bearer Authentication, BCrypt Password Hashing, Claim-based Role Authorization.
-- **Automated Testing:** xUnit, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.EntityFrameworkCore.InMemory` (65/65 tests pass 100%).
+- **Automated Testing:** xUnit, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.EntityFrameworkCore.InMemory` (74/74 tests pass 100%).
 
 ### **Frontend (React 19 SPA)**
 - **Framework:** React 19 + Vite 8
@@ -70,24 +70,42 @@ Khi backend khởi động lần đầu, `DbInitializer.cs` sẽ tự động se
 
 | Loại tài khoản | Username | Mật khẩu | Quyền (Role) | Gói cước |
 |---|---|---|---|---|
-| **Admin (Mr. James Thew)** | `james` hoặc `james@jamesthew.com` | `Admin@123456` | `ADMIN` | Vĩnh viễn (Chef Executive) |
-| **Thành viên mẫu 1** | `member_monthly` | `Member@123` | `MEMBER` | Monthly ($10/tháng) |
-| **Thành viên mẫu 2** | `member_annual` | `Member@123` | `MEMBER` | Annual ($100/năm) |
+| **Admin (Mr. James Thew)** | `james` hoặc `james@jamesthew.com` | Đặt qua `ADMIN_SEED_PASSWORD` khi tạo admin lần đầu | `ADMIN` | Vĩnh viễn (Chef Executive) |
+| **Thành viên dữ liệu mẫu** | Sophia, Marcus, Elena | Đặt tùy chọn qua `DEMO_MEMBER_PASSWORD`; nếu để trống, mật khẩu được sinh ngẫu nhiên | `MEMBER` | Monthly/Annual |
 
 - **4 Danh mục chuẩn:** `Juices`, `Vegetarian`, `Non-Vegetarian`, `Italian`.
 - **7 Câu hỏi FAQ bắt buộc:** Đã seed chính xác 100% từng câu hỏi & trả lời theo quy định của đề tài Aptech.
+
+`ADMIN_SEED_PASSWORD` chỉ áp dụng khi database chưa có tài khoản Admin. Khi nâng cấp database đã seed bằng bản cũ, hãy đổi mật khẩu Admin và các tài khoản demo hiện có theo quy trình reset mật khẩu của môi trường đó.
 
 ---
 
 ## 🚀 5. Hướng Dẫn Cài Đặt & Khởi Chạy (Getting Started)
 
 ### Cách 1: Khởi chạy Nhanh bằng Docker Compose (Khuyến nghị)
-Chạy toàn bộ hệ sinh thái (YARP Gateway, Core Backend, Notification Service, Frontend, SQL Server, Redis, RabbitMQ) chỉ với 1 câu lệnh duy nhất:
+Sao chép `.env.example` thành `.env`, rồi đặt các secret bắt buộc (`SQL_PASSWORD`, `JWT_KEY`, `ADMIN_SEED_PASSWORD`, `BILLING_SERVICE_KEY`, `RABBITMQ_USER`, `RABBITMQ_PASS`, `REDIS_PASSWORD`). `JWT_KEY` cần ít nhất 32 byte UTF-8; `ADMIN_SEED_PASSWORD` cần 16–72 byte UTF-8 và chỉ dùng khi tạo Admin lần đầu. Không dùng lại secret mẫu hoặc commit `.env`.
+```powershell
+Copy-Item .env.example .env
+```
+
+Chạy toàn bộ hệ sinh thái (YARP Gateway, Core Identity API, sáu domain services, Frontend, SQL Server, Redis và RabbitMQ):
 ```powershell
 docker compose up --build
 ```
 - Frontend Web App: `http://localhost:3000`
 - API Gateway / Swagger: `http://localhost:8000`
+
+`docker-compose.override.yml` chỉ publish SQL Server, Redis và RabbitMQ lên loopback (`127.0.0.1`) để dùng trong local development. Khi triển khai, chạy `docker compose -f docker-compose.yml up --build -d`; cấu hình production không publish các cổng nội bộ ra host.
+
+Để bật upload ảnh/video, điền `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` và `CLOUDINARY_API_SECRET` trong file `.env` tại thư mục gốc. `CLOUDINARY_SIGNATURE_ALGORITHM` mặc định là `SHA1`; đổi thành `SHA256` nếu Cloudinary account yêu cầu. Không commit API secret; nếu chưa cấu hình, các service vẫn khởi động nhưng endpoint upload trả về `503`.
+
+Để bật thanh toán và gia hạn, đặt `BILLING_SERVICE_KEY` thành một chuỗi ngẫu nhiên đủ mạnh trong `.env`. Backend và Billing Service phải dùng cùng giá trị; Billing Service từ chối checkout nội bộ nếu thiếu khóa này. Hệ thống hiện xử lý thanh toán mô phỏng như luồng sẵn có, không lưu PAN/CVV.
+
+Contest Service sở hữu dữ liệu cuộc thi trong `JamesThewContestDb`; lần khởi động đầu tiên sẽ import contests, entries, votes và announcements hiện có từ `JamesThewDb`. Vote được lưu bền vững trong SQL; Redis giữ reservation chống trùng và bộ đếm nóng, còn RabbitMQ outbox phát sự kiện công bố người thắng.
+
+Community Service sở hữu feedback, rating, comments và share logs trong `JamesThewCommunityDb`; lần khởi động đầu tiên import feedback cùng baseline share count, giữ nguyên ID. Recipe comments và feedback công khai không trả email người gửi; media URL mới phải dùng HTTPS.
+
+Catalog Service sở hữu recipes, tips, categories và FAQs trong `JamesThewCatalogDb`; lần khởi động đầu tiên import dữ liệu từ `JamesThewDb`, giữ nguyên ID và lưu tên tác giả dạng snapshot để không phụ thuộc Identity DB khi chạy. Redis cache nội dung miễn phí trong 60 giây; thay đổi catalog tăng version key để làm mới cache. Compose yêu cầu `REDIS_PASSWORD` và bật xác thực Redis.
 
 ---
 
@@ -99,7 +117,15 @@ docker compose up --build
 - SQL Server LocalDB hoặc SQL Server Standard/Developer Edition
 
 #### **Bước 1: Chạy Backend**
+Trước khi chạy, cấu hình service key để Backend gọi Billing Service; dùng cùng giá trị với `$env:Billing__ServiceKey` ở Bước 3.
 ```powershell
+$env:Jwt__Key = "<same 32+ byte secret configured for all services>"
+$env:Seed__AdminPassword = "<unique password for a new Admin seed>"
+$env:Billing__BaseUrl = "http://localhost:5002"
+$env:Billing__ServiceKey = "<same high-entropy value configured for Billing Service>"
+$env:RabbitMQ__Enabled = "true"
+$env:RabbitMQ__UserName = "<configured RabbitMQ user>"
+$env:RabbitMQ__Password = "<configured RabbitMQ password>"
 cd e:\project\Project_3\backend
 dotnet restore
 dotnet run
@@ -113,23 +139,101 @@ Mở terminal mới tại thư mục gốc. Cấu hình các biến môi trườ
 $env:ConnectionStrings__NotificationConnection = "Server=localhost;Database=JamesThewNotificationDb;Trusted_Connection=True;TrustServerCertificate=True;"
 $env:ConnectionStrings__LegacyConnection = "Server=localhost;Database=JamesThewDb;Trusted_Connection=True;TrustServerCertificate=True;"
 $env:ASPNETCORE_URLS = "http://localhost:5007"
-$env:Jwt__Key = "<same value as Jwt:Key in backend/appsettings.json>"
+$env:Jwt__Key = "<same 32+ byte secret configured for all services>"
 $env:RabbitMQ__HostName = "localhost"
 $env:RabbitMQ__Port = "5672"
-$env:RabbitMQ__UserName = "admin"
+$env:RabbitMQ__UserName = "<configured RabbitMQ user>"
 $env:RabbitMQ__Password = "<same password configured in RabbitMQ>"
 dotnet run --project services/notification/JamesThew.NotificationService.csproj
 ```
 
-#### **Bước 3: Chạy API Gateway**
+#### **Bước 3: Chạy Billing Service**
+Sau khi Backend đã seed database và RabbitMQ sẵn sàng, mở terminal mới tại thư mục gốc:
+```powershell
+$env:ConnectionStrings__BillingConnection = "Server=localhost;Database=JamesThewBillingDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ConnectionStrings__LegacyConnection = "Server=localhost;Database=JamesThewDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ASPNETCORE_URLS = "http://localhost:5002"
+$env:Jwt__Key = "<same 32+ byte secret configured for all services>"
+$env:Billing__ServiceKey = "<same high-entropy value configured for Backend>"
+$env:RabbitMQ__HostName = "localhost"
+$env:RabbitMQ__Port = "5672"
+$env:RabbitMQ__UserName = "<configured RabbitMQ user>"
+$env:RabbitMQ__Password = "<same password configured in RabbitMQ>"
+dotnet run --project services/billing/JamesThew.BillingService.csproj
+```
+Lần đầu khởi động, Billing import lịch sử Payment và gói hiện tại từ `JamesThewDb` vào `JamesThewBillingDb`, có marker để không import lặp.
+
+#### **Bước 4: Chạy Contest Service**
+Sau khi Backend đã tạo `JamesThewDb`, và SQL Server, Redis cùng RabbitMQ sẵn sàng:
+```powershell
+$env:ConnectionStrings__ContestConnection = "Server=localhost;Database=JamesThewContestDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ConnectionStrings__LegacyConnection = "Server=localhost;Database=JamesThewDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ASPNETCORE_URLS = "http://localhost:5004"
+$env:Jwt__Key = "<same 32+ byte secret configured for all services>"
+$env:Redis__Host = "localhost"
+$env:Redis__Port = "6379"
+$env:RabbitMQ__HostName = "localhost"
+$env:RabbitMQ__Port = "5672"
+$env:RabbitMQ__UserName = "admin"
+$env:RabbitMQ__Password = "<same password configured in RabbitMQ>"
+dotnet run --project services/contest/JamesThew.ContestService.csproj
+```
+Contest Service import dữ liệu cũ một lần, giữ nguyên ID để frontend và liên kết announcement tiếp tục hoạt động.
+
+#### **Bước 5: Chạy Community Service**
+Sau khi Backend đã tạo `JamesThewDb`:
+```powershell
+$env:ConnectionStrings__CommunityConnection = "Server=localhost;Database=JamesThewCommunityDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ConnectionStrings__LegacyConnection = "Server=localhost;Database=JamesThewDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ASPNETCORE_URLS = "http://localhost:5008"
+$env:Jwt__Key = "<same 32+ byte secret configured for all services>"
+dotnet run --project services/community/JamesThew.CommunityService.csproj
+```
+Community Service import feedback và số share cũ một lần; các share mới được ghi thành log trong database riêng.
+
+#### **Bước 6: Chạy Catalog Service**
+Sau khi Backend đã seed `JamesThewDb`, Billing Service, Redis và RabbitMQ sẵn sàng:
+```powershell
+$env:ConnectionStrings__CatalogConnection = "Server=localhost;Database=JamesThewCatalogDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ConnectionStrings__LegacyConnection = "Server=localhost;Database=JamesThewDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ASPNETCORE_URLS = "http://localhost:5003"
+$env:Jwt__Key = "<same 32+ byte secret configured for Backend and Gateway>"
+$env:Billing__BaseUrl = "http://localhost:5002"
+$env:Redis__Host = "localhost"
+$env:Redis__Port = "6379"
+# Chỉ đặt nếu Redis đã được khởi chạy với requirepass.
+# $env:Redis__Password = "<configured Redis password>"
+$env:RabbitMQ__HostName = "localhost"
+$env:RabbitMQ__Port = "5672"
+$env:RabbitMQ__UserName = "<configured RabbitMQ user>"
+$env:RabbitMQ__Password = "<same password configured in RabbitMQ>"
+dotnet run --project services/catalog/JamesThew.CatalogService.csproj
+```
+Catalog Service import Recipes, Tips, Categories và FAQs đúng một lần. Guest và thành viên hết hạn chỉ nhận nội dung miễn phí; quyền xem nội dung trả phí được xác nhận qua Billing Service.
+
+#### **Bước 7: Chạy Media Service**
+Mở terminal tại thư mục gốc. Dùng cùng `Jwt__Key` với Backend/Gateway và điền Cloudinary credentials từ Cloudinary Console.
+```powershell
+$env:ConnectionStrings__MediaConnection = "Server=localhost;Database=JamesThewMediaDb;Trusted_Connection=True;TrustServerCertificate=True;"
+$env:ASPNETCORE_URLS = "http://localhost:5006"
+$env:Jwt__Key = "<same 32+ byte secret configured for Backend and Gateway>"
+$env:Cloudinary__CloudName = "<cloud name>"
+$env:Cloudinary__ApiKey = "<api key>"
+$env:Cloudinary__ApiSecret = "<api secret>"
+dotnet run --project services/media/JamesThew.MediaService.csproj
+```
+Media Service lưu ticket upload trong database riêng `JamesThewMediaDb`; trình duyệt gửi file trực tiếp đến Cloudinary bằng chữ ký tạm thời do service cấp.
+
+#### **Bước 8: Chạy API Gateway**
 Mở terminal mới tại thư mục gốc:
 ```powershell
 $env:ASPNETCORE_URLS = "http://localhost:8000"
+$env:Jwt__Key = "<same 32+ byte secret configured for all services>"
 dotnet run --project gateway/JamesThew.Gateway.csproj
 ```
-Gateway chạy tại `http://localhost:8000` và chuyển các API notification cùng SignalR Hub sang Notification Service.
+Gateway chạy tại `http://localhost:8000` và chuyển API catalog, notification, media, contest, community, billing cùng SignalR Hub đến các service tương ứng.
 
-#### **Bước 4: Chạy Frontend**
+#### **Bước 9: Chạy Frontend**
 ```powershell
 cd e:\project\Project_3\frontend
 npm install
@@ -139,11 +243,11 @@ npm run dev
 
 ---
 
-## 🧪 6. Kiểm Thử Tự Động Toàn Diện (Automated Testing - 163 Tests 100% PASS)
+## 🧪 6. Kiểm Thử Tự Động Toàn Diện (Automated Testing - 172 Tests 100% PASS)
 
-Dự án tuân thủ nghiêm ngặt phương pháp **Spec-Driven Development** và **10 Luật Vàng (`rules.md`)** với **163/163 Test Cases vượt qua thành công (100% Pass Rate)**:
+Dự án tuân thủ nghiêm ngặt phương pháp **Spec-Driven Development** và **10 Luật Vàng (`rules.md`)** với **172/172 Test Cases vượt qua thành công (100% Pass Rate)**:
 
-### **Kiểm thử Backend (xUnit): 65/65 Tests PASS ✓**
+### **Kiểm thử Backend (xUnit): 74/74 Tests PASS ✓**
 ```powershell
 dotnet test tests/backend.tests/backend.tests.csproj
 ```
@@ -152,6 +256,7 @@ dotnet test tests/backend.tests/backend.tests.csproj
 - **Phân trang Kiến trúc & Giới hạn Tải (PERF-09 & TC-RCP-08):** Hỗ trợ `PagedResult<T>`, chặn trần cứng tối đa 50 phần tử trên mỗi trang (`PaginationTests.cs`).
 - **Contests, Voting & Announcements:** Cuộc thi ẩm thực, Bài dự thi của Guest & Member, Hệ thống bình chọn cộng đồng chống spam vote (`ContestVote`), Chấm giải Winner, Tự động xuất bản Announcement vinh danh.
 - **Feedbacks & FAQ Engine:** Góp ý món ăn kèm ảnh/video thực hành (`MediaUrl`), Đánh giá sao (1-5 sao), Góp ý website, Quản lý feedback cho Admin, 7 câu hỏi FAQ chuẩn đề bài Aptech.
+- **Catalog Service:** Guest chỉ nhận nội dung miễn phí; membership active/expired/unavailable được xử lý đúng; kiểm tra quyền Member/Admin và Redis cache version invalidation.
 - **Upgrades & In-App Notification Center:** Kiểm thử chuông thông báo Header và dịch vụ Email tự động.
 
 ### **Kiểm thử Frontend (Vitest): 98/98 Tests PASS trên 23 Test Suites ✓**
@@ -163,6 +268,10 @@ npm test
 - **Tips & Phân trang Kiến trúc (TipsAndPaginationPhase):** Điều hướng `/tips`, Modal kỹ thuật Masterclass video demo, Bộ điều khiển phân trang kiến trúc (Previous, Next, Current Page indicator).
 - **Hệ thống Kiểm thử Thiết kế Kiến trúc Sang trọng (Luxury Phases L1 - L8):** Kiểm tra toàn diện chuẩn thiết kế Luxury Architectural 5 sao (EB Garamond, góc vuông `border-radius: 0`, Fine Gold rules `#b69355`).
 - **Hệ thống Kiểm thử Tương tác MXH & Cuộc thi:** Bình chọn bài thi thời gian thực, Nút chia sẻ Facebook (Open Graph dialog), Thư viện bình luận kèm ảnh/video thành phẩm.
+
+**M7 integration acceptance:** 70 backend + 98 frontend tests passed. The isolated Docker Compose stack reached healthy status for all API services and dependencies. Gateway smoke checks confirmed health, matching legacy/versioned FAQ and Community routes, guest free-only recipe results, and Redis cache population; Catalog tests cover entitlement expiry, Member/Admin authorization, and cache version invalidation. The pre-existing `jamesthew-platform` containers and volumes were left untouched.
+
+**M8 release hardening acceptance:** 74 backend + 98 frontend tests passed. All services built and reached healthy status in an isolated Compose stack. Gateway smoke checks verified the configured CORS origin, rejected an untrusted origin, allowed anonymous free-recipe reads, and authenticated the first-run Admin using `ADMIN_SEED_PASSWORD`. Shared demo passwords were removed from browser/mobile login screens, SQL seed comments, and demo instructions. Production Compose publishes only Gateway and Frontend; the local override binds SQL Server, Redis, and RabbitMQ to `127.0.0.1`. The M7 stack and volumes were left untouched.
 
 ---
 
@@ -176,6 +285,25 @@ npm test
 | `GET` | `/api/users/profile` | Authenticated | Xem chi tiết hồ sơ thành viên và thông tin gói cước |
 | `PUT` | `/api/users/profile` | Authenticated | Cập nhật họ tên và số điện thoại |
 | `POST` | `/api/users/change-password` | Authenticated | Đổi mật khẩu tài khoản |
+| `POST` | `/api/users/subscription/renew` | Member / Admin | Tạo checkout gia hạn qua Billing Service (cần `Idempotency-Key`) |
+| `GET` | `/api/subscriptions/me` | Member / Admin | Xem gói thuê bao hiện tại |
+| `POST` | `/api/subscriptions/checkout` | Member / Admin | Checkout gói thuê bao; giá được xác định phía server |
+| `GET` | `/api/payments/me` | Member / Admin | Xem lịch sử thanh toán đã lược bỏ dữ liệu thẻ |
+| `POST` | `/api/media/upload-ticket` | Member / Admin | Cấp chữ ký upload ảnh/video trực tiếp lên Cloudinary (tối đa 100 MB) |
+| `POST` | `/api/media/upload-ticket/{ticketId}/complete` | Member / Admin | Xác minh chữ ký phản hồi Cloudinary và trả về URL HTTPS an toàn |
+| `GET/POST/DELETE` | `/api/contests` | Public / Admin | Xem, tạo và xóa cuộc thi |
+| `POST` | `/api/contests/{id}/entries` | Guest / Member | Nộp bài dự thi; guest cần tên và email |
+| `GET` | `/api/contests/{id}/community-entries` | Public | Xem bài dự thi và lượt bình chọn |
+| `POST` | `/api/contests/entries/{entryId}/vote` | Guest / Member | Bình chọn, chống trùng qua Redis và SQL |
+| `PUT` | `/api/contests/entries/{entryId}/winner` | Admin | Chọn quán quân và phát sự kiện qua outbox |
+| `GET/POST/DELETE` | `/api/announcements` | Public / Admin | Xem và quản lý thông báo cuộc thi |
+| `POST` | `/api/feedbacks` | Guest / Member | Gửi góp ý website hoặc đánh giá công thức; guest cần tên và email |
+| `GET` | `/api/feedbacks/recipe/{recipeId}` | Public | Xem bình luận, rating và media; email được ẩn |
+| `GET` | `/api/feedbacks` | Admin | Xem toàn bộ feedback |
+| `GET/POST` | `/api/recipes/{recipeId}/comments` | Public | Đọc hoặc gửi comment công thức |
+| `POST` | `/api/recipes/{recipeId}/share` | Public | Ghi share log và trả tổng count |
+| `GET` | `/api/recipes/share-counts?ids=1,2` | Public | Đọc share count cho danh sách công thức (tối đa 100 ID) |
+| `GET` | `/api/feedbacks/recipe/{recipeId}/rating-summary` | Public | Lấy số đánh giá và điểm trung bình |
 | `GET` | `/api/recipes` | Anonymous | Lấy danh sách công thức (Guest chỉ thấy `IsFree=true`, chặn trần 50 bản ghi) |
 | `GET` | `/api/recipes/paged` | Anonymous | Phân trang công thức chuẩn PERF-09 (`page`, `pageSize` max 50) |
 | `GET` | `/api/recipes/{id}` | Anonymous / Auth | Xem chi tiết công thức (Kiểm tra quyền nếu bài trả phí) |
@@ -194,6 +322,8 @@ npm test
 | `POST` | `/api/feedbacks` | Anonymous / Member | Gửi đánh giá cho món ăn hoặc góp ý chung website |
 | `GET` | `/api/feedbacks` | Admin | Xem toàn bộ phản hồi từ khách và thành viên |
 | `GET` | `/api/faqs` | Anonymous | Xem 7 câu hỏi thường gặp chuẩn SRS |
+
+Catalog API cũng nhận các route versioned tương đương dưới `/api/v1/recipes`, `/api/v1/tips`, `/api/v1/categories` và `/api/v1/faqs`. Route cũ `/api/*` vẫn hoạt động qua Gateway.
 
 ---
 
@@ -219,10 +349,37 @@ Project_3/
 │   └── Program.cs                 # YARP Middleware & Header Forwarding
 │
 ├── services/
-│   └── notification/              # Notification API, RabbitMQ consumer & SignalR Hub (Port 5007)
+│   ├── catalog/                   # Recipes, tips, categories, FAQs and free-content Redis cache (Port 5003)
+│   │   ├── Controllers/           # Legacy and versioned catalog APIs
+│   │   ├── Data/                  # Catalog-owned database and one-time importer
+│   │   ├── Services/              # Gatekeeping, Billing entitlement and Redis cache
+│   │   └── Dockerfile
+│   ├── notification/              # Notification API, RabbitMQ consumer & SignalR Hub (Port 5007)
 │       ├── Controllers/           # Notification center API
 │       ├── Data/                  # Notification-owned database & legacy-history import
 │       ├── Messaging/             # RabbitMQ consumer and readiness health
+│       └── Dockerfile
+│   ├── billing/                   # Subscription/payment ownership and transactional outbox (Port 5002)
+│   │   ├── Controllers/           # Checkout and payment history APIs
+│   │   ├── Data/                  # Billing database and one-time legacy importer
+│   │   ├── Messaging/             # Confirmed RabbitMQ outbox publisher
+│   │   ├── Services/              # Checkout rules and price validation
+│   │   └── Dockerfile
+│   ├── contest/                   # Contest, entries, vote counter and announcements (Port 5004)
+│   │   ├── Controllers/           # Contest and announcement API
+│   │   ├── Data/                  # Contest database and migration marker
+│   │   ├── Messaging/             # RabbitMQ transactional outbox publisher
+│   │   ├── Services/              # Contest rules, Redis vote guard and legacy import
+│   │   └── Dockerfile
+│   ├── community/                  # Feedback, recipe comments, ratings and share logs (Port 5008)
+│   │   ├── Controllers/           # Feedback, comment and share APIs
+│   │   ├── Data/                  # Community-owned database
+│   │   ├── Services/              # Community rules and one-time legacy import
+│   │   └── Dockerfile
+│   └── media/                     # Signed Cloudinary uploads and upload-ticket tracking (Port 5006)
+│       ├── Controllers/           # Ticket creation and upload verification API
+│       ├── Data/                  # Media-owned database and upload ticket records
+│       ├── Services/              # Cloudinary signing and response verification
 │       └── Dockerfile
 │
 ├── shared/                        # Shared Class Libraries & DTOs

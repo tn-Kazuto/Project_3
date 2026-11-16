@@ -114,7 +114,9 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(ApiResponse<UserDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> RenewSubscription([FromBody] RenewSubscriptionRequest request)
+        public async Task<IActionResult> RenewSubscription(
+            [FromBody] RenewSubscriptionRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey)
         {
             if (!ModelState.IsValid)
             {
@@ -131,7 +133,10 @@ namespace backend.Controllers
                 return Unauthorized(ApiResponse<UserDto>.Fail("Unauthorized access."));
             }
 
-            var result = await _userService.RenewSubscriptionAsync(userId.Value, request);
+            var result = await _userService.RenewSubscriptionAsync(
+                userId.Value,
+                request,
+                string.IsNullOrWhiteSpace(idempotencyKey) ? Guid.NewGuid().ToString("N") : idempotencyKey);
             if (!result.Success)
             {
                 return BadRequest(result);

@@ -21,6 +21,7 @@ describe('Luxury Phase L7 Tests - Admin Dashboard & 404 Not Found Page', () => {
   };
 
   const setupAdminMocks = () => {
+    const emptyPage = { data: { success: true, data: { items: [], totalCount: 0, pageIndex: 1, pageSize: 10, totalPages: 0 } } };
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: mockAdminUser,
       isAuthenticated: true,
@@ -33,6 +34,12 @@ describe('Luxury Phase L7 Tests - Admin Dashboard & 404 Not Found Page', () => {
     vi.spyOn(apiModule.contestApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
     vi.spyOn(apiModule.announcementApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
     vi.spyOn(apiModule.feedbackApi, 'getAll').mockResolvedValue({ data: { success: true, data: [] } });
+    vi.spyOn(apiModule.recipeApi, 'getPaged').mockResolvedValue(emptyPage);
+    vi.spyOn(apiModule.tipApi, 'getPaged').mockResolvedValue(emptyPage);
+    vi.spyOn(apiModule.contestApi, 'getPaged').mockResolvedValue(emptyPage);
+    vi.spyOn(apiModule.contestApi, 'getSummary').mockResolvedValue({ data: { success: true, data: { totalContests: 0, activeContests: 0, totalSubmissions: 0 } } });
+    vi.spyOn(apiModule.announcementApi, 'getPaged').mockResolvedValue(emptyPage);
+    vi.spyOn(apiModule.feedbackApi, 'getPaged').mockResolvedValue(emptyPage);
   };
 
   it('TCL7.1 - AdminDashboardPage renders Roman numeral and EB Garamond executive title', async () => {

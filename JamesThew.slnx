@@ -5,6 +5,21 @@
   <Folder Name="/services/notification/">
     <Project Path="services/notification/JamesThew.NotificationService.csproj" />
   </Folder>
+  <Folder Name="/services/media/">
+    <Project Path="services/media/JamesThew.MediaService.csproj" />
+  </Folder>
+  <Folder Name="/services/billing/">
+    <Project Path="services/billing/JamesThew.BillingService.csproj" />
+  </Folder>
+  <Folder Name="/services/contest/">
+    <Project Path="services/contest/JamesThew.ContestService.csproj" />
+  </Folder>
+  <Folder Name="/services/community/">
+    <Project Path="services/community/JamesThew.CommunityService.csproj" />
+  </Folder>
+  <Folder Name="/services/catalog/">
+    <Project Path="services/catalog/JamesThew.CatalogService.csproj" />
+  </Folder>
   <Folder Name="/shared/">
     <Project Path="shared/JamesThew.Shared.Contracts/JamesThew.Shared.Contracts.csproj" />
   </Folder>

@@ -19,6 +19,13 @@ namespace backend.DTOs
         public int EntryCount { get; set; }
     }
 
+    public class ContestSummaryDto
+    {
+        public int TotalContests { get; set; }
+        public int ActiveContests { get; set; }
+        public int TotalSubmissions { get; set; }
+    }
+
     /// <summary>
     /// Request DTO for creating a new contest (Admin only).
     /// </summary>

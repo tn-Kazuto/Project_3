@@ -1,6 +1,7 @@
 using System.Text;
 using JamesThew.MediaService.Data;
 using JamesThew.MediaService.Services;
+using JamesThew.Shared.Contracts.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -8,8 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("MediaConnection")
     ?? throw new InvalidOperationException("ConnectionStrings:MediaConnection is required.");
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key is required.");
+var jwtKey = JwtKeyValidator.GetRequiredKey(builder.Configuration["Jwt:Key"]);
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "JamesThewApi";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "JamesThewClient";
 

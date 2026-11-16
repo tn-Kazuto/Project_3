@@ -4,12 +4,19 @@ using backend.Middlewares;
 using backend.Repositories;
 using backend.Services;
 using backend.Services.EventBus;
+using JamesThew.Shared.Contracts.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Configuration["Billing:Enabled"] = "false";
+    builder.Configuration["RabbitMQ:Enabled"] = "false";
+}
 
 // 1. Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -35,13 +42,14 @@ builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHttpClient<IBillingServiceClient, BillingServiceClient>();
 
 // Domain services publish events; the Notification Service owns consumption and delivery.
 builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
+builder.Services.AddHostedService<RabbitMqConsumerWorker>();
 
 // 3. Authentication & JWT Bearer Configuration
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? "JamesThewCookingSecretKeyForJwtTokenAuth2026!#*VeryLongSecretKeyMustBe32BytesOrMore";
+var jwtKey = JwtKeyValidator.GetRequiredKey(builder.Configuration["Jwt:Key"]);
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "JamesThewApi";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "JamesThewClient";
 
@@ -76,7 +84,11 @@ builder.Services.AddControllers()
 
 // 5. CORS Policy - Restrict to allowed frontend origins according to SEC-TRN-01 & rules.md
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:3000", "http://localhost:5173", "http://localhost:8000" };
+    ?? Array.Empty<string>();
+if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing") && allowedOrigins.Length == 0)
+{
+    throw new InvalidOperationException("Cors:AllowedOrigins must be configured outside Development and Testing.");
+}
 
 builder.Services.AddCors(options =>
 {
@@ -140,19 +152,13 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // 7. Seed initial database data
-using (var scope = app.Services.CreateScope())
+await using (var scope = app.Services.CreateAsyncScope())
 {
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        await DbInitializer.InitializeAsync(context);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database: {Message}", ex.Message);
-    }
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DbInitializer.InitializeAsync(
+        context,
+        builder.Configuration["Seed:AdminPassword"],
+        builder.Configuration["Seed:DemoMemberPassword"]);
 }
 
 // 8. Middleware Pipeline

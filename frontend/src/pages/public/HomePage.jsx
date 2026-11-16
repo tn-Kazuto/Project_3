@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { recipeApi, contestApi, announcementApi } from '../../services/api';
 
+const FALLBACK_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80';
+
 export const HomePage = () => {
   const [recipes, setRecipes] = useState([]);
   const [contests, setContests] = useState([]);
@@ -142,6 +144,10 @@ export const HomePage = () => {
                       objectFit: 'cover',
                       filter: 'grayscale(15%) contrast(105%)',
                     }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                    }}
                   />
                   <div
                     className="p-3"
@@ -193,6 +199,10 @@ export const HomePage = () => {
                     className="w-100 h-100"
                     style={{ objectFit: 'cover' }}
                     loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                    }}
                   />
                 </div>
                 <div className="p-4 d-flex flex-column flex-grow-1">
@@ -220,6 +230,10 @@ export const HomePage = () => {
                     className="w-100 h-100"
                     style={{ objectFit: 'cover' }}
                     loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                    }}
                   />
                 </div>
                 <div className="p-4 d-flex flex-column flex-grow-1">
@@ -247,6 +261,10 @@ export const HomePage = () => {
                     className="w-100 h-100"
                     style={{ objectFit: 'cover' }}
                     loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                    }}
                   />
                 </div>
                 <div className="p-4 d-flex flex-column flex-grow-1">
@@ -320,13 +338,13 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* ── SECTION II: PALE TAUPE FIELD – WEEKEND CULINARY ACADEMY (Ruled Rows) ── */}
+      {/* ── SECTION II: PALE TAUPE FIELD – MASTERCLASSES & TASTING ATELIER (Ruled Rows) ── */}
       <section className="field-taupe py-5" style={{ backgroundColor: 'var(--dp-color-ground-2)' }}>
         <div className="container py-lg-4">
           <div className="row g-5">
             <div className="col-lg-4">
               <div className="roman-numeral mb-2">II &middot; MASTERCLASSES</div>
-              <h2 className="brand-font display-6 mb-3">Weekend Culinary Academy</h2>
+              <h2 className="brand-font display-6 mb-3">Masterclasses &amp; Tasting Atelier</h2>
               <p style={{ color: 'var(--dp-color-ink-2)', lineHeight: '1.7' }}>
                 Intensive in-person workshops curated for epicurean enthusiasts, aspiring chefs, and passionate home cooks.
               </p>
@@ -349,11 +367,15 @@ export const HomePage = () => {
 
               <div className="mt-4 overflow-hidden border" style={{ borderColor: 'var(--dp-color-rule)' }}>
                 <img
-                  src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80"
+                  src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80"
                   alt="Live Culinary Masterclass"
                   className="w-100"
                   style={{ height: '170px', objectFit: 'cover' }}
                   loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                  }}
                 />
                 <div className="p-2 text-center" style={{ backgroundColor: 'var(--dp-color-field)', color: 'var(--dp-color-on-field)' }}>
                   <span className="font-monospace small text-uppercase" style={{ letterSpacing: '0.14em', fontSize: '0.75rem' }}>
@@ -371,7 +393,7 @@ export const HomePage = () => {
                   <div>
                     <h5 className="brand-font mb-1">Weekend Schedule & Tasting Sessions</h5>
                     <p className="small mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
-                      Every Saturday & Sunday (10:00 AM – 3:00 PM) with 5-course tasting menu preparation
+                      Curriculum tasting sessions (10:00 AM – 3:00 PM) with 5-course tasting menu preparation
                     </p>
                   </div>
                 </div>
@@ -459,17 +481,19 @@ export const HomePage = () => {
                       </span>
                     </div>
 
-                    {r.imageUrl && (
-                      <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
-                        <img
-                          src={r.imageUrl}
-                          alt={r.title}
-                          className="w-100 h-100"
-                          style={{ objectFit: 'cover' }}
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
+                    <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
+                      <img
+                        src={r.imageUrl || FALLBACK_RECIPE_IMAGE}
+                        alt={r.title}
+                        className="w-100 h-100"
+                        style={{ objectFit: 'cover' }}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                        }}
+                      />
+                    </div>
 
                     <h4 className="brand-font mb-2" style={{ fontSize: '1.35rem' }}>
                       {r.title}
@@ -683,7 +707,7 @@ export const HomePage = () => {
           <div className="row g-5 align-items-center">
             {/* Left Content Column */}
             <div className="col-lg-6">
-              <h3
+              <h2
                 id="weekend-academy-cta"
                 className="brand-font mb-0"
                 style={{
@@ -695,7 +719,7 @@ export const HomePage = () => {
                 }}
               >
                 Weekend Culinary Academy
-              </h3>
+              </h2>
 
               <p
                 className="mt-3 mb-4"
@@ -735,7 +759,7 @@ export const HomePage = () => {
                         fontSize: '1.05rem',
                       }}
                     >
-                      Saturday &amp; Sunday
+                      Every Saturday &amp; Sunday
                     </div>
                   </div>
                   <div className="col-sm-6">
@@ -806,6 +830,10 @@ export const HomePage = () => {
                   loading="lazy"
                   width="1300"
                   height="900"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_RECIPE_IMAGE;
+                  }}
                 />
               </div>
             </div>

@@ -33,6 +33,7 @@ export const ProfilePage = () => {
   const [renewLoading, setRenewLoading] = useState(false);
   const [renewSuccess, setRenewSuccess] = useState('');
   const [renewError, setRenewError] = useState('');
+  const [renewIdempotencyKey, setRenewIdempotencyKey] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -171,17 +172,20 @@ export const ProfilePage = () => {
 
     try {
       setRenewLoading(true);
+      const idempotencyKey = renewIdempotencyKey || crypto.randomUUID();
+      setRenewIdempotencyKey(idempotencyKey);
       const res = await authApi.renewSubscription({
         planType: renewPlan,
         cardHolderName: cardHolderName.trim(),
         cardNumber: cardNumber.trim(),
         expiryDate: expiryDate.trim(),
         cvv: cvv.trim(),
-      });
+      }, idempotencyKey);
 
       if (res.data && res.data.success) {
         const updated = res.data.data;
         setProfile(updated);
+        setRenewIdempotencyKey('');
         setRenewSuccess('Subscription pass successfully renewed!');
         if (updateUser) {
           updateUser(updated);
@@ -581,7 +585,7 @@ export const ProfilePage = () => {
                   <div className="col-6">
                     <div
                       className={`p-3 text-center cursor-pointer border ${renewPlan === 'MONTHLY' ? 'border-warning' : 'border-secondary'}`}
-                      onClick={() => setRenewPlan('MONTHLY')}
+                      onClick={() => { setRenewIdempotencyKey(''); setRenewPlan('MONTHLY'); }}
                       style={{
                         backgroundColor: renewPlan === 'MONTHLY' ? 'rgba(182, 147, 85, 0.15)' : 'transparent',
                         borderColor: renewPlan === 'MONTHLY' ? 'var(--dp-color-accent)' : 'rgba(255,255,255,0.2)',
@@ -597,7 +601,7 @@ export const ProfilePage = () => {
                   <div className="col-6">
                     <div
                       className={`p-3 text-center cursor-pointer border ${renewPlan === 'YEARLY' ? 'border-warning' : 'border-secondary'}`}
-                      onClick={() => setRenewPlan('YEARLY')}
+                      onClick={() => { setRenewIdempotencyKey(''); setRenewPlan('YEARLY'); }}
                       style={{
                         backgroundColor: renewPlan === 'YEARLY' ? 'rgba(182, 147, 85, 0.15)' : 'transparent',
                         borderColor: renewPlan === 'YEARLY' ? 'var(--dp-color-accent)' : 'rgba(255,255,255,0.2)',
@@ -626,7 +630,7 @@ export const ProfilePage = () => {
                     className="form-control font-monospace"
                     style={{ backgroundColor: '#2a2826', color: '#ffffff', borderColor: 'rgba(255,255,255,0.2)', borderRadius: 0 }}
                     value={cardHolderName}
-                    onChange={(e) => setCardHolderName(e.target.value)}
+                    onChange={(e) => { setRenewIdempotencyKey(''); setCardHolderName(e.target.value); }}
                     placeholder="Full Name as on Card"
                     required
                   />
@@ -639,7 +643,7 @@ export const ProfilePage = () => {
                     className="form-control font-monospace"
                     style={{ backgroundColor: '#2a2826', color: '#ffffff', borderColor: 'rgba(255,255,255,0.2)', borderRadius: 0 }}
                     value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
+                    onChange={(e) => { setRenewIdempotencyKey(''); setCardNumber(e.target.value); }}
                     placeholder="4532 1234 5678 9012"
                     required
                   />
@@ -653,7 +657,7 @@ export const ProfilePage = () => {
                       className="form-control font-monospace"
                       style={{ backgroundColor: '#2a2826', color: '#ffffff', borderColor: 'rgba(255,255,255,0.2)', borderRadius: 0 }}
                       value={expiryDate}
-                      onChange={(e) => setExpiryDate(e.target.value)}
+                      onChange={(e) => { setRenewIdempotencyKey(''); setExpiryDate(e.target.value); }}
                       placeholder="12/28"
                       required
                     />
@@ -666,7 +670,7 @@ export const ProfilePage = () => {
                       className="form-control font-monospace"
                       style={{ backgroundColor: '#2a2826', color: '#ffffff', borderColor: 'rgba(255,255,255,0.2)', borderRadius: 0 }}
                       value={cvv}
-                      onChange={(e) => setCvv(e.target.value)}
+                      onChange={(e) => { setRenewIdempotencyKey(''); setCvv(e.target.value); }}
                       placeholder="123"
                       required
                     />

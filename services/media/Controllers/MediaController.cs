@@ -40,6 +40,9 @@ public sealed class MediaController(
 
         var now = DateTime.UtcNow;
         var expiresAtUtc = now.AddMinutes(15);
+        await dbContext.UploadTickets
+            .Where(item => item.ExpiresAtUtc < now.AddDays(-1))
+            .ExecuteDeleteAsync(cancellationToken);
         var ticketId = Guid.NewGuid();
         var response = cloudinary.CreateTicket(ticketId, userId, request.Kind, expiresAtUtc);
         var ticket = new MediaUploadTicket

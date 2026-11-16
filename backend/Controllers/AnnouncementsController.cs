@@ -32,6 +32,17 @@ namespace backend.Controllers
             return Ok(result);
         }
 
+        [HttpGet("paged")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<AnnouncementDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var result = await _announcementService.GetPagedAsync(page, pageSize);
+            return Ok(result);
+        }
+
         /// <summary>
         /// Retrieves announcement details by ID.
         /// </summary>

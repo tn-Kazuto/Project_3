@@ -132,13 +132,16 @@ describe('Functional Phase F1 Tests - Auth, Subscription & Profile', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(renewSpy).toHaveBeenCalledWith({
-        planType: 'YEARLY',
-        cardHolderName: 'Sophie Laurent',
-        cardNumber: '4532 9999 8888 7777',
-        expiryDate: '11/29',
-        cvv: '999',
-      });
+      expect(renewSpy).toHaveBeenCalledWith(
+        {
+          planType: 'YEARLY',
+          cardHolderName: 'Sophie Laurent',
+          cardNumber: '4532 9999 8888 7777',
+          expiryDate: '11/29',
+          cvv: '999',
+        },
+        expect.any(String)
+      );
     });
 
     await waitFor(() => {

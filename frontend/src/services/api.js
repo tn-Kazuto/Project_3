@@ -7,6 +7,39 @@ const api = axios.create({
   },
 });
 
+const withCommunityShareCounts = async (response) => {
+  const recipeData = response.data?.data;
+  const recipes = Array.isArray(recipeData)
+    ? recipeData
+    : Array.isArray(recipeData?.items)
+      ? recipeData.items
+      : null;
+  const recipeIds = recipes?.map((recipe) => recipe.recipeId).filter((id) => Number.isInteger(id) && id > 0) || [];
+
+  if (!response.data?.success || recipeIds.length === 0) return response;
+
+  const [shareCountsResult] = await Promise.allSettled([
+    api.get('/recipes/share-counts', { params: { ids: recipeIds.join(',') }, timeout: 5000 }),
+  ]);
+  if (shareCountsResult.status === 'rejected' || !shareCountsResult.value.data?.success) return response;
+
+  const shareCounts = shareCountsResult.value.data.data;
+  const recipesWithShareCounts = recipes.map((recipe) => ({
+    ...recipe,
+    shareCount: shareCounts[recipe.recipeId] ?? recipe.shareCount ?? 0,
+  }));
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      data: Array.isArray(recipeData)
+        ? recipesWithShareCounts
+        : { ...recipeData, items: recipesWithShareCounts },
+    },
+  };
+};
+
 // Attach JWT token from localStorage to outgoing requests
 api.interceptors.request.use(
   (config) => {
@@ -37,18 +70,21 @@ export const authApi = {
   getProfile: () => api.get('/users/profile'),
   updateProfile: (data) => api.put('/users/profile', data),
   changePassword: (data) => api.post('/users/change-password', data),
-  renewSubscription: (data) => api.post('/users/subscription/renew', data),
+  renewSubscription: (data, idempotencyKey) => api.post('/users/subscription/renew', data, {
+    headers: { 'Idempotency-Key': idempotencyKey },
+  }),
 };
 
 export const recipeApi = {
-  getAll: (params) => api.get('/recipes', { params }),
-  getPaged: (params) => api.get('/recipes/paged', { params }),
+  getAll: async (params) => withCommunityShareCounts(await api.get('/recipes', { params })),
+  getPaged: async (params) => withCommunityShareCounts(await api.get('/recipes/paged', { params })),
   getById: (id) => api.get(`/recipes/${id}`),
   getMyRecipes: () => api.get('/recipes/my-recipes'),
   create: (data) => api.post('/recipes', data),
   update: (id, data) => api.put(`/recipes/${id}`, data),
   delete: (id) => api.delete(`/recipes/${id}`),
-  share: (id) => api.post(`/recipes/${id}/share`),
+  share: (id, channel = 'external') => api.post(`/recipes/${id}/share`, { channel }),
+  getShareCount: (id) => api.get(`/recipes/${id}/shares`, { timeout: 5000 }),
 };
 
 export const tipApi = {
@@ -68,6 +104,8 @@ export const categoryApi = {
 
 export const contestApi = {
   getAll: (params) => api.get('/contests', { params }),
+  getSummary: () => api.get('/contests/summary'),
+  getPaged: (params) => api.get('/contests/paged', { params }),
   getById: (id) => api.get(`/contests/${id}`),
   create: (data) => api.post('/contests', data),
   delete: (id) => api.delete(`/contests/${id}`),
@@ -80,6 +118,7 @@ export const contestApi = {
 
 export const announcementApi = {
   getAll: () => api.get('/announcements'),
+  getPaged: (params) => api.get('/announcements/paged', { params }),
   getById: (id) => api.get(`/announcements/${id}`),
   create: (data) => api.post('/announcements', data),
   delete: (id) => api.delete(`/announcements/${id}`),
@@ -89,6 +128,7 @@ export const feedbackApi = {
   create: (data) => api.post('/feedbacks', data),
   getByRecipe: (recipeId) => api.get(`/feedbacks/recipe/${recipeId}`),
   getAll: () => api.get('/feedbacks'),
+  getPaged: (params) => api.get('/feedbacks/paged', { params }),
   delete: (id) => api.delete(`/feedbacks/${id}`),
 };
 
@@ -103,6 +143,11 @@ export const notificationApi = {
   getUnreadCount: () => api.get('/notifications/unread-count'),
   markAsRead: (id) => api.put(`/notifications/${id}/read`),
   markAllAsRead: () => api.put('/notifications/read-all'),
+};
+
+export const mediaApi = {
+  createUploadTicket: (data) => api.post('/media/upload-ticket', data),
+  completeUpload: (ticketId, data) => api.post(`/media/upload-ticket/${ticketId}/complete`, data),
 };
 
 export default api;

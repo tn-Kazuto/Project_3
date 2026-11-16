@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { recipeApi, tipApi, categoryApi } from '../../services/api';
+import { uploadMediaFile } from '../../services/mediaUpload';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
 
@@ -31,6 +32,7 @@ export const MyRecipesPage = () => {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -92,6 +94,7 @@ export const MyRecipesPage = () => {
     });
     setFormError('');
     setFormSuccess('');
+    setImageFile(null);
     setShowModal(true);
   };
 
@@ -109,6 +112,7 @@ export const MyRecipesPage = () => {
     });
     setFormError('');
     setFormSuccess('');
+    setImageFile(null);
     setShowModal(true);
   };
 
@@ -166,7 +170,9 @@ export const MyRecipesPage = () => {
           categoryId: parseInt(formData.categoryId, 10),
           ingredients: formData.ingredients.trim(),
           cookingProcedure: formData.cookingProcedure.trim(),
-          imageUrl: formData.imageUrl?.trim(),
+          imageUrl: imageFile
+            ? await uploadMediaFile(imageFile, 'image')
+            : formData.imageUrl?.trim(),
           isFree: isAdmin ? formData.isFree : false,
         };
 
@@ -192,7 +198,7 @@ export const MyRecipesPage = () => {
       setShowModal(false);
       loadData();
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Failed to save.');
+      setFormError(err.response?.data?.message || err.message || 'Failed to save.');
     } finally {
       setSubmitting(false);
     }
@@ -563,6 +569,18 @@ export const MyRecipesPage = () => {
                       value={formData.imageUrl}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     />
+                    <label className="form-label small fw-semibold mt-3" htmlFor="member-recipe-image-upload">Or upload an image (JPEG, PNG, WebP; max 100 MB)</label>
+                    <input
+                      id="member-recipe-image-upload"
+                      type="file"
+                      className="form-control"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                      aria-describedby="member-recipe-image-help"
+                    />
+                    <small id="member-recipe-image-help" className="form-text text-muted">
+                      {imageFile ? `Selected: ${imageFile.name}. The uploaded image will be used.` : 'Uploads are stored securely in Cloudinary.'}
+                    </small>
                     {formData.imageUrl && (
                       <div className="mt-2 p-2 bg-light border d-flex align-items-center gap-3" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
                         <div style={{ width: '80px', height: '60px', overflow: 'hidden', backgroundColor: '#e9ecef', flexShrink: 0 }}>

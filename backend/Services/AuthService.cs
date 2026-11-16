@@ -3,6 +3,7 @@ using backend.Entities;
 using backend.Repositories;
 using backend.Services.EventBus;
 using JamesThew.Shared.Contracts.Constants;
+using JamesThew.Shared.Contracts.DTOs.Billing;
 using JamesThew.Shared.Contracts.Events;
 
 namespace backend.Services
@@ -23,6 +24,7 @@ namespace backend.Services
         private readonly IEmailService? _emailService;
         private readonly IEventBus? _eventBus;
         private readonly ILogger<AuthService>? _logger;
+        private readonly IBillingServiceClient _billingServiceClient;
 
         public AuthService(
             IUnitOfWork uow, 
@@ -30,7 +32,8 @@ namespace backend.Services
             INotificationService? notificationService = null,
             IEmailService? emailService = null,
             IEventBus? eventBus = null,
-            ILogger<AuthService>? logger = null)
+            ILogger<AuthService>? logger = null,
+            IBillingServiceClient? billingServiceClient = null)
         {
             _uow = uow;
             _tokenService = tokenService;
@@ -38,9 +41,86 @@ namespace backend.Services
             _emailService = emailService;
             _eventBus = eventBus;
             _logger = logger;
+            _billingServiceClient = billingServiceClient ?? throw new InvalidOperationException("Billing service client is required.");
         }
 
         public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterRequest request)
+        {
+            return _billingServiceClient.IsEnabled
+                ? await RegisterWithBillingAsync(request)
+                : await RegisterLegacyAsync(request);
+        }
+
+        private async Task<ApiResponse<AuthResponseDto>> RegisterWithBillingAsync(RegisterRequest request)
+        {
+            var plan = request.PlanType.Trim().ToUpperInvariant();
+            if (plan != AppConstants.Plans.Monthly && plan != AppConstants.Plans.Yearly && plan != AppConstants.Plans.Annual)
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Invalid subscription plan. Allowed options: 'MONTHLY' ($10) or 'YEARLY' ($100).");
+            }
+
+            var userRepo = _uow.Repository<User>();
+            if (await userRepo.AnyAsync(user => user.Email.ToLower() == request.Email.ToLower()))
+            {
+                return ApiResponse<AuthResponseDto>.Fail("An account with this email address already exists.");
+            }
+            if (await userRepo.AnyAsync(user => user.Username.ToLower() == request.Username.ToLower()))
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Username is already taken. Please choose another.");
+            }
+
+            var user = new User
+            {
+                Username = request.Username.Trim(),
+                Email = request.Email.Trim().ToLowerInvariant(),
+                FullName = request.FullName.Trim(),
+                Phone = request.Phone?.Trim(),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Role = AppConstants.Roles.Member,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await userRepo.AddAsync(user);
+            await _uow.SaveChangesAsync();
+
+            try
+            {
+                var subscription = await _billingServiceClient.CreateRegistrationCheckoutAsync(user, request);
+                ApplySubscription(user, subscription);
+                userRepo.Update(user);
+                await _uow.SaveChangesAsync();
+
+                var (token, expiresAt) = _tokenService.GenerateJwtToken(user);
+                return ApiResponse<AuthResponseDto>.Ok(new AuthResponseDto
+                {
+                    Token = token,
+                    ExpiresAt = expiresAt,
+                    User = MapToUserDto(user)
+                }, "Registration and subscription payment completed successfully!");
+            }
+            catch (BillingServiceException exception)
+            {
+                if (exception.IsClientError)
+                {
+                    userRepo.Remove(user);
+                    await _uow.SaveChangesAsync();
+                    return ApiResponse<AuthResponseDto>.Fail(exception.Message);
+                }
+
+                _logger?.LogWarning(exception,
+                    "Billing checkout is not yet confirmed for newly registered user {UserId}.", user.UserId);
+                return ApiResponse<AuthResponseDto>.Fail(
+                    "Your account was created, but the subscription is still pending. Sign in and retry checkout from your profile.");
+            }
+            catch (Exception exception)
+            {
+                _logger?.LogError(exception, "Billing registration saga failed for user {UserId}.", user.UserId);
+                return ApiResponse<AuthResponseDto>.Fail(
+                    "Your account was created, but subscription activation could not be confirmed. Sign in and retry checkout from your profile.");
+            }
+        }
+
+        private async Task<ApiResponse<AuthResponseDto>> RegisterLegacyAsync(RegisterRequest request)
         {
             // 1. Validate subscription plan
             var planUpper = request.PlanType.Trim().ToUpperInvariant();
@@ -237,6 +317,14 @@ namespace backend.Services
                 IsSubscriptionActive = isActiveSubscription,
                 CreatedAt = user.CreatedAt
             };
+        }
+
+        private static void ApplySubscription(User user, BillingSubscriptionDto subscription)
+        {
+            user.SubscriptionPlan = subscription.PlanType;
+            user.SubscriptionAmount = subscription.Amount;
+            user.SubscriptionStart = subscription.StartDate;
+            user.SubscriptionEnd = subscription.EndDate;
         }
     }
 }

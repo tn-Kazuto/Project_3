@@ -58,6 +58,62 @@ namespace backend.Services
             return ApiResponse<IEnumerable<ContestDto>>.Ok(contests);
         }
 
+        public async Task<ApiResponse<ContestSummaryDto>> GetSummaryAsync()
+        {
+            var contests = _uow.Repository<Contest>().QueryReadOnly();
+            var now = DateTime.UtcNow;
+            var summary = new ContestSummaryDto
+            {
+                TotalContests = await contests.CountAsync(),
+                ActiveContests = await contests.CountAsync(contest => contest.IsActive && contest.EndDate >= now),
+                TotalSubmissions = await _uow.Repository<ContestEntry>().QueryReadOnly().CountAsync()
+            };
+
+            return ApiResponse<ContestSummaryDto>.Ok(summary);
+        }
+
+        public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestDto>>> GetPagedAsync(
+            int page, int pageSize, bool? activeOnly = null)
+        {
+            var query = _uow.Repository<Contest>().QueryReadOnly().AsQueryable();
+            if (activeOnly == true)
+            {
+                var now = DateTime.UtcNow;
+                query = query.Where(contest => contest.IsActive && contest.EndDate >= now);
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageIndex = Math.Max(1, page);
+            var safePageSize = Math.Clamp(pageSize, 1, 50);
+            var contests = await query
+                .OrderByDescending(contest => contest.StartDate)
+                .ThenByDescending(contest => contest.ContestId)
+                .Skip((pageIndex - 1) * safePageSize)
+                .Take(safePageSize)
+                .Select(contest => new ContestDto
+                {
+                    ContestId = contest.ContestId,
+                    Title = contest.Title,
+                    Description = contest.Description,
+                    ContestType = contest.ContestType,
+                    StartDate = contest.StartDate,
+                    EndDate = contest.EndDate,
+                    IsActive = contest.IsActive,
+                    CreatedBy = contest.CreatedBy,
+                    CreatorName = contest.Creator == null ? "Mr. James Thew" : contest.Creator.FullName,
+                    EntryCount = contest.Entries.Count
+                })
+                .ToListAsync();
+
+            return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestDto>>.Ok(new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestDto>
+            {
+                Items = contests,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = safePageSize
+            });
+        }
+
         public async Task<ApiResponse<ContestDto>> GetByIdAsync(int id)
         {
             var contest = await _uow.Repository<Contest>().QueryReadOnly()
@@ -233,6 +289,61 @@ namespace backend.Services
             }).ToList();
 
             return ApiResponse<IEnumerable<ContestEntryDto>>.Ok(dtos);
+        }
+
+        public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestEntryDto>>> GetPagedEntriesByContestAsync(
+            int contestId, int page, int pageSize, int? currentUserId = null,
+            string? clientIp = null, bool? orderByVotes = null)
+        {
+            var contestExists = await _uow.Repository<Contest>().AnyAsync(contest => contest.ContestId == contestId);
+            if (!contestExists)
+            {
+                return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestEntryDto>>.Fail("Contest not found.");
+            }
+
+            var query = _uow.Repository<ContestEntry>().QueryReadOnly()
+                .Where(entry => entry.ContestId == contestId);
+            var totalCount = await query.CountAsync();
+            var pageIndex = Math.Max(1, page);
+            var safePageSize = Math.Clamp(pageSize, 1, 50);
+            var orderedQuery = orderByVotes == true
+                ? query.OrderByDescending(entry => entry.VoteCount).ThenByDescending(entry => entry.SubmittedAt).ThenByDescending(entry => entry.EntryId)
+                : query.OrderByDescending(entry => entry.SubmittedAt).ThenByDescending(entry => entry.EntryId);
+            var entries = await orderedQuery
+                .Include(entry => entry.Contest)
+                .Include(entry => entry.User)
+                .Skip((pageIndex - 1) * safePageSize)
+                .Take(safePageSize)
+                .ToListAsync();
+
+            var voterIdentifier = currentUserId.HasValue
+                ? $"USER_{currentUserId.Value}"
+                : clientIp is not null ? $"IP_{clientIp}" : null;
+            var entryIds = entries.Select(entry => entry.EntryId).ToList();
+            var votedEntryIds = entryIds.Count == 0 || voterIdentifier is null
+                ? new List<int>()
+                : await _uow.Repository<ContestVote>().QueryReadOnly()
+                    .Where(vote => entryIds.Contains(vote.ContestEntryId) &&
+                        ((currentUserId.HasValue && vote.UserId == currentUserId.Value) ||
+                         vote.VoterIpOrEmail == voterIdentifier))
+                    .Select(vote => vote.ContestEntryId)
+                    .Distinct()
+                    .ToListAsync();
+            var votedEntryIdSet = votedEntryIds.ToHashSet();
+            var items = entries.Select(entry =>
+            {
+                var dto = MapEntryToDto(entry);
+                dto.HasUserVoted = votedEntryIdSet.Contains(entry.EntryId);
+                return dto;
+            }).ToList();
+
+            return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestEntryDto>>.Ok(new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<ContestEntryDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = safePageSize
+            });
         }
 
         public async Task<ApiResponse<ContestVoteResultDto>> VoteEntryAsync(

@@ -56,18 +56,28 @@ export const RecipeDetailPage = () => {
     const loadRecipeData = async () => {
       try {
         setLoading(true);
-        const [resRecipe, resFeedback] = await Promise.all([
+        const [recipeResult, feedbackResult, shareResult] = await Promise.allSettled([
           recipeApi.getById(id),
           feedbackApi.getByRecipe(id),
+          recipeApi.getShareCount(id),
         ]);
         if (!isMounted) return;
+        if (recipeResult.status === 'rejected') {
+          throw recipeResult.reason;
+        }
+
+        const resRecipe = recipeResult.value;
         if (resRecipe.data?.success) {
-          setRecipe(resRecipe.data.data);
+          const legacyCount = resRecipe.data.data.shareCount || 0;
+          const communityCount = shareResult.status === 'fulfilled' && shareResult.value.data?.success
+            ? shareResult.value.data.data
+            : legacyCount;
+          setRecipe({ ...resRecipe.data.data, shareCount: communityCount });
         } else {
           setError(resRecipe.data?.message || 'Recipe not found');
         }
-        if (resFeedback.data?.success) {
-          setFeedbacks(resFeedback.data.data);
+        if (feedbackResult.status === 'fulfilled' && feedbackResult.value.data?.success) {
+          setFeedbacks(feedbackResult.value.data.data);
         }
       } catch (err) {
         if (!isMounted) return;
@@ -172,7 +182,7 @@ export const RecipeDetailPage = () => {
     window.open(fbUrl, '_blank', 'width=600,height=500,scrollbars=yes,resizable=yes');
 
     try {
-      const res = await recipeApi.share(recipe.recipeId);
+      const res = await recipeApi.share(recipe.recipeId, 'facebook');
       if (res.data?.success) {
         setRecipe((prev) => ({ ...prev, shareCount: res.data.data }));
       }
@@ -190,7 +200,7 @@ export const RecipeDetailPage = () => {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 3000);
 
-      const res = await recipeApi.share(recipe.recipeId);
+      const res = await recipeApi.share(recipe.recipeId, 'link');
       if (res.data?.success) {
         setRecipe((prev) => ({ ...prev, shareCount: res.data.data }));
       }

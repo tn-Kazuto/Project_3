@@ -119,6 +119,13 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     role: 'ADMIN',
   };
 
+  const pagedResponse = (items, totalCount = items.length, page = 1, pageSize = 10) => ({
+    data: {
+      success: true,
+      data: { items, totalCount, pageIndex: page, pageSize, totalPages: Math.ceil(totalCount / pageSize) },
+    },
+  });
+
   const setupAdminMocks = () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: mockAdminUser,
@@ -132,6 +139,42 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     vi.spyOn(apiModule.contestApi, 'getAll').mockResolvedValue({ data: { success: true, data: mockContests } });
     vi.spyOn(apiModule.announcementApi, 'getAll').mockResolvedValue({ data: { success: true, data: mockAnnouncements } });
     vi.spyOn(apiModule.feedbackApi, 'getAll').mockResolvedValue({ data: { success: true, data: mockFeedbacks } });
+    vi.spyOn(apiModule.recipeApi, 'getPaged').mockImplementation(({ isFreeOnly, page = 1, pageSize = 10 }) => {
+      const items = isFreeOnly === true
+        ? mockRecipes.filter((recipe) => recipe.isFree)
+        : isFreeOnly === false
+          ? mockRecipes.filter((recipe) => !recipe.isFree)
+          : mockRecipes;
+      return Promise.resolve(pagedResponse(items.slice((page - 1) * pageSize, page * pageSize), items.length, page, pageSize));
+    });
+    vi.spyOn(apiModule.tipApi, 'getPaged').mockImplementation(({ isFreeOnly, page = 1, pageSize = 10 }) => {
+      const items = isFreeOnly === true
+        ? mockTips.filter((tip) => tip.isFree)
+        : isFreeOnly === false
+          ? mockTips.filter((tip) => !tip.isFree)
+          : mockTips;
+      return Promise.resolve(pagedResponse(items.slice((page - 1) * pageSize, page * pageSize), items.length, page, pageSize));
+    });
+    vi.spyOn(apiModule.contestApi, 'getPaged').mockResolvedValue(pagedResponse(mockContests));
+    vi.spyOn(apiModule.contestApi, 'getSummary').mockResolvedValue({
+      data: {
+        success: true,
+        data: {
+          totalContests: mockContests.length,
+          activeContests: mockContests.filter((contest) => contest.isActive).length,
+          totalSubmissions: mockContests.reduce((count, contest) => count + contest.entryCount, 0),
+        },
+      },
+    });
+    vi.spyOn(apiModule.announcementApi, 'getPaged').mockResolvedValue(pagedResponse(mockAnnouncements));
+    vi.spyOn(apiModule.feedbackApi, 'getPaged').mockImplementation(({ feedbackType, page = 1, pageSize = 10 }) => {
+      const items = feedbackType === 'RECIPE'
+        ? mockFeedbacks.filter((feedback) => feedback.recipeId != null)
+        : feedbackType === 'GENERAL'
+          ? mockFeedbacks.filter((feedback) => feedback.recipeId == null)
+          : mockFeedbacks;
+      return Promise.resolve(pagedResponse(items.slice((page - 1) * pageSize, page * pageSize), items.length, page, pageSize));
+    });
   };
 
   it('TC8.1 - Regular Member visiting /admin is redirected away', async () => {
@@ -184,7 +227,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     fireEvent.click(recipesTab);
 
     // Verify recipe is shown
-    expect(screen.getByText('Truffle Tagliatelle')).toBeInTheDocument();
+    expect(await screen.findByText('Truffle Tagliatelle')).toBeInTheDocument();
 
     // Click "Set Member-only" button to toggle IsFree
     const toggleBtn = screen.getByRole('button', { name: /Set Member-only/i });
@@ -247,7 +290,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
   it('TC8.4 - Admin can view contest entries', async () => {
     setupAdminMocks();
     const getEntriesSpy = vi.spyOn(apiModule.contestApi, 'getEntries').mockResolvedValue({
-      data: { success: true, data: mockContestEntries },
+      ...pagedResponse(mockContestEntries),
     });
 
     render(
@@ -264,11 +307,11 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Contests \(1\)/i }));
 
     // Click View Entries button
-    const viewEntriesBtn = screen.getByRole('button', { name: /View Entries/i });
+    const viewEntriesBtn = await screen.findByRole('button', { name: /View Entries/i });
     fireEvent.click(viewEntriesBtn);
 
     await waitFor(() => {
-      expect(getEntriesSpy).toHaveBeenCalledWith(1);
+      expect(getEntriesSpy).toHaveBeenCalledWith(1, { page: 1, pageSize: 10 });
       expect(screen.getByText('Submissions for: Mediterranean Seafood Championship')).toBeInTheDocument();
       expect(screen.getByText('Grilled Sea Bass with Salsa Verde')).toBeInTheDocument();
       expect(screen.getByText('Marco Polo')).toBeInTheDocument();
@@ -278,7 +321,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
   it('TC8.5 - Admin selects winner and seamlessly publishes announcement', async () => {
     setupAdminMocks();
     vi.spyOn(apiModule.contestApi, 'getEntries').mockResolvedValue({
-      data: { success: true, data: mockContestEntries },
+      ...pagedResponse(mockContestEntries),
     });
     const winnerSpy = vi.spyOn(apiModule.contestApi, 'selectWinner').mockResolvedValue({
       data: { success: true },
@@ -298,7 +341,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Contests \(1\)/i }));
-    fireEvent.click(screen.getByRole('button', { name: /View Entries/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /View Entries/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Grilled Sea Bass with Salsa Verde')).toBeInTheDocument();
@@ -344,18 +387,18 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Feedbacks \(2\)/i }));
 
     // Both feedbacks should be listed initially
-    expect(screen.getByText('Absolutely heavenly recipe!')).toBeInTheDocument();
+    expect(await screen.findByText('Absolutely heavenly recipe!')).toBeInTheDocument();
     expect(screen.getByText('Love the new website design and easy navigation!')).toBeInTheDocument();
 
     // Filter by Recipe Reviews
     fireEvent.click(screen.getByRole('button', { name: /Recipe Reviews/i }));
-    expect(screen.getByText('Absolutely heavenly recipe!')).toBeInTheDocument();
-    expect(screen.queryByText('Love the new website design and easy navigation!')).not.toBeInTheDocument();
+    expect(await screen.findByText('Absolutely heavenly recipe!')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Love the new website design and easy navigation!')).not.toBeInTheDocument());
 
     // Filter by General Website
     fireEvent.click(screen.getByRole('button', { name: /Website Feedback/i }));
-    expect(screen.getByText('Love the new website design and easy navigation!')).toBeInTheDocument();
-    expect(screen.queryByText('Absolutely heavenly recipe!')).not.toBeInTheDocument();
+    expect(await screen.findByText('Love the new website design and easy navigation!')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Absolutely heavenly recipe!')).not.toBeInTheDocument());
   });
 
   it('TC8.7 - Admin manages cooking tips (toggle access & delete)', async () => {
@@ -377,7 +420,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     // Switch to Tips tab
     fireEvent.click(screen.getByRole('button', { name: /Cooking Tips \(1\)/i }));
 
-    expect(screen.getByText('Knife Sharpening Mastery')).toBeInTheDocument();
+    expect(await screen.findByText('Knife Sharpening Mastery')).toBeInTheDocument();
 
     // Toggle to Free
     const toggleBtn = screen.getByRole('button', { name: /Set Free/i });

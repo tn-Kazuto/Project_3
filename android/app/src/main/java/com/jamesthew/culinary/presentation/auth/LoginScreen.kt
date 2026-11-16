@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.jamesthew.culinary.core.theme.*
 import com.jamesthew.culinary.presentation.common.LuxuryButton
 
@@ -29,8 +28,8 @@ fun LoginScreen(
     onContinueAsGuest: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var username by remember { mutableStateOf("member_monthly") }
-    var password by remember { mutableStateOf("Member@123") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -146,37 +145,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Quick Credentials for Testing
-        Text(
-            text = "Tài khoản mẫu để test nhanh:",
-            color = LuxuryTextMuted,
-            style = MaterialTheme.typography.labelSmall
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            OutlinedButton(
-                onClick = {
-                    username = "member_monthly"
-                    password = "Member@123"
-                },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = LuxuryGold)
-            ) {
-                Text("Member", fontSize = 12.sp)
-            }
-            OutlinedButton(
-                onClick = {
-                    username = "james"
-                    password = "Admin@123456"
-                },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = LuxuryGold)
-            ) {
-                Text("Admin (Chef)", fontSize = 12.sp)
-            }
-        }
     }
 }
 

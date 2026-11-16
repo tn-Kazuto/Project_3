@@ -16,6 +16,9 @@ namespace backend.tests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
+            builder.UseSetting("Jwt:Key", "test-only-jwt-signing-key-for-jamesthew-backend-suite");
+            builder.UseSetting("Seed:AdminPassword", "TestOnlyAdminSeedPassword!2026");
+            builder.UseSetting("Seed:DemoMemberPassword", "TestOnlyMemberSeedPassword!2026");
 
             builder.ConfigureServices(services =>
             {

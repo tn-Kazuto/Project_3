@@ -1,5 +1,7 @@
 using backend.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace backend.Data
 {
@@ -11,7 +13,10 @@ namespace backend.Data
     /// </summary>
     public static class DbInitializer
     {
-        public static async Task InitializeAsync(ApplicationDbContext context)
+        public static async Task InitializeAsync(
+            ApplicationDbContext context,
+            string? adminSeedPassword,
+            string? demoMemberPassword)
         {
             await context.Database.EnsureCreatedAsync();
 
@@ -86,13 +91,14 @@ END;
             // 1. Seed Admin user (Mr. James Thew) & VIP Members
             if (!await context.Users.AnyAsync(u => u.Role == "ADMIN"))
             {
+                ValidateSeedPassword(adminSeedPassword, "Seed:AdminPassword");
                 var admin = new User
                 {
                     Username = "james",
                     Email = "james@jamesthew.com",
                     FullName = "James Thew",
                     Phone = "+1-555-0199",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456"),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminSeedPassword!),
                     Role = "ADMIN",
                     SubscriptionPlan = null,
                     SubscriptionAmount = null,
@@ -105,9 +111,12 @@ END;
                 await context.SaveChangesAsync();
             }
 
-            var memberHash = BCrypt.Net.BCrypt.HashPassword("Member@123456");
             if (!await context.Users.AnyAsync(u => u.Email == "sophia@culinaryart.com"))
             {
+                var password = string.IsNullOrWhiteSpace(demoMemberPassword)
+                    ? Convert.ToBase64String(RandomNumberGenerator.GetBytes(48))
+                    : ValidateSeedPassword(demoMemberPassword, "Seed:DemoMemberPassword");
+                var memberHash = BCrypt.Net.BCrypt.HashPassword(password);
                 var sophia = new User
                 {
                     Username = "sophia.laurent",
@@ -843,6 +852,20 @@ END;
                     await context.SaveChangesAsync();
                 }
             }
+        }
+
+        private static string ValidateSeedPassword(string? password, string settingName)
+        {
+            var passwordBytes = string.IsNullOrWhiteSpace(password)
+                ? 0
+                : Encoding.UTF8.GetByteCount(password);
+            if (passwordBytes is < 16 or > 72)
+            {
+                throw new InvalidOperationException(
+                    $"{settingName} must contain between 16 and 72 UTF-8 bytes.");
+            }
+
+            return password!;
         }
     }
 }
