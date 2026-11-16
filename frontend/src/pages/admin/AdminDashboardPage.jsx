@@ -7,21 +7,6 @@ import {
   announcementApi,
   feedbackApi,
 } from '../../services/api';
-import { uploadMediaFile } from '../../services/mediaUpload';
-import AdminPagination from './components/AdminPagination';
-import AdminTableState from './components/AdminTableState';
-
-const INITIAL_PAGE_SIZE = 10;
-
-const getPagedPayload = (response) => {
-  const payload = response?.data?.data;
-  if (!response?.data?.success || !payload || !Array.isArray(payload.items)) {
-    throw new Error(response?.data?.message || 'The server returned an invalid paginated response.');
-  }
-  return payload;
-};
-
-const getRequestError = (error, fallback) => error?.response?.data?.message || error?.message || fallback;
 
 export const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -35,32 +20,11 @@ export const AdminDashboardPage = () => {
   const [contests, setContests] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
-  const [totalCounts, setTotalCounts] = useState({ recipes: 0, tips: 0, contests: 0, announcements: 0, feedback: 0 });
-  const [overviewCounts, setOverviewCounts] = useState({
-    recipeFree: 0,
-    recipeMembers: 0,
-    tipFree: 0,
-    tipMembers: 0,
-    contestsActive: 0,
-    contestSubmissions: 0,
-    recipeFeedback: 0,
-    siteFeedback: 0,
-  });
-  const [pageSize, setPageSize] = useState(INITIAL_PAGE_SIZE);
-  const [pages, setPages] = useState({ recipes: 1, tips: 1, contests: 1, announcements: 1, feedback: 1 });
-  const [pageMeta, setPageMeta] = useState({});
-  const [listLoading, setListLoading] = useState(false);
-  const [listError, setListError] = useState('');
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [announcementContests, setAnnouncementContests] = useState([]);
 
   // Contest Entries Sub-view state
   const [selectedContestForEntries, setSelectedContestForEntries] = useState(null);
   const [contestEntries, setContestEntries] = useState([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
-  const [entryError, setEntryError] = useState('');
-  const [entryPage, setEntryPage] = useState(1);
-  const [entryMeta, setEntryMeta] = useState({ pageIndex: 1, pageSize: INITIAL_PAGE_SIZE, totalCount: 0, totalPages: 0 });
 
   // Modal states
   const [showRecipeModal, setShowRecipeModal] = useState(false);
@@ -78,10 +42,7 @@ export const AdminDashboardPage = () => {
     contentType: 'ARTICLE',
     videoUrl: '',
     thumbnailUrl: '',
-    videoFile: null,
-    thumbnailFile: null,
   });
-  const [savingRecipe, setSavingRecipe] = useState(false);
 
   // Tip Modal Form
   const [tipForm, setTipForm] = useState({
@@ -112,199 +73,42 @@ export const AdminDashboardPage = () => {
   const [feedbackFilter, setFeedbackFilter] = useState('ALL');
 
   const isMountedRef = useRef(true);
-  const listRequestIdRef = useRef(0);
-  const entryRequestIdRef = useRef(0);
-  const pageMetaRef = useRef({});
-  const entryMetaRef = useRef({ pageIndex: 1, pageSize: INITIAL_PAGE_SIZE, totalCount: 0, totalPages: 0 });
 
-  const loadDashboardSummary = async () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+    loadAllDashboardData();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const loadAllDashboardData = async () => {
     try {
       if (isMountedRef.current) setLoading(true);
-      const oneItemPage = { page: 1, pageSize: 1 };
-      const [
-        catRes,
-        recipeRes,
-        recipeFreeRes,
-        recipeMembersRes,
-        tipRes,
-        tipFreeRes,
-        tipMembersRes,
-        contestSummaryRes,
-        announcementRes,
-        feedbackRes,
-        recipeFeedbackRes,
-        siteFeedbackRes,
-      ] = await Promise.all([
+      const [catRes, recRes, tipRes, contRes, annRes, fbRes] = await Promise.all([
         categoryApi.getAll(),
-        recipeApi.getPaged(oneItemPage),
-        recipeApi.getPaged({ ...oneItemPage, isFreeOnly: true }),
-        recipeApi.getPaged({ ...oneItemPage, isFreeOnly: false }),
-        tipApi.getPaged(oneItemPage),
-        tipApi.getPaged({ ...oneItemPage, isFreeOnly: true }),
-        tipApi.getPaged({ ...oneItemPage, isFreeOnly: false }),
-        contestApi.getSummary(),
-        announcementApi.getPaged(oneItemPage),
-        feedbackApi.getPaged({ ...oneItemPage, feedbackType: 'ALL' }),
-        feedbackApi.getPaged({ ...oneItemPage, feedbackType: 'RECIPE' }),
-        feedbackApi.getPaged({ ...oneItemPage, feedbackType: 'GENERAL' }),
+        recipeApi.getAll(),
+        tipApi.getAll(),
+        contestApi.getAll(),
+        announcementApi.getAll(),
+        feedbackApi.getAll(),
       ]);
 
       if (!isMountedRef.current) return;
-      const recipePage = getPagedPayload(recipeRes);
-      const tipPage = getPagedPayload(tipRes);
-      const announcementPage = getPagedPayload(announcementRes);
-      const feedbackPage = getPagedPayload(feedbackRes);
-      const contestSummary = contestSummaryRes.data?.data;
-      if (!contestSummaryRes.data?.success || !contestSummary) {
-        throw new Error(contestSummaryRes.data?.message || 'The server returned invalid contest summary data.');
-      }
-      setCategories(catRes.data?.success ? catRes.data.data || [] : []);
-      setTotalCounts({
-        recipes: recipePage.totalCount,
-        tips: tipPage.totalCount,
-        contests: contestSummary.totalContests,
-        announcements: announcementPage.totalCount,
-        feedback: feedbackPage.totalCount,
-      });
-      setOverviewCounts({
-        recipeFree: getPagedPayload(recipeFreeRes).totalCount,
-        recipeMembers: getPagedPayload(recipeMembersRes).totalCount,
-        tipFree: getPagedPayload(tipFreeRes).totalCount,
-        tipMembers: getPagedPayload(tipMembersRes).totalCount,
-        contestsActive: contestSummary.activeContests,
-        contestSubmissions: contestSummary.totalSubmissions,
-        recipeFeedback: getPagedPayload(recipeFeedbackRes).totalCount,
-        siteFeedback: getPagedPayload(siteFeedbackRes).totalCount,
-      });
-      setLastUpdated(new Date());
+      if (catRes.data?.success) setCategories(catRes.data.data || []);
+      if (recRes.data?.success) setRecipes(recRes.data.data || []);
+      if (tipRes.data?.success) setTips(tipRes.data.data || []);
+      if (contRes.data?.success) setContests(contRes.data.data || []);
+      if (annRes.data?.success) setAnnouncements(annRes.data.data || []);
+      if (fbRes.data?.success) setFeedbacks(fbRes.data.data || []);
     } catch (err) {
       if (!isMountedRef.current) return;
-      setStatusMessage({ type: 'danger', text: getRequestError(err, 'Unable to load dashboard metrics. Please retry.') });
+      console.error(err);
+      setStatusMessage({ type: 'danger', text: 'Error loading dashboard metrics.' });
     } finally {
       if (isMountedRef.current) setLoading(false);
     }
   };
-
-  const loadManagementPage = async (tab, page = pages[tab], requestedPageSize = pageSize, filter = feedbackFilter) => {
-    const requestId = ++listRequestIdRef.current;
-    const params = { page, pageSize: requestedPageSize };
-    const requests = {
-      recipes: () => recipeApi.getPaged(params),
-      tips: () => tipApi.getPaged(params),
-      contests: () => contestApi.getPaged(params),
-      announcements: () => announcementApi.getPaged(params),
-      feedback: () => feedbackApi.getPaged({ ...params, feedbackType: filter }),
-    };
-    if (!requests[tab]) return;
-
-    setListLoading(true);
-    setListError('');
-    try {
-      const payload = getPagedPayload(await requests[tab]());
-      if (!isMountedRef.current || requestId !== listRequestIdRef.current) return;
-      const lastPage = Math.max(1, payload.totalPages);
-      if (page > lastPage) {
-        setPages((current) => ({ ...current, [tab]: lastPage }));
-        return;
-      }
-      const previousPage = pageMetaRef.current[tab];
-      if (page > 1 && previousPage && previousPage.totalCount !== payload.totalCount) {
-        setPages((current) => ({ ...current, [tab]: 1 }));
-        return;
-      }
-
-      if (tab === 'recipes') setRecipes(payload.items);
-      if (tab === 'tips') setTips(payload.items);
-      if (tab === 'contests') setContests(payload.items);
-      if (tab === 'announcements') setAnnouncements(payload.items);
-      if (tab === 'feedback') setFeedbacks(payload.items);
-      pageMetaRef.current = { ...pageMetaRef.current, [tab]: payload };
-      setPageMeta((current) => ({ ...current, [tab]: payload }));
-      if (tab !== 'feedback' || filter === 'ALL') {
-        setTotalCounts((current) => ({ ...current, [tab]: payload.totalCount }));
-      }
-      setLastUpdated(new Date());
-    } catch (err) {
-      if (!isMountedRef.current || requestId !== listRequestIdRef.current) return;
-      setListError(getRequestError(err, 'Unable to load this management list.'));
-    } finally {
-      if (isMountedRef.current && requestId === listRequestIdRef.current) setListLoading(false);
-    }
-  };
-
-  const loadContestEntries = async (contest, page = entryPage, requestedPageSize = pageSize) => {
-    if (!contest) return;
-    const requestId = ++entryRequestIdRef.current;
-    setLoadingEntries(true);
-    setEntryError('');
-    try {
-      const response = await contestApi.getEntries(contest.contestId, { page, pageSize: requestedPageSize });
-      const payload = getPagedPayload(response);
-      if (!isMountedRef.current || requestId !== entryRequestIdRef.current) return;
-      const lastPage = Math.max(1, payload.totalPages);
-      if (page > lastPage) {
-        setEntryPage(lastPage);
-        return;
-      }
-      if (page > 1 && entryMetaRef.current.totalCount !== payload.totalCount) {
-        setEntryPage(1);
-        return;
-      }
-      setContestEntries(payload.items);
-      entryMetaRef.current = payload;
-      setEntryMeta(payload);
-      setLastUpdated(new Date());
-    } catch (err) {
-      if (!isMountedRef.current || requestId !== entryRequestIdRef.current) return;
-      setEntryError(getRequestError(err, 'Unable to load contest submissions.'));
-    } finally {
-      if (isMountedRef.current && requestId === entryRequestIdRef.current) setLoadingEntries(false);
-    }
-  };
-
-  const loadAllDashboardData = async () => {
-    await loadDashboardSummary();
-    if (activeTab !== 'overview') {
-      await loadManagementPage(activeTab, pages[activeTab], pageSize, feedbackFilter);
-      if (activeTab === 'contests' && selectedContestForEntries) {
-        await loadContestEntries(selectedContestForEntries, entryPage, pageSize);
-      }
-    }
-  };
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    loadDashboardSummary();
-    return () => {
-      isMountedRef.current = false;
-      listRequestIdRef.current += 1;
-      entryRequestIdRef.current += 1;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (activeTab === 'overview') return undefined;
-    const refreshActivePage = () => {
-      if (document.visibilityState === 'visible') {
-        loadManagementPage(activeTab, pages[activeTab], pageSize, feedbackFilter);
-      }
-    };
-    refreshActivePage();
-    const intervalId = window.setInterval(refreshActivePage, 30000);
-    return () => window.clearInterval(intervalId);
-  }, [activeTab, pages[activeTab], pageSize, feedbackFilter]);
-
-  useEffect(() => {
-    if (activeTab !== 'contests' || !selectedContestForEntries) return undefined;
-    const refreshEntries = () => {
-      if (document.visibilityState === 'visible') {
-        loadContestEntries(selectedContestForEntries, entryPage, pageSize);
-      }
-    };
-    refreshEntries();
-    const intervalId = window.setInterval(refreshEntries, 30000);
-    return () => window.clearInterval(intervalId);
-  }, [activeTab, selectedContestForEntries?.contestId, entryPage, pageSize]);
 
   // Recipe actions
   const handleToggleRecipeFree = async (recipe) => {
@@ -343,36 +147,25 @@ export const AdminDashboardPage = () => {
 
   const handleCreateRecipe = async (e) => {
     e.preventDefault();
-    setSavingRecipe(true);
     try {
-      const videoUrl = recipeForm.videoFile
-        ? await uploadMediaFile(recipeForm.videoFile, 'video')
-        : recipeForm.videoUrl?.trim() || null;
-      const thumbnailUrl = recipeForm.thumbnailFile
-        ? await uploadMediaFile(recipeForm.thumbnailFile, 'image')
-        : recipeForm.thumbnailUrl?.trim() || null;
       const res = await recipeApi.create({
         categoryId: parseInt(recipeForm.categoryId || categories[0]?.categoryId),
         title: recipeForm.title,
         ingredients: recipeForm.ingredients,
         cookingProcedure: recipeForm.cookingProcedure,
         isFree: recipeForm.isFree,
-        contentType: recipeForm.videoFile && recipeForm.contentType === 'ARTICLE'
-          ? 'VIDEO'
-          : recipeForm.contentType || 'ARTICLE',
-        videoUrl,
-        thumbnailUrl,
+        contentType: recipeForm.contentType || 'ARTICLE',
+        videoUrl: recipeForm.videoUrl?.trim() || null,
+        thumbnailUrl: recipeForm.thumbnailUrl?.trim() || null,
       });
       if (res.data?.success) {
         setStatusMessage({ type: 'success', text: 'New recipe created successfully!' });
         setShowRecipeModal(false);
-        setRecipeForm({ categoryId: '', title: '', ingredients: '', cookingProcedure: '', isFree: false, contentType: 'ARTICLE', videoUrl: '', thumbnailUrl: '', videoFile: null, thumbnailFile: null });
+        setRecipeForm({ categoryId: '', title: '', ingredients: '', cookingProcedure: '', isFree: false, contentType: 'ARTICLE', videoUrl: '', thumbnailUrl: '' });
         loadAllDashboardData();
       }
     } catch (err) {
-      setStatusMessage({ type: 'danger', text: err.response?.data?.message || err.message || 'Failed to create recipe.' });
-    } finally {
-      setSavingRecipe(false);
+      setStatusMessage({ type: 'danger', text: err.response?.data?.message || 'Failed to create recipe.' });
     }
   };
 
@@ -474,20 +267,17 @@ export const AdminDashboardPage = () => {
 
   const handleViewEntries = async (contest) => {
     setSelectedContestForEntries(contest);
-    setEntryPage(1);
     setLoadingEntries(true);
-    setContestEntries([]);
-    setEntryMeta({ pageIndex: 1, pageSize, totalCount: 0, totalPages: 0 });
-    setEntryError('');
-  };
-
-  const handleOpenAnnouncementModal = async () => {
-    setShowAnnouncementModal(true);
     try {
-      const response = await contestApi.getAll();
-      if (response.data?.success) setAnnouncementContests(response.data.data || []);
+      const res = await contestApi.getEntries(contest.contestId);
+      if (res.data?.success) {
+        setContestEntries(res.data.data || []);
+      }
     } catch (err) {
-      setStatusMessage({ type: 'danger', text: getRequestError(err, 'Unable to load contests for the announcement form.') });
+      console.error(err);
+      setStatusMessage({ type: 'danger', text: 'Failed to load entries for this contest.' });
+    } finally {
+      setLoadingEntries(false);
     }
   };
 
@@ -506,13 +296,9 @@ export const AdminDashboardPage = () => {
           contestId: entry.contestId,
           winnerEntryId: entry.entryId,
         });
-        setAnnouncementContests((current) => [
-          selectedContestForEntries,
-          ...current.filter((contest) => contest.contestId !== selectedContestForEntries?.contestId),
-        ].filter(Boolean));
         setShowAnnouncementModal(true);
         // Refresh entries and contests
-        loadContestEntries(selectedContestForEntries, entryPage, pageSize);
+        handleViewEntries(selectedContestForEntries);
         loadAllDashboardData();
       }
     } catch {
@@ -560,7 +346,7 @@ export const AdminDashboardPage = () => {
       const res = await feedbackApi.delete(id);
       if (res.data?.success) {
         setStatusMessage({ type: 'success', text: 'Feedback removed successfully.' });
-        loadAllDashboardData();
+        setFeedbacks(feedbacks.filter((f) => f.feedbackId !== id));
       } else {
         setStatusMessage({ type: 'danger', text: 'Failed to delete feedback.' });
       }
@@ -574,45 +360,6 @@ export const AdminDashboardPage = () => {
     if (feedbackFilter === 'GENERAL') return fb.recipeId === null;
     return true;
   });
-
-  const handlePageSizeChange = (newPageSize) => {
-    setListLoading(true);
-    if (selectedContestForEntries) setLoadingEntries(true);
-    setPageSize(newPageSize);
-    setPages({ recipes: 1, tips: 1, contests: 1, announcements: 1, feedback: 1 });
-    setEntryPage(1);
-  };
-
-  const renderManagementTableState = (items, colSpan, emptyMessage, onRetry) => {
-    const hasPage = Boolean(pageMeta[activeTab]);
-    if (listError) {
-      return <AdminTableState colSpan={colSpan} error={listError} emptyMessage={emptyMessage} onRetry={onRetry} />;
-    }
-    if (listLoading && !hasPage) {
-      return <AdminTableState colSpan={colSpan} loading emptyMessage={emptyMessage} onRetry={onRetry} />;
-    }
-    if (!listLoading && items.length === 0) {
-      return <AdminTableState colSpan={colSpan} emptyMessage={emptyMessage} onRetry={onRetry} />;
-    }
-    return null;
-  };
-
-  const changeManagementPage = (tab, nextPage) => {
-    setListLoading(true);
-    setPages((current) => ({ ...current, [tab]: nextPage }));
-  };
-
-  const renderManagementPagination = (tab, label) => (
-    <AdminPagination
-      page={pages[tab]}
-      pageSize={pageSize}
-      totalCount={pageMeta[tab]?.totalCount ?? totalCounts[tab]}
-      onPageChange={(nextPage) => changeManagementPage(tab, nextPage)}
-      onPageSizeChange={handlePageSizeChange}
-      disabled={listLoading}
-      label={label}
-    />
-  );
 
   return (
     <div className="container-fluid py-4 px-md-5 luxury-admin">
@@ -639,11 +386,9 @@ export const AdminDashboardPage = () => {
             className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
             style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)', letterSpacing: '0.12em' }}
             onClick={loadAllDashboardData}
-            disabled={loading || listLoading}
           >
-            {loading || listLoading ? 'Refreshing…' : 'Refresh'}
+            Refresh
           </button>
-          {lastUpdated && <span className="small text-muted align-self-center">Updated {lastUpdated.toLocaleTimeString()}</span>}
         </div>
       </div>
 
@@ -681,9 +426,9 @@ export const AdminDashboardPage = () => {
               borderRadius: 0,
               letterSpacing: '0.12em',
             }}
-            onClick={() => { setListLoading(true); setActiveTab('recipes'); setSelectedContestForEntries(null); }}
+            onClick={() => { setActiveTab('recipes'); setSelectedContestForEntries(null); }}
           >
-            Recipes ({totalCounts.recipes})
+            Recipes ({recipes.length})
           </button>
         </li>
         <li className="nav-item">
@@ -696,9 +441,9 @@ export const AdminDashboardPage = () => {
               borderRadius: 0,
               letterSpacing: '0.12em',
             }}
-            onClick={() => { setListLoading(true); setActiveTab('tips'); setSelectedContestForEntries(null); }}
+            onClick={() => { setActiveTab('tips'); setSelectedContestForEntries(null); }}
           >
-            Cooking Tips ({totalCounts.tips})
+            Cooking Tips ({tips.length})
           </button>
         </li>
         <li className="nav-item">
@@ -711,9 +456,9 @@ export const AdminDashboardPage = () => {
               borderRadius: 0,
               letterSpacing: '0.12em',
             }}
-            onClick={() => { setListLoading(true); setActiveTab('contests'); setSelectedContestForEntries(null); }}
+            onClick={() => { setActiveTab('contests'); setSelectedContestForEntries(null); }}
           >
-            Contests ({totalCounts.contests})
+            Contests ({contests.length})
           </button>
         </li>
         <li className="nav-item">
@@ -726,9 +471,9 @@ export const AdminDashboardPage = () => {
               borderRadius: 0,
               letterSpacing: '0.12em',
             }}
-            onClick={() => { setListLoading(true); setActiveTab('announcements'); setSelectedContestForEntries(null); }}
+            onClick={() => { setActiveTab('announcements'); setSelectedContestForEntries(null); }}
           >
-            Announcements ({totalCounts.announcements})
+            Announcements ({announcements.length})
           </button>
         </li>
         <li className="nav-item">
@@ -741,9 +486,9 @@ export const AdminDashboardPage = () => {
               borderRadius: 0,
               letterSpacing: '0.12em',
             }}
-            onClick={() => { setListLoading(true); setActiveTab('feedback'); setSelectedContestForEntries(null); }}
+            onClick={() => { setActiveTab('feedback'); setSelectedContestForEntries(null); }}
           >
-            Feedbacks ({totalCounts.feedback})
+            Feedbacks ({feedbacks.length})
           </button>
         </li>
       </ul>
@@ -763,10 +508,10 @@ export const AdminDashboardPage = () => {
                 <span className="text-uppercase small fw-semibold font-monospace" style={{ letterSpacing: '0.12em' }}>Total Recipes</span>
                 <span className="font-monospace small text-muted">I.</span>
               </div>
-              <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{totalCounts.recipes}</h2>
+              <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{recipes.length}</h2>
               <div className="small font-monospace text-muted">
-                <span className="fw-semibold text-success">{overviewCounts.recipeFree} Free</span> &middot;{' '}
-                <span className="fw-semibold text-dark">{overviewCounts.recipeMembers} Members</span>
+                <span className="fw-semibold text-success">{recipes.filter((r) => r.isFree).length} Free</span> &middot;{' '}
+                <span className="fw-semibold text-dark">{recipes.filter((r) => !r.isFree).length} Members</span>
               </div>
             </div>
           </div>
@@ -783,10 +528,10 @@ export const AdminDashboardPage = () => {
                 <span className="text-uppercase small fw-semibold font-monospace" style={{ letterSpacing: '0.12em' }}>Cooking Tips</span>
                 <span className="font-monospace small text-muted">II.</span>
               </div>
-              <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{totalCounts.tips}</h2>
+              <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{tips.length}</h2>
               <div className="small font-monospace text-muted">
-                <span className="fw-semibold text-success">{overviewCounts.tipFree} Free</span> &middot;{' '}
-                <span className="fw-semibold text-dark">{overviewCounts.tipMembers} Members</span>
+                <span className="fw-semibold text-success">{tips.filter((t) => t.isFree).length} Free</span> &middot;{' '}
+                <span className="fw-semibold text-dark">{tips.filter((t) => !t.isFree).length} Members</span>
               </div>
             </div>
           </div>
@@ -807,10 +552,10 @@ export const AdminDashboardPage = () => {
                 </span>
                 <span className="font-monospace small" style={{ color: 'var(--dp-color-accent)' }}>III.</span>
               </div>
-              <h2 className="brand-font display-5 fw-bold mb-1 text-white">{totalCounts.contests}</h2>
+              <h2 className="brand-font display-5 fw-bold mb-1 text-white">{contests.length}</h2>
               <div className="small font-monospace" style={{ color: 'var(--dp-color-on-field-2)' }}>
-                <span className="fw-semibold text-success">{overviewCounts.contestsActive} Active</span> &middot;{' '}
-                <span>{overviewCounts.contestSubmissions} Total Submissions</span>
+                <span className="fw-semibold text-success">{contests.filter((c) => c.isActive).length} Active</span> &middot;{' '}
+                <span>{contests.reduce((acc, c) => acc + (c.entryCount || 0), 0)} Total Submissions</span>
               </div>
             </div>
           </div>
@@ -827,10 +572,10 @@ export const AdminDashboardPage = () => {
                 <span className="text-uppercase small fw-semibold font-monospace" style={{ letterSpacing: '0.12em' }}>Feedbacks & Reviews</span>
                 <span className="font-monospace small text-muted">IV.</span>
               </div>
-              <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{totalCounts.feedback}</h2>
+              <h2 className="brand-font display-5 fw-bold mb-1 text-dark">{feedbacks.length}</h2>
               <div className="small font-monospace text-muted">
-                <span>{overviewCounts.recipeFeedback} Recipe Reviews</span> &middot;{' '}
-                <span>{overviewCounts.siteFeedback} Site Feedbacks</span>
+                <span>{feedbacks.filter((f) => f.recipeId).length} Recipe Reviews</span> &middot;{' '}
+                <span>{feedbacks.filter((f) => !f.recipeId).length} Site Feedbacks</span>
               </div>
             </div>
           </div>
@@ -890,7 +635,7 @@ export const AdminDashboardPage = () => {
                     letterSpacing: '0.12em',
                     borderRadius: 0,
                   }}
-                  onClick={handleOpenAnnouncementModal}
+                  onClick={() => setShowAnnouncementModal(true)}
                 >
                   + Publish Announcement
                 </button>
@@ -928,9 +673,9 @@ export const AdminDashboardPage = () => {
                 <div className="col-md-3 col-sm-6">
                   <div className="p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
                     <div className="roman-numeral mb-1" style={{ fontSize: '0.75rem' }}>TOTAL ASSETS</div>
-                    <div className="brand-font h4 mb-0 text-dark">{totalCounts.recipes + totalCounts.tips} Master Items</div>
+                    <div className="brand-font h4 mb-0 text-dark">{recipes.length + tips.length} Master Items</div>
                     <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                      {totalCounts.recipes} Recipes &middot; {totalCounts.tips} Tips
+                      {recipes.length} Recipes &middot; {tips.length} Tips
                     </small>
                   </div>
                 </div>
@@ -939,7 +684,7 @@ export const AdminDashboardPage = () => {
                   <div className="p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
                     <div className="roman-numeral mb-1" style={{ fontSize: '0.75rem' }}>PREMIUM GATEKEEPING</div>
                     <div className="brand-font h4 mb-0 text-dark">
-                      {overviewCounts.recipeMembers + overviewCounts.tipMembers} VIP Reserved
+                      {recipes.filter((r) => !r.isFree).length + tips.filter((t) => !t.isFree).length} VIP Reserved
                     </div>
                     <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
                       Protected by JWT & Access Filter
@@ -951,10 +696,10 @@ export const AdminDashboardPage = () => {
                   <div className="p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
                     <div className="roman-numeral mb-1" style={{ fontSize: '0.75rem' }}>CONTEST ENGAGEMENT</div>
                     <div className="brand-font h4 mb-0 text-dark">
-                      {overviewCounts.contestSubmissions} Submissions
+                      {contests.reduce((acc, c) => acc + (c.entryCount || 0), 0)} Submissions
                     </div>
                     <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                      Across {totalCounts.contests} Official Competitions
+                      Across {contests.length} Official Competitions
                     </small>
                   </div>
                 </div>
@@ -962,7 +707,7 @@ export const AdminDashboardPage = () => {
                 <div className="col-md-3 col-sm-6">
                   <div className="p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
                     <div className="roman-numeral mb-1" style={{ fontSize: '0.75rem' }}>COMMUNITY FEEDBACK</div>
-                    <div className="brand-font h4 mb-0 text-dark">{totalCounts.feedback} Reviews</div>
+                    <div className="brand-font h4 mb-0 text-dark">{feedbacks.length} Reviews</div>
                     <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
                       Two-Way Atelier Communication
                     </small>
@@ -997,8 +742,7 @@ export const AdminDashboardPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {renderManagementTableState(recipes, 7, 'No recipes are available yet.', () => loadManagementPage('recipes'))}
-                {!listError && recipes.map((r) => (
+                {recipes.map((r) => (
                   <tr key={r.recipeId}>
                     <td className="fw-bold text-dark">{r.title}</td>
                     <td><span className="badge bg-light text-dark border">{r.categoryName}</span></td>
@@ -1040,7 +784,6 @@ export const AdminDashboardPage = () => {
               </tbody>
             </table>
           </div>
-          {renderManagementPagination('recipes', 'Recipes')}
         </div>
       )}
 
@@ -1066,8 +809,7 @@ export const AdminDashboardPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {renderManagementTableState(tips, 6, 'No cooking tips are available yet.', () => loadManagementPage('tips'))}
-                {!listError && tips.map((t) => (
+                {tips.map((t) => (
                   <tr key={t.tipId}>
                     <td className="fw-bold text-dark">{t.title}</td>
                     <td><span className="badge bg-light text-dark border">{t.categoryName}</span></td>
@@ -1099,7 +841,6 @@ export const AdminDashboardPage = () => {
               </tbody>
             </table>
           </div>
-          {renderManagementPagination('tips', 'Cooking tips')}
         </div>
       )}
 
@@ -1116,20 +857,13 @@ export const AdminDashboardPage = () => {
                   </button>
                   <strong className="h5 mb-0 align-middle">Submissions for: {selectedContestForEntries.title}</strong>
                 </div>
-                <span className="badge bg-primary fs-6">{entryMeta.totalCount} Submissions</span>
+                <span className="badge bg-primary fs-6">{contestEntries.length} Submissions</span>
               </div>
               <div className="card-body p-0">
                 {loadingEntries ? (
                   <div className="text-center py-5">
                     <div className="spinner-border text-primary" role="status"></div>
                     <p className="mt-2 text-muted">Loading entries...</p>
-                  </div>
-                ) : entryError ? (
-                  <div className="text-center py-5" role="alert">
-                    <p className="text-danger">{entryError}</p>
-                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => loadContestEntries(selectedContestForEntries)}>
-                      Retry
-                    </button>
                   </div>
                 ) : contestEntries.length === 0 ? (
                   <div className="text-center py-5 text-muted">
@@ -1166,6 +900,11 @@ export const AdminDashboardPage = () => {
                               <span className="badge bg-light text-dark border font-monospace">
                                 {e.voteCount || 0} votes
                               </span>
+                              {contestEntries.length > 0 && e.voteCount > 0 && e.voteCount === Math.max(...contestEntries.map(x => x.voteCount)) && (
+                                <span className="badge bg-warning text-dark ms-1 small font-monospace">
+                                  Top Voted
+                                </span>
+                              )}
                             </td>
                             <td>
                               <div className="small text-truncate" style={{ maxWidth: '280px' }}>
@@ -1200,15 +939,6 @@ export const AdminDashboardPage = () => {
                   </div>
                 )}
               </div>
-              <AdminPagination
-                page={entryPage}
-                pageSize={pageSize}
-                totalCount={entryMeta.totalCount}
-                onPageChange={setEntryPage}
-                onPageSizeChange={handlePageSizeChange}
-                disabled={loadingEntries}
-                label="Contest submissions"
-              />
             </div>
           ) : (
             /* Contests Table */
@@ -1232,8 +962,7 @@ export const AdminDashboardPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {renderManagementTableState(contests, 6, 'No contests have been created yet.', () => loadManagementPage('contests'))}
-                    {!listError && contests.map((c) => (
+                    {contests.map((c) => (
                       <tr key={c.contestId}>
                         <td className="fw-bold text-dark">{c.title}</td>
                         <td>
@@ -1272,7 +1001,6 @@ export const AdminDashboardPage = () => {
                   </tbody>
                 </table>
               </div>
-              {renderManagementPagination('contests', 'Contests')}
             </div>
           )}
         </div>
@@ -1283,7 +1011,7 @@ export const AdminDashboardPage = () => {
         <div className="card shadow-sm border-0">
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 className="fw-bold mb-0">Announcements Management</h5>
-            <button className="btn btn-secondary btn-sm d-flex align-items-center gap-1" onClick={handleOpenAnnouncementModal}>
+            <button className="btn btn-secondary btn-sm d-flex align-items-center gap-1" onClick={() => setShowAnnouncementModal(true)}>
               + Publish Announcement
             </button>
           </div>
@@ -1299,8 +1027,7 @@ export const AdminDashboardPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {renderManagementTableState(announcements, 5, 'No announcements have been published yet.', () => loadManagementPage('announcements'))}
-                {!listError && announcements.map((a) => (
+                {announcements.map((a) => (
                   <tr key={a.announcementId}>
                     <td className="fw-bold text-dark">{a.title}</td>
                     <td>{a.contestTitle || <span className="text-muted">—</span>}</td>
@@ -1328,7 +1055,6 @@ export const AdminDashboardPage = () => {
               </tbody>
             </table>
           </div>
-          {renderManagementPagination('announcements', 'Announcements')}
         </div>
       )}
 
@@ -1340,21 +1066,21 @@ export const AdminDashboardPage = () => {
             <div className="btn-group btn-group-sm">
               <button
                 className={`btn ${feedbackFilter === 'ALL' ? 'btn-primary' : 'btn-outline-primary'}`}
-                onClick={() => { setListLoading(true); setFeedbackFilter('ALL'); setPages((current) => ({ ...current, feedback: 1 })); }}
+                onClick={() => setFeedbackFilter('ALL')}
               >
-                All ({totalCounts.feedback})
+                All ({feedbacks.length})
               </button>
               <button
                 className={`btn ${feedbackFilter === 'RECIPE' ? 'btn-primary' : 'btn-outline-primary'}`}
-                onClick={() => { setListLoading(true); setFeedbackFilter('RECIPE'); setPages((current) => ({ ...current, feedback: 1 })); }}
+                onClick={() => setFeedbackFilter('RECIPE')}
               >
-                Recipe Reviews ({overviewCounts.recipeFeedback})
+                Recipe Reviews ({feedbacks.filter((f) => f.recipeId).length})
               </button>
               <button
                 className={`btn ${feedbackFilter === 'GENERAL' ? 'btn-primary' : 'btn-outline-primary'}`}
-                onClick={() => { setListLoading(true); setFeedbackFilter('GENERAL'); setPages((current) => ({ ...current, feedback: 1 })); }}
+                onClick={() => setFeedbackFilter('GENERAL')}
               >
-                Website Feedback ({overviewCounts.siteFeedback})
+                Website Feedback ({feedbacks.filter((f) => !f.recipeId).length})
               </button>
             </div>
           </div>
@@ -1372,8 +1098,7 @@ export const AdminDashboardPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {renderManagementTableState(filteredFeedbacks, 7, 'No feedback matches this filter yet.', () => loadManagementPage('feedback', pages.feedback, pageSize, feedbackFilter))}
-                {!listError && filteredFeedbacks.map((f) => (
+                {filteredFeedbacks.map((f) => (
                   <tr key={f.feedbackId}>
                     <td>
                       <div className="fw-semibold">{f.senderName}</div>
@@ -1426,7 +1151,6 @@ export const AdminDashboardPage = () => {
               </tbody>
             </table>
           </div>
-          {renderManagementPagination('feedback', 'Feedback')}
         </div>
       )}
 
@@ -1516,15 +1240,6 @@ export const AdminDashboardPage = () => {
                         value={recipeForm.videoUrl}
                         onChange={(e) => setRecipeForm({ ...recipeForm, videoUrl: e.target.value })}
                       />
-                      <label className="form-label fw-semibold mt-3" htmlFor="admin-recipe-video-upload">Or upload a video (MP4, WebM, MOV; max 100 MB)</label>
-                      <input
-                        id="admin-recipe-video-upload"
-                        type="file"
-                        className="form-control"
-                        accept="video/mp4,video/webm,video/quicktime"
-                        onChange={(e) => setRecipeForm({ ...recipeForm, videoFile: e.target.files?.[0] || null })}
-                      />
-                      {recipeForm.videoFile && <small className="text-muted">Selected: {recipeForm.videoFile.name}. This file will be uploaded instead of the URL.</small>}
                     </div>
 
                     <div className="col-12">
@@ -1536,15 +1251,6 @@ export const AdminDashboardPage = () => {
                         value={recipeForm.thumbnailUrl}
                         onChange={(e) => setRecipeForm({ ...recipeForm, thumbnailUrl: e.target.value })}
                       />
-                      <label className="form-label fw-semibold mt-3" htmlFor="admin-recipe-cover-upload">Or upload a cover image (JPEG, PNG, WebP; max 100 MB)</label>
-                      <input
-                        id="admin-recipe-cover-upload"
-                        type="file"
-                        className="form-control"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={(e) => setRecipeForm({ ...recipeForm, thumbnailFile: e.target.files?.[0] || null })}
-                      />
-                      {recipeForm.thumbnailFile && <small className="text-muted">Selected: {recipeForm.thumbnailFile.name}. This file will be uploaded instead of the URL.</small>}
                       {recipeForm.thumbnailUrl && (
                         <div className="mt-2 p-2 bg-white border d-flex align-items-center gap-3">
                           <div style={{ width: '80px', height: '60px', overflow: 'hidden', backgroundColor: '#e9ecef', flexShrink: 0 }}>
@@ -1583,11 +1289,11 @@ export const AdminDashboardPage = () => {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-outline-secondary" onClick={() => setShowRecipeModal(false)} disabled={savingRecipe}>
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => setShowRecipeModal(false)}>
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary fw-semibold" disabled={savingRecipe}>
-                    {savingRecipe ? 'Uploading and saving...' : 'Save Recipe'}
+                  <button type="submit" className="btn btn-primary fw-semibold">
+                    Save Recipe
                   </button>
                 </div>
               </form>
@@ -1794,7 +1500,7 @@ export const AdminDashboardPage = () => {
                         onChange={(e) => setAnnouncementForm({ ...announcementForm, contestId: e.target.value })}
                       >
                         <option value="">None (General News)</option>
-                        {announcementContests.map((c) => (
+                        {contests.map((c) => (
                           <option key={c.contestId} value={c.contestId}>
                             {c.title}
                           </option>
@@ -1844,4 +1550,3 @@ export const AdminDashboardPage = () => {
 };
 
 export default AdminDashboardPage;
-
