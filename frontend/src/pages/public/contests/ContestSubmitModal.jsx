@@ -148,7 +148,7 @@ export const ContestSubmitModal = ({
                       <textarea
                         className="form-control"
                         rows="4"
-                        placeholder="List your ingredients with measurements..."
+                        placeholder="- 200g Arborio rice"
                         value={formData.ingredients}
                         onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
                         required
@@ -160,7 +160,7 @@ export const ContestSubmitModal = ({
                       <textarea
                         className="form-control"
                         rows="6"
-                        placeholder="Detail your preparation steps and culinary techniques..."
+                        placeholder="Step 1: Sauté minced shallots"
                         value={formData.cookingProcedure}
                         onChange={(e) => setFormData({ ...formData, cookingProcedure: e.target.value })}
                         required
@@ -173,7 +173,7 @@ export const ContestSubmitModal = ({
                     <textarea
                       className="form-control"
                       rows="6"
-                      placeholder="Share your practical cooking technique or kitchen secret..."
+                      placeholder="Describe your unique kitchen tip"
                       value={formData.tipContent}
                       onChange={(e) => setFormData({ ...formData, tipContent: e.target.value })}
                       required
