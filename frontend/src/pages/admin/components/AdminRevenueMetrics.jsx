@@ -36,6 +36,10 @@ export const AdminRevenueMetrics = () => {
   const [planFilter, setPlanFilter] = useState('ALL');
 
   const fetchRevenueStats = useCallback(async (signal) => {
+    if (!adminUsersApi || typeof adminUsersApi.getRevenueStats !== 'function') {
+      setLoadState('empty');
+      return;
+    }
     setLoadState('loading');
     setErrorMessage('');
     try {

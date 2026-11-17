@@ -167,6 +167,20 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
       },
     });
     vi.spyOn(apiModule.announcementApi, 'getPaged').mockResolvedValue(pagedResponse(mockAnnouncements));
+    if (apiModule.adminUsersApi?.getRevenueStats) {
+      vi.spyOn(apiModule.adminUsersApi, 'getRevenueStats').mockResolvedValue({
+        data: {
+          success: true,
+          data: {
+            totalRevenue: 0,
+            monthlyRevenue: 0,
+            yearlyRevenue: 0,
+            totalTransactions: 0,
+            recentTransactions: [],
+          },
+        },
+      });
+    }
     vi.spyOn(apiModule.feedbackApi, 'getPaged').mockImplementation(({ feedbackType, page = 1, pageSize = 10 }) => {
       const items = feedbackType === 'RECIPE'
         ? mockFeedbacks.filter((feedback) => feedback.recipeId != null)
@@ -223,7 +237,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     });
 
     // Switch to Recipes tab
-    const recipesTab = screen.getByRole('button', { name: /Recipes \(1\)/i });
+    const recipesTab = await screen.findByRole('button', { name: /Recipes \(1\)/i });
     fireEvent.click(recipesTab);
 
     // Verify recipe is shown
@@ -261,7 +275,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     });
 
     // Switch to Contests tab
-    fireEvent.click(screen.getByRole('button', { name: /Contests \(1\)/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Contests \(1\)/i }));
 
     // Open Create Contest Modal
     fireEvent.click(screen.getByRole('button', { name: /Create Contest/i }));
@@ -304,7 +318,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     });
 
     // Switch to Contests tab
-    fireEvent.click(screen.getByRole('button', { name: /Contests \(1\)/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Contests \(1\)/i }));
 
     // Click View Entries button
     const viewEntriesBtn = await screen.findByRole('button', { name: /View Entries/i });
@@ -340,7 +354,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
       expect(screen.getByText(/Chef James Thew Executive Dashboard/i)).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Contests \(1\)/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Contests \(1\)/i }));
     fireEvent.click(await screen.findByRole('button', { name: /View Entries/i }));
 
     await waitFor(() => {
@@ -384,7 +398,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     });
 
     // Click Feedbacks tab
-    fireEvent.click(screen.getByRole('button', { name: /Feedbacks \(2\)/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Feedbacks \(2\)/i }));
 
     // Both feedbacks should be listed initially
     expect(await screen.findByText('Absolutely heavenly recipe!')).toBeInTheDocument();
@@ -418,7 +432,7 @@ describe('Phase 8 Frontend Tests - Admin Dashboard', () => {
     });
 
     // Switch to Tips tab
-    fireEvent.click(screen.getByRole('button', { name: /Cooking Tips \(1\)/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Cooking Tips \(1\)/i }));
 
     expect(await screen.findByText('Knife Sharpening Mastery')).toBeInTheDocument();
 
