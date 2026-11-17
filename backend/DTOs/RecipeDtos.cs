@@ -24,6 +24,7 @@ namespace backend.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public int FeedbackCount { get; set; }
+        public string AccessLevel { get; set; } = "FULL";
     }
 
     /// <summary>

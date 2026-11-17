@@ -173,11 +173,22 @@ namespace backend.Services
                 return ApiResponse<RecipeDto>.Fail("Recipe not found.");
             }
 
-            // Content gatekeeping: If recipe is premium and user is not logged in
+            // Content gatekeeping: If recipe is premium and user is not logged in, return a 50% preview
             if (!recipe.IsFree && currentUserId == null)
             {
-                return ApiResponse<RecipeDto>.Fail(
-                    "MEMBERS_ONLY: This recipe is exclusive to registered members. Please login or subscribe to access.");
+                var previewDto = MapToDto(recipe);
+                previewDto.AccessLevel = "PREVIEW";
+                previewDto.VideoUrl = null; // Do not leak premium video URL to unauthenticated guests
+
+                // Truncate cooking procedure to 50% of steps
+                if (!string.IsNullOrWhiteSpace(previewDto.CookingProcedure))
+                {
+                    var steps = previewDto.CookingProcedure.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    var halfCount = Math.Max(1, (int)Math.Ceiling(steps.Length * 0.5));
+                    previewDto.CookingProcedure = string.Join("\n", steps.Take(halfCount));
+                }
+
+                return ApiResponse<RecipeDto>.Ok(previewDto, "PREVIEW: Viewing complimentary 50% preview of exclusive recipe.");
             }
 
             // Membership subscription validity check:
@@ -377,7 +388,8 @@ namespace backend.Services
                 ShareCount = r.ShareCount,
                 CreatedAt = r.CreatedAt,
                 UpdatedAt = r.UpdatedAt,
-                FeedbackCount = r.Feedbacks?.Count ?? 0
+                FeedbackCount = r.Feedbacks?.Count ?? 0,
+                AccessLevel = "FULL"
             };
         }
     }

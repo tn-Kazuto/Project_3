@@ -138,5 +138,83 @@ describe('Functional Phase F2 Tests - Recipe Catalog, Print & Gatekeeping', () =
     expect(screen.getByText('RESERVED ARCHIVE')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Subscribe & Unlock/i })).toBeInTheDocument();
   });
+
+  it('TC_F2_FE_5 - RecipeDetailPage renders 50% preview steps, blurred teaser, and Atelier VIP CTA Card for guest preview', async () => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({ isAuthenticated: false });
+    const mockPreviewRecipe = {
+      recipeId: 202,
+      title: 'Pan-Seared Duck Breast with Cherry Port Jus',
+      authorName: 'Chef James Thew',
+      categoryName: 'French',
+      isFree: false,
+      accessLevel: 'PREVIEW',
+      ingredients: 'Duck breast\nPort wine\nBing cherries\nButter',
+      cookingProcedure: 'Score duck skin in diamond pattern.\nSear skin side down over medium-low heat.\nFlip and baste with aromatic butter.\nRest meat for 10 minutes before carving.',
+      createdAt: '2026-11-01T00:00:00Z',
+    };
+    vi.spyOn(apiModule.recipeApi, 'getById').mockResolvedValue({ data: { success: true, data: mockPreviewRecipe } });
+    vi.spyOn(apiModule.feedbackApi, 'getByRecipe').mockResolvedValue({ data: { success: true, data: [] } });
+
+    render(
+      <MemoryRouter initialEntries={['/recipes/202']}>
+        <Routes>
+          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Pan-Seared Duck Breast with Cherry Port Jus')).toBeInTheDocument();
+    });
+
+    // 50% preview badge & explanation
+    expect(screen.getByText(/50% Exclusive Recipe Preview/i)).toBeInTheDocument();
+
+    // First 50% steps are rendered (2 out of 4 steps)
+    expect(screen.getByText('Score duck skin in diamond pattern.')).toBeInTheDocument();
+    expect(screen.getByText('Sear skin side down over medium-low heat.')).toBeInTheDocument();
+
+    // CTA Banner
+    expect(screen.getByText(/50% COMPLIMENTARY PREVIEW REACHED/i)).toBeInTheDocument();
+    expect(screen.getByText(/Khám Phá Trọn Vẹn Công Thức & Video Masterclass/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Đăng Ký Thành Viên VIP/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Đã Có Tài Khoản\? Đăng Nhập/i })).toBeInTheDocument();
+  });
+
+  it('TC_F2_FE_6 - RecipeDetailPage renders locked Masterclass broadcast frame for VIP video recipes in guest preview', async () => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({ isAuthenticated: false });
+    const mockVipVideoRecipe = {
+      recipeId: 203,
+      title: 'Artisanal Hand-Rolled Sourdough Masterclass',
+      authorName: 'Chef James Thew',
+      categoryName: 'Bakery',
+      isFree: false,
+      accessLevel: 'PREVIEW',
+      contentType: 'VIDEO',
+      videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      ingredients: 'Flour\nWater\nSalt\nSourdough starter',
+      cookingProcedure: 'Autolyse flour and water.\nIncorporate active starter and salt.',
+      createdAt: '2026-11-01T00:00:00Z',
+    };
+    vi.spyOn(apiModule.recipeApi, 'getById').mockResolvedValue({ data: { success: true, data: mockVipVideoRecipe } });
+    vi.spyOn(apiModule.feedbackApi, 'getByRecipe').mockResolvedValue({ data: { success: true, data: [] } });
+
+    render(
+      <MemoryRouter initialEntries={['/recipes/203']}>
+        <Routes>
+          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Artisanal Hand-Rolled Sourdough Masterclass')).toBeInTheDocument();
+    });
+
+    // Locked video stream broadcast poster
+    expect(screen.getByText(/LOCKED STREAM/i)).toBeInTheDocument();
+    expect(screen.getByText(/Video Masterclass Độc Quyền Hội Viên VIP/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Mở Khóa Video/i })).toBeInTheDocument();
+  });
 });
 

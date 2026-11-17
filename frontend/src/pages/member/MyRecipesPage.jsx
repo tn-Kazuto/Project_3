@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { recipeApi, tipApi, categoryApi, uploadApi } from '../../services/api';
-import { uploadMediaFile } from '../../services/mediaUpload';
 import { RecipeVideoField } from '../../components/common/RecipeVideoField';
+import { useDialogAccessibility } from '../../hooks/useDialogAccessibility';
 import { isSupportedRecipeVideoUrl } from '../../utils/recipeVideo';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
@@ -34,15 +34,21 @@ export const MyRecipesPage = () => {
   });
 
   const [formError, setFormError] = useState('');
-  const [formSuccess, setFormSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const isMountedRef = useRef(false);
+  const loadRequestIdRef = useRef(0);
+  const recipeDialogRef = useDialogAccessibility(showModal, () => {
+    if (!submitting && !uploadingImage && !uploadingVideo) setShowModal(false);
+  });
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
 
     setUploadingImage(true);
@@ -61,8 +67,10 @@ export const MyRecipesPage = () => {
     }
   };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    const requestId = ++loadRequestIdRef.current;
     setLoading(true);
+    setLoadError('');
     try {
       const [recRes, tipRes, catRes] = await Promise.all([
         recipeApi.getMyRecipes(),
@@ -70,42 +78,32 @@ export const MyRecipesPage = () => {
         categoryApi.getAll(),
       ]);
 
-      if (recRes.data?.success) setRecipes(recRes.data.data);
-      if (tipRes.data?.success) setTips(tipRes.data.data);
-      if (catRes.data?.success) setCategories(catRes.data.data);
+      if (!recRes.data?.success || !Array.isArray(recRes.data.data)
+        || !tipRes.data?.success || !Array.isArray(tipRes.data.data)
+        || !catRes.data?.success || !Array.isArray(catRes.data.data)) {
+        throw new Error('The content service returned an unsupported response.');
+      }
+      if (!isMountedRef.current || requestId !== loadRequestIdRef.current) return;
+      setRecipes(recRes.data.data);
+      setTips(tipRes.data.data);
+      setCategories(catRes.data.data);
     } catch (err) {
+      if (!isMountedRef.current || requestId !== loadRequestIdRef.current) return;
       console.error('Error loading member data:', err);
+      setLoadError('Could not load your recipes and tips. Check your connection and try again.');
     } finally {
-      setLoading(false);
+      if (isMountedRef.current && requestId === loadRequestIdRef.current) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    const fetch = async () => {
-      setLoading(true);
-      try {
-        const [recRes, tipRes, catRes] = await Promise.all([
-          recipeApi.getMyRecipes(),
-          tipApi.getMyTips(),
-          categoryApi.getAll(),
-        ]);
-        if (!isMounted) return;
-        if (recRes.data?.success) setRecipes(recRes.data.data);
-        if (tipRes.data?.success) setTips(tipRes.data.data);
-        if (catRes.data?.success) setCategories(catRes.data.data);
-      } catch (err) {
-        if (!isMounted) return;
-        console.error('Error loading member data:', err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-    fetch();
+    isMountedRef.current = true;
+    loadData();
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
+      loadRequestIdRef.current += 1;
     };
-  }, []);
+  }, [loadData]);
 
   const openCreateModal = () => {
     setModalMode('create');
@@ -122,8 +120,6 @@ export const MyRecipesPage = () => {
       isFree: false,
     });
     setFormError('');
-    setFormSuccess('');
-    setImageFile(null);
     setShowModal(true);
   };
 
@@ -142,8 +138,6 @@ export const MyRecipesPage = () => {
       isFree: item.isFree,
     });
     setFormError('');
-    setFormSuccess('');
-    setImageFile(null);
     setShowModal(true);
   };
 
@@ -167,7 +161,10 @@ export const MyRecipesPage = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
-    if (uploadingVideo) return;
+    if (uploadingVideo || uploadingImage) {
+      setFormError('Wait for media uploads to finish before saving.');
+      return;
+    }
 
     if (activeTab === 'recipes') {
       if (!formData.title.trim()) {
@@ -206,9 +203,7 @@ export const MyRecipesPage = () => {
           categoryId: parseInt(formData.categoryId, 10),
           ingredients: formData.ingredients.trim(),
           cookingProcedure: formData.cookingProcedure.trim(),
-          imageUrl: imageFile
-            ? await uploadMediaFile(imageFile, 'image')
-            : formData.imageUrl?.trim(),
+          imageUrl: formData.imageUrl?.trim(),
           videoUrl: formData.videoUrl?.trim() || null,
           thumbnailUrl: formData.thumbnailUrl?.trim() || null,
           isFree: isAdmin ? formData.isFree : false,
@@ -307,12 +302,19 @@ export const MyRecipesPage = () => {
         </button>
       </div>
 
+      {loadError && (
+        <div className="alert alert-warning d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3" role="alert">
+          <span>{loadError}</span>
+          <button type="button" className="btn btn-outline-secondary" onClick={loadData}>Try again</button>
+        </div>
+      )}
+
       {/* Content Table */}
       {loading ? (
         <div className="py-4">
           <CulinarySkeleton count={3} />
         </div>
-      ) : activeTab === 'recipes' ? (
+      ) : loadError && (activeTab === 'recipes' ? recipes.length === 0 : tips.length === 0) ? null : activeTab === 'recipes' ? (
         <div
           className="p-0 mb-4"
           style={{
@@ -476,7 +478,11 @@ export const MyRecipesPage = () => {
       {/* Create / Edit Modal */}
       {showModal && (
         <div
+          ref={recipeDialogRef}
           className="modal show d-block"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="my-recipe-dialog-title"
           style={{ backgroundColor: 'rgba(38, 35, 33, 0.7)' }}
           tabIndex="-1"
         >
@@ -498,7 +504,7 @@ export const MyRecipesPage = () => {
                   borderRadius: 0,
                 }}
               >
-                <h5 className="modal-title brand-font text-white m-0" style={{ fontSize: '1.25rem' }}>
+                <h5 id="my-recipe-dialog-title" className="modal-title brand-font text-white m-0" style={{ fontSize: '1.25rem' }}>
                   {modalMode === 'create' ? 'Create New' : 'Edit'}{' '}
                   {activeTab === 'recipes' ? 'Recipe' : 'Cooking Tip'}
                 </h5>
@@ -507,13 +513,14 @@ export const MyRecipesPage = () => {
                   className="btn-close btn-close-white"
                   aria-label="Close"
                   onClick={() => setShowModal(false)}
+                  disabled={submitting || uploadingImage || uploadingVideo}
                 ></button>
               </div>
 
               <form onSubmit={handleFormSubmit}>
                 <div className="modal-body p-4">
                   {formError && (
-                    <div className="alert alert-danger small py-2 mb-3" style={{ borderRadius: 0 }}>{formError}</div>
+                    <div className="alert alert-danger small py-2 mb-3" role="alert" style={{ borderRadius: 0 }}>{formError}</div>
                   )}
 
                   {/* Common: Title */}
@@ -612,47 +619,36 @@ export const MyRecipesPage = () => {
 
                   {/* Image Upload & URL */}
                   <div className="mb-3">
-                    <label className="form-label small fw-semibold">Hình ảnh món ăn (Dish Image)</label>
-                    <div className="d-flex gap-2 align-items-center mb-2">
-                      <label 
-                        className={`btn btn-sm ${uploadingImage ? 'btn-secondary disabled' : 'btn-outline-dark'}`}
-                        style={{ cursor: 'pointer', borderColor: 'var(--dp-color-rule)' }}
-                      >
-                        {uploadingImage ? '⏳ Đang tải ảnh lên...' : '📷 Chọn ảnh từ máy tính'}
-                        <input
-                          type="file"
-                          accept="image/png, image/jpeg, image/webp, image/gif"
-                          onChange={handleFileUpload}
-                          style={{ display: 'none' }}
-                          disabled={uploadingImage}
-                        />
-                      </label>
-                      <span className="small text-muted">hoặc dán URL</span>
-                    </div>
-
-                    {uploadError && (
-                      <div className="alert alert-danger py-1 px-2 small mb-2">{uploadError}</div>
-                    )}
-
+                    <label className="form-label small fw-semibold" htmlFor="member-recipe-image-url">Dish image URL</label>
                     <input
+                      id="member-recipe-image-url"
                       type="text"
-                      className="form-control form-control-sm"
+                      className="form-control form-control-sm mb-3"
                       style={{ borderColor: 'var(--dp-color-rule)' }}
-                      placeholder="https://... hoặc /api/upload/recipes/..."
+                      placeholder="https://... or /api/upload/recipes/..."
                       value={formData.imageUrl}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     />
-                    <label className="form-label small fw-semibold mt-3" htmlFor="member-recipe-image-upload">Or upload an image (JPEG, PNG, WebP; max 100 MB)</label>
+
+                    <label className="form-label small fw-semibold" htmlFor="member-recipe-image-upload">
+                      {uploadingImage ? 'Uploading image…' : 'Or upload an image (JPEG, PNG, WebP, GIF; max 10 MB)'}
+                    </label>
                     <input
                       id="member-recipe-image-upload"
                       type="file"
                       className="form-control"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                      aria-describedby="member-recipe-image-help"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      onChange={handleFileUpload}
+                      disabled={uploadingImage}
+                      aria-invalid={Boolean(uploadError)}
+                      aria-describedby="member-recipe-image-help member-recipe-image-error"
                     />
-                    <small id="member-recipe-image-help" className="form-text text-muted">
-                      {imageFile ? `Selected: ${imageFile.name}. The uploaded image will be used.` : 'Uploads are stored securely in Cloudinary.'}
+
+                    <div id="member-recipe-image-error" className="mt-2" aria-live="polite">
+                      {uploadError && <span className="text-danger small" role="alert">{uploadError}</span>}
+                    </div>
+                    <small id="member-recipe-image-help" className="form-text text-muted d-block mt-2" aria-live="polite">
+                      {uploadingImage ? 'Keep this form open until the upload finishes.' : uploadError ? '' : 'Uploads are stored securely in Cloudinary.'}
                     </small>
                     {formData.imageUrl && (
                       <div className="mt-2 p-2 bg-light border d-flex align-items-center gap-3" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
@@ -712,6 +708,7 @@ export const MyRecipesPage = () => {
                     className="btn btn-outline-secondary"
                     style={{ borderRadius: 0, letterSpacing: '0.12em' }}
                     onClick={() => setShowModal(false)}
+                    disabled={submitting || uploadingImage || uploadingVideo}
                   >
                     Cancel
                   </button>
@@ -724,9 +721,9 @@ export const MyRecipesPage = () => {
                       letterSpacing: '0.14em',
                       borderRadius: 0,
                     }}
-                    disabled={submitting || uploadingVideo}
+                    disabled={submitting || uploadingVideo || uploadingImage}
                   >
-                    {uploadingVideo ? 'Uploading video…' : submitting ? 'Saving...' : modalMode === 'create' ? 'Publish Item' : 'Save Changes'}
+                    {uploadingImage || uploadingVideo ? 'Uploading media…' : submitting ? 'Saving...' : modalMode === 'create' ? 'Publish Item' : 'Save Changes'}
                   </button>
                 </div>
               </form>

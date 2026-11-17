@@ -285,7 +285,9 @@ export const RecipeDetailPage = () => {
     .split(/\r?\n/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
-  const isPreview = recipe.accessLevel === 'PREVIEW';
+  const isPreview = recipe.accessLevel === 'PREVIEW' || (!recipe.isFree && !isAuthenticated);
+  const visibleStepCount = isPreview ? Math.max(1, Math.ceil(stepList.length * 0.5)) : stepList.length;
+  const visibleSteps = stepList.slice(0, visibleStepCount);
   const returnTo = { pathname: location.pathname, search: location.search, hash: location.hash };
 
   return (
@@ -419,9 +421,14 @@ export const RecipeDetailPage = () => {
         </h1>
 
         {isPreview && (
-          <div className="p-3 mb-4" role="status" style={{ backgroundColor: 'var(--dp-color-ground-2)', borderLeft: '3px solid var(--dp-color-accent)' }}>
-            <strong className="d-block text-dark mb-1">Recipe preview</strong>
-            <span className="small">You are viewing the opening steps. Join the Culinary Circle to see the complete method and any member video.</span>
+          <div className="p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" role="status" style={{ backgroundColor: 'var(--dp-color-ground-2)', borderLeft: '3px solid var(--dp-color-accent)' }}>
+            <div>
+              <strong className="d-block text-dark mb-1">50% Exclusive Recipe Preview</strong>
+              <span className="small text-muted">You are viewing complimentary preview steps. Subscribe to Chef James Thew Atelier to unlock the entire methodology and video masterclass.</span>
+            </div>
+            <Link to="/register" state={{ from: returnTo }} className="btn btn-sm btn-primary font-monospace text-uppercase" style={{ letterSpacing: '0.08em', fontSize: '0.75rem' }}>
+              Subscribe &amp; Unlock
+            </Link>
           </div>
         )}
 
@@ -516,6 +523,43 @@ export const RecipeDetailPage = () => {
           </div>
         )}
 
+        {/* VIP Locked Masterclass Broadcast Banner (for Guest Preview) */}
+        {isPreview && (recipe.contentType === 'VIDEO' || recipe.contentType === 'TALKSHOW' || recipe.contentType === 'LIVESHOW' || recipe.videoUrl) && (
+          <div className="mb-5">
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <div className="roman-numeral" style={{ fontSize: '0.85rem' }}>
+                CHEF JAMES THEW · MASTERCLASS BROADCAST [VIP STREAM]
+              </div>
+              <span className="badge font-monospace text-uppercase" style={{ backgroundColor: 'var(--dp-color-accent)', color: '#ffffff', borderRadius: 0 }}>
+                LOCKED STREAM
+              </span>
+            </div>
+            <div
+              className="p-4 p-md-5 text-center d-flex flex-column align-items-center justify-content-center"
+              style={{
+                backgroundColor: 'var(--dp-color-field)',
+                border: '2px solid var(--dp-color-accent)',
+                color: 'var(--dp-color-on-field)',
+                minHeight: '220px',
+              }}
+            >
+              <div className="mb-2" style={{ fontSize: '2rem' }}>🔒</div>
+              <h3 className="brand-font h4 text-white mb-2">Video Masterclass Độc Quyền Hội Viên VIP</h3>
+              <p className="small max-w-600 mb-3" style={{ color: 'var(--dp-color-on-field-2)', lineHeight: '1.65' }}>
+                Video chất lượng cao hướng dẫn kỹ thuật nấu ăn trực tiếp từ Chef James Thew dành riêng cho thành viên VIP. Đăng ký ngay để mở khóa toàn bộ video và công thức.
+              </p>
+              <Link
+                to="/register"
+                state={{ from: returnTo }}
+                className="btn btn-primary text-uppercase font-monospace btn-sm"
+                style={{ letterSpacing: '0.12em', padding: '0.6rem 1.5rem' }}
+              >
+                Mở Khóa Video ($10/tháng)
+              </Link>
+            </div>
+          </div>
+        )}
+
         <div className="row g-4 mt-2">
           {/* Ingredients Section (Pale Taupe Field & Ruled Rows) */}
           <div className="col-lg-5">
@@ -606,15 +650,15 @@ export const RecipeDetailPage = () => {
             >
               <div className="roman-numeral mb-1" style={{ fontSize: '0.9rem' }}>METHODOLOGY</div>
               <h2 className="brand-font h4 mb-3 pb-2 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                Cooking Procedure
+                Cooking Procedure {isPreview && <span className="small text-muted font-monospace fw-normal">(50% Preview)</span>}
               </h2>
               <div className="d-flex flex-column gap-3">
-                {stepList.map((step, idx) => (
+                {visibleSteps.map((step, idx) => (
                   <div
                     key={idx}
                     className="d-flex gap-3 py-2"
                     style={{
-                      borderBottom: idx !== stepList.length - 1 ? '1px solid var(--dp-color-rule)' : 'none',
+                      borderBottom: (idx !== visibleSteps.length - 1 || isPreview) ? '1px solid var(--dp-color-rule)' : 'none',
                     }}
                   >
                     <span
@@ -632,20 +676,78 @@ export const RecipeDetailPage = () => {
                     </p>
                   </div>
                 ))}
+
+                {isPreview && (
+                  <div
+                    className="d-flex gap-3 py-2 position-relative"
+                    style={{
+                      filter: 'blur(3.5px)',
+                      opacity: 0.35,
+                      userSelect: 'none',
+                      maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                      WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                    }}
+                    aria-hidden="true"
+                  >
+                    <span
+                      className="roman-numeral flex-shrink-0 pt-1"
+                      style={{
+                        minWidth: '2.5rem',
+                        fontSize: '1.1rem',
+                        color: 'var(--dp-color-accent)',
+                      }}
+                    >
+                      {toRoman(visibleSteps.length + 1)}.
+                    </span>
+                    <p className="m-0 small pt-1" style={{ color: 'var(--dp-color-ink)', lineHeight: '1.75' }}>
+                      {stepList.length > visibleStepCount
+                        ? stepList[visibleStepCount]
+                        : 'Tinh chỉnh nhiệt độ lửa, hòa quyện nước xốt nhũ tương hóa và hoàn thiện nghệ thuật decor món ăn theo chuẩn 5 sao...'}
+                    </p>
+                  </div>
+                )}
               </div>
               {isPreview && (
-                <div className="mt-4 p-3" style={{ backgroundColor: 'var(--dp-color-field)', color: 'var(--dp-color-on-field)', borderTop: '2px solid var(--dp-color-accent)' }}>
-                  <h3 className="brand-font h4 text-white mb-2">Continue with the full recipe</h3>
-                  <p className="small mb-3" style={{ color: 'var(--dp-color-on-field-2)' }}>
-                    The remaining method and member video are reserved for active members.
+                <div
+                  className="mt-4 p-4 text-center"
+                  style={{
+                    backgroundColor: 'var(--dp-color-field)',
+                    color: 'var(--dp-color-on-field)',
+                    border: '1px solid var(--dp-color-accent)',
+                  }}
+                >
+                  <div className="roman-numeral mb-2" style={{ color: 'var(--dp-color-accent)', fontSize: '0.85rem' }}>
+                    50% COMPLIMENTARY PREVIEW REACHED
+                  </div>
+                  <h3 className="brand-font h3 text-white mb-2">
+                    Khám Phá Trọn Vẹn Công Thức &amp; Video Masterclass
+                  </h3>
+                  <p className="small mb-4 max-w-600 mx-auto" style={{ color: 'var(--dp-color-on-field-2)', lineHeight: '1.65' }}>
+                    Bạn đang xem 50% bản xem trước miễn phí. Hãy đăng ký tài khoản Hội viên VIP ($10/tháng) để mở khóa toàn bộ các bước thực hiện chi tiết, bí quyết định lượng từ Bếp trưởng James Thew và toàn bộ video Masterclass độ nét cao.
                   </p>
-                  <div className="d-flex flex-wrap gap-2">
+                  <div className="d-flex flex-wrap justify-content-center gap-3">
                     {isAuthenticated ? (
-                      <Link to="/profile" className="btn btn-primary">Renew membership</Link>
+                      <Link to="/profile" className="btn btn-primary text-uppercase font-monospace px-4 py-2" style={{ letterSpacing: '0.1em' }}>
+                        Gia Hạn Gói Thành Viên
+                      </Link>
                     ) : (
                       <>
-                        <Link to="/register" state={{ from: returnTo }} className="btn btn-primary">Register to unlock</Link>
-                        <Link to="/login" state={{ from: returnTo }} className="btn btn-outline-light">Sign in</Link>
+                        <Link
+                          to="/register"
+                          state={{ from: returnTo }}
+                          className="btn btn-primary text-uppercase font-monospace px-4 py-2"
+                          style={{ letterSpacing: '0.1em', fontWeight: 600 }}
+                        >
+                          Đăng Ký Thành Viên VIP ($10/tháng)
+                        </Link>
+                        <Link
+                          to="/login"
+                          state={{ from: returnTo }}
+                          className="btn btn-outline-light text-uppercase font-monospace px-4 py-2"
+                          style={{ letterSpacing: '0.1em' }}
+                        >
+                          Đã Có Tài Khoản? Đăng Nhập
+                        </Link>
                       </>
                     )}
                   </div>

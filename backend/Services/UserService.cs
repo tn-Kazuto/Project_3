@@ -4,6 +4,7 @@ using backend.Repositories;
 using backend.Services.EventBus;
 using JamesThew.Shared.Contracts.DTOs.Billing;
 using JamesThew.Shared.Contracts.Events;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
 {
@@ -215,6 +216,67 @@ namespace backend.Services
             }
 
             return ApiResponse<UserDto>.Ok(MapToDto(user), "Subscription pass successfully renewed!");
+        }
+
+        public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<UserDto>>> GetAdminUsersPagedAsync(
+            int page,
+            int pageSize,
+            string? search,
+            string? role,
+            string? subscriptionStatus)
+        {
+            var query = _uow.Repository<User>().QueryReadOnly().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(u =>
+                    u.FullName.ToLower().Contains(term) ||
+                    u.Email.ToLower().Contains(term) ||
+                    u.Username.ToLower().Contains(term));
+            }
+
+            if (!string.IsNullOrWhiteSpace(role) && role.Trim().ToUpperInvariant() != "ALL")
+            {
+                var roleTerm = role.Trim().ToUpperInvariant();
+                query = query.Where(u => u.Role == roleTerm);
+            }
+
+            if (!string.IsNullOrWhiteSpace(subscriptionStatus) && subscriptionStatus.Trim().ToUpperInvariant() != "ALL")
+            {
+                var statusTerm = subscriptionStatus.Trim().ToUpperInvariant();
+                var now = DateTime.UtcNow;
+                if (statusTerm == "ACTIVE")
+                {
+                    query = query.Where(u => u.Role == "ADMIN" || (u.SubscriptionEnd.HasValue && u.SubscriptionEnd.Value > now));
+                }
+                else if (statusTerm == "EXPIRED")
+                {
+                    query = query.Where(u => u.Role == "MEMBER" && (!u.SubscriptionEnd.HasValue || u.SubscriptionEnd.Value <= now));
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageIndex = Math.Max(1, page);
+            var safePageSize = Math.Clamp(pageSize, 1, 50);
+
+            var users = await query
+                .OrderByDescending(u => u.CreatedAt)
+                .Skip((pageIndex - 1) * safePageSize)
+                .Take(safePageSize)
+                .ToListAsync();
+
+            var items = users.Select(MapToDto).ToList();
+
+            var pagedResult = new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<UserDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = safePageSize
+            };
+
+            return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<UserDto>>.Ok(pagedResult);
         }
 
         private static UserDto MapToDto(User user)
