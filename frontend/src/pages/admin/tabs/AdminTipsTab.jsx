@@ -38,26 +38,38 @@ export const AdminTipsTab = ({
                 <td><span className="badge bg-light text-dark border">{t.categoryName}</span></td>
                 <td>{t.authorName}</td>
                 <td>
-                  <span className={`badge ${t.isFree ? 'bg-success' : 'bg-warning text-dark'}`}>
-                    {t.isFree ? 'Free Access' : 'Members Only'}
+                  <span
+                    className="badge font-monospace"
+                    style={{
+                      backgroundColor: t.isFree ? '#1b4d3e' : '#8a6d3b',
+                      color: '#ffffff',
+                      borderRadius: 0,
+                      fontSize: '0.72rem',
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    {t.isFree ? 'FREE ACCESS' : 'MEMBERS ONLY'}
                   </span>
                 </td>
-                <td className="small text-muted">{new Date(t.createdAt).toLocaleDateString()}</td>
+                <td className="small text-muted font-monospace">{new Date(t.createdAt).toLocaleDateString()}</td>
                 <td className="text-end">
-                  <button
-                    className={`btn btn-sm me-2 ${t.isFree ? 'btn-outline-warning' : 'btn-outline-success'}`}
-                    title={t.isFree ? 'Set to Members Only' : 'Set to Free Access'}
-                    onClick={() => onToggleTipFree(t)}
-                  >
-                    {t.isFree ? 'Set Member-only' : 'Set Free'}
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    title="Delete Tip"
-                    onClick={() => onDeleteTip(t.tipId, t.title)}
-                  >
-                    Delete
-                  </button>
+                  <div className="d-flex align-items-center justify-content-end gap-2 text-nowrap">
+                    <button
+                      className={`btn btn-sm text-nowrap ${t.isFree ? 'btn-outline-warning' : 'btn-outline-success'}`}
+                      title={t.isFree ? 'Set to Members Only' : 'Set to Free Access'}
+                      onClick={() => onToggleTipFree(t)}
+                      style={{ minWidth: '115px' }}
+                    >
+                      {t.isFree ? 'Set Member-only' : 'Set Free'}
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger text-nowrap"
+                      title="Delete Tip"
+                      onClick={() => onDeleteTip(t.tipId, t.title)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

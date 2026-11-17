@@ -179,6 +179,62 @@ p {
   border-color: var(--dp-color-field) !important;
 }
 
+/* Management Table Crisp Atelier Action Outlines */
+.btn-outline-success {
+  background-color: transparent !important;
+  color: #1b4d3e !important;
+  border: 1px solid #1b4d3e !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.06em !important;
+  padding: 0.35rem 0.65rem !important;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 0 !important;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-outline-success:hover {
+  background-color: #1b4d3e !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-warning {
+  background-color: transparent !important;
+  color: #8a6d3b !important;
+  border: 1px solid #8a6d3b !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.06em !important;
+  padding: 0.35rem 0.65rem !important;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 0 !important;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-outline-warning:hover {
+  background-color: #8a6d3b !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-danger {
+  background-color: transparent !important;
+  color: #842029 !important;
+  border: 1px solid #f5c2c7 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.06em !important;
+  padding: 0.35rem 0.65rem !important;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 0 !important;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-outline-danger:hover {
+  background-color: #842029 !important;
+  color: #ffffff !important;
+  border-color: #842029 !important;
+}
+
 /* Gold / Accent Button */
 .btn-warning,
 .btn-gold {

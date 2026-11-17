@@ -147,19 +147,19 @@ export const AdminDashboardPage = () => {
       if (isMountedRef.current) setLoading(true);
       const oneItemPage = { page: 1, pageSize: 1 };
       const [
-        catRes,
-        recipeRes,
-        recipeFreeRes,
-        recipeMembersRes,
-        tipRes,
-        tipFreeRes,
-        tipMembersRes,
-        contestSummaryRes,
-        announcementRes,
-        feedbackRes,
-        recipeFeedbackRes,
-        siteFeedbackRes,
-      ] = await Promise.all([
+        catSettled,
+        recipeSettled,
+        recipeFreeSettled,
+        recipeMembersSettled,
+        tipSettled,
+        tipFreeSettled,
+        tipMembersSettled,
+        contestSummarySettled,
+        announcementSettled,
+        feedbackSettled,
+        recipeFeedbackSettled,
+        siteFeedbackSettled,
+      ] = await Promise.allSettled([
         categoryApi.getAll(),
         recipeApi.getPaged(oneItemPage),
         recipeApi.getPaged({ ...oneItemPage, isFreeOnly: true }),
@@ -175,33 +175,49 @@ export const AdminDashboardPage = () => {
       ]);
 
       if (!isMountedRef.current) return;
-      const recipePage = getPagedPayload(recipeRes);
-      const tipPage = getPagedPayload(tipRes);
-      const announcementPage = getPagedPayload(announcementRes);
-      const feedbackPage = getPagedPayload(feedbackRes);
-      const contestSummary = contestSummaryRes.data?.data;
-      if (!contestSummaryRes.data?.success || !contestSummary) {
-        throw new Error(contestSummaryRes.data?.message || 'The server returned invalid contest summary data.');
-      }
-      setCategories(catRes.data?.success ? catRes.data.data || [] : []);
+
+      const getPayloadSafe = (settled) => {
+        if (settled.status === 'fulfilled') {
+          return getPagedPayload(settled.value);
+        }
+        return { totalCount: 0, items: [] };
+      };
+
+      const catRes = catSettled.status === 'fulfilled' ? catSettled.value : null;
+      const contestSummary = contestSummarySettled.status === 'fulfilled' && contestSummarySettled.value.data?.success
+        ? contestSummarySettled.value.data.data
+        : { totalContests: 0, activeContests: 0, totalSubmissions: 0 };
+
+      const recipePage = getPayloadSafe(recipeSettled);
+      const tipPage = getPayloadSafe(tipSettled);
+      const announcementPage = getPayloadSafe(announcementSettled);
+      const feedbackPage = getPayloadSafe(feedbackSettled);
+
+      setCategories(catRes?.data?.success ? catRes.data.data || [] : []);
       setTotalCounts({
         recipes: recipePage.totalCount,
         tips: tipPage.totalCount,
-        contests: contestSummary.totalContests,
+        contests: contestSummary.totalContests || 0,
         announcements: announcementPage.totalCount,
         feedback: feedbackPage.totalCount,
       });
       setOverviewCounts({
-        recipeFree: getPagedPayload(recipeFreeRes).totalCount,
-        recipeMembers: getPagedPayload(recipeMembersRes).totalCount,
-        tipFree: getPagedPayload(tipFreeRes).totalCount,
-        tipMembers: getPagedPayload(tipMembersRes).totalCount,
-        contestsActive: contestSummary.activeContests,
-        contestSubmissions: contestSummary.totalSubmissions,
-        recipeFeedback: getPagedPayload(recipeFeedbackRes).totalCount,
-        siteFeedback: getPagedPayload(siteFeedbackRes).totalCount,
+        recipeFree: getPayloadSafe(recipeFreeSettled).totalCount,
+        recipeMembers: getPayloadSafe(recipeMembersSettled).totalCount,
+        tipFree: getPayloadSafe(tipFreeSettled).totalCount,
+        tipMembers: getPayloadSafe(tipMembersSettled).totalCount,
+        contestsActive: contestSummary.activeContests || 0,
+        contestSubmissions: contestSummary.totalSubmissions || 0,
+        recipeFeedback: getPayloadSafe(recipeFeedbackSettled).totalCount,
+        siteFeedback: getPayloadSafe(siteFeedbackSettled).totalCount,
       });
       setLastUpdated(new Date());
+
+      const majorFailures = [catSettled, recipeSettled, tipSettled, announcementSettled]
+        .filter((s) => s.status === 'rejected');
+      if (majorFailures.length >= 3) {
+        setStatusMessage({ type: 'danger', text: 'Unable to reach backend services. Please verify that the API is running.' });
+      }
     } catch (err) {
       if (!isMountedRef.current) return;
       setStatusMessage({ type: 'danger', text: getRequestError(err, 'Unable to load dashboard metrics. Please retry.') });
@@ -712,6 +728,7 @@ export const AdminDashboardPage = () => {
       {activeTab === 'recipes' && (
         <AdminRecipesTab
           recipes={recipes}
+          categories={categories}
           listError={listError}
           onOpenRecipeModal={() => setShowRecipeModal(true)}
           onToggleRecipeFree={handleToggleRecipeFree}

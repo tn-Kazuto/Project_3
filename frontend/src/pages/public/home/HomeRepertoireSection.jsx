@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { CULINARY_SVG_PLACEHOLDER } from './homeData';
 
 export const HomeRepertoireSection = ({ recipes, fallbackImage }) => {
   return (
@@ -49,14 +50,15 @@ export const HomeRepertoireSection = ({ recipes, fallbackImage }) => {
 
                   <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
                     <img
-                      src={r.imageUrl || fallbackImage}
+                      src={r.imageUrl || fallbackImage || CULINARY_SVG_PLACEHOLDER}
                       alt={r.title}
                       className="w-100 h-100"
                       style={{ objectFit: 'cover' }}
                       loading="lazy"
+                      referrerPolicy="no-referrer"
                       onError={(e) => {
                         e.currentTarget.onerror = null;
-                        e.currentTarget.src = fallbackImage;
+                        e.currentTarget.src = CULINARY_SVG_PLACEHOLDER;
                       }}
                     />
                   </div>

@@ -57,6 +57,11 @@ var redisConfig = builder.Configuration["Redis:Configuration"]
     ?? builder.Configuration.GetConnectionString("Redis") 
     ?? "localhost:6379,abortConnect=false";
 
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true" && redisConfig.Contains("localhost:6379"))
+{
+    redisConfig = redisConfig.Replace("localhost:6379", "redis:6379");
+}
+
 if (!builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddStackExchangeRedisCache(options =>
