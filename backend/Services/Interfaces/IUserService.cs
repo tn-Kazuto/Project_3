@@ -17,6 +17,7 @@ namespace backend.Services
             string? search,
             string? role,
             string? subscriptionStatus);
+        Task<ApiResponse<RevenueStatsDto>> GetRevenueStatsAsync();
     }
 }
 

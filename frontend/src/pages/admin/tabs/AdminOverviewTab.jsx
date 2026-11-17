@@ -1,4 +1,5 @@
 import React from 'react';
+import { AdminRevenueMetrics } from '../components/AdminRevenueMetrics';
 
 export const AdminOverviewTab = ({
   totalCounts,
@@ -156,6 +157,9 @@ export const AdminOverviewTab = ({
           </div>
         </div>
       </div>
+
+      {/* Executive Treasury & Membership Revenue Analytics */}
+      <AdminRevenueMetrics />
 
       {/* Executive Atelier Intelligence & Architecture Metrics */}
       <div className="col-12 mt-4">

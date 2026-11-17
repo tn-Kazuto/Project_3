@@ -77,6 +77,7 @@ export const authApi = {
 
 export const adminUsersApi = {
   getPaged: (params, signal) => api.get('/users/admin', { params, signal }),
+  getRevenueStats: (signal) => api.get('/users/admin/revenue', { signal }),
 };
 
 export const recipeApi = {

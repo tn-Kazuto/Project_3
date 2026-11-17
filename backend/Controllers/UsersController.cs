@@ -164,6 +164,20 @@ namespace backend.Controllers
             var result = await _userService.GetAdminUsersPagedAsync(page, pageSize, search, role, subscriptionStatus);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Retrieves membership subscription revenue statistics and financial metrics for Admin dashboard.
+        /// </summary>
+        [HttpGet("admin/revenue")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
+        [ProducesResponseType(typeof(ApiResponse<RevenueStatsDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetAdminRevenueStats()
+        {
+            var result = await _userService.GetRevenueStatsAsync();
+            return Ok(result);
+        }
     }
 }
 

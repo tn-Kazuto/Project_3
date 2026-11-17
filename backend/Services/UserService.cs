@@ -279,6 +279,80 @@ namespace backend.Services
             return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<UserDto>>.Ok(pagedResult);
         }
 
+        public async Task<ApiResponse<RevenueStatsDto>> GetRevenueStatsAsync()
+        {
+            var paymentRepo = _uow.Repository<Payment>();
+            var userRepo = _uow.Repository<User>();
+
+            var payments = await paymentRepo.QueryReadOnly()
+                .Where(p => p.Status == "COMPLETED" || p.Status == "SUCCESS")
+                .ToListAsync();
+
+            var totalRevenue = payments.Sum(p => p.Amount);
+
+            var monthlyPayments = payments.Where(p =>
+                string.Equals(p.PlanType, "MONTHLY", StringComparison.OrdinalIgnoreCase)).ToList();
+            var yearlyPayments = payments.Where(p =>
+                string.Equals(p.PlanType, "YEARLY", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(p.PlanType, "ANNUAL", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var monthlyRevenue = monthlyPayments.Sum(p => p.Amount);
+            var yearlyRevenue = yearlyPayments.Sum(p => p.Amount);
+
+            var users = await userRepo.QueryReadOnly()
+                .Where(u => u.Role == "MEMBER")
+                .ToListAsync();
+
+            var now = DateTime.UtcNow;
+            var activeSubscribers = users.Count(u => u.SubscriptionEnd.HasValue && u.SubscriptionEnd.Value > now);
+            var expiredSubscribers = users.Count(u => !u.SubscriptionEnd.HasValue || u.SubscriptionEnd.Value <= now);
+            var totalMembers = users.Count;
+
+            var recentPayments = await paymentRepo.QueryReadOnly()
+                .Where(p => p.Status == "COMPLETED" || p.Status == "SUCCESS")
+                .Include(p => p.User)
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(20)
+                .ToListAsync();
+
+            var recentTransactionDtos = recentPayments.Select(p => new PaymentTransactionDto
+            {
+                PaymentId = p.PaymentId,
+                UserId = p.UserId,
+                UserName = p.User != null ? p.User.Username : $"Member #{p.UserId}",
+                FullName = p.User != null ? p.User.FullName : $"Member #{p.UserId}",
+                Email = p.User != null ? p.User.Email : string.Empty,
+                PlanType = NormalizePlanType(p.PlanType),
+                Amount = p.Amount,
+                PaymentDate = p.PaymentDate,
+                Status = p.Status
+            }).ToList();
+
+            var dto = new RevenueStatsDto
+            {
+                TotalRevenue = totalRevenue,
+                MonthlyRevenue = monthlyRevenue,
+                YearlyRevenue = yearlyRevenue,
+                TotalTransactions = payments.Count,
+                MonthlyTransactionsCount = monthlyPayments.Count,
+                YearlyTransactionsCount = yearlyPayments.Count,
+                ActiveSubscribersCount = activeSubscribers,
+                ExpiredSubscribersCount = expiredSubscribers,
+                TotalMembersCount = totalMembers,
+                RecentTransactions = recentTransactionDtos
+            };
+
+            return ApiResponse<RevenueStatsDto>.Ok(dto);
+        }
+
+        private static string NormalizePlanType(string? planType)
+        {
+            if (string.IsNullOrWhiteSpace(planType)) return "MONTHLY";
+            var upper = planType.Trim().ToUpperInvariant();
+            if (upper == "ANNUAL" || upper == "YEARLY") return "YEARLY";
+            return "MONTHLY";
+        }
+
         private static UserDto MapToDto(User user)
         {
             bool isActiveSubscription = user.Role == "ADMIN" ||
