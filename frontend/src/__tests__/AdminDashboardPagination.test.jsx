@@ -13,6 +13,7 @@ vi.mock('../services/api', () => ({
   announcementApi: { getPaged: vi.fn(), getAll: vi.fn(), create: vi.fn(), delete: vi.fn() },
   feedbackApi: { getPaged: vi.fn(), delete: vi.fn() },
   authApi: { getCurrentUser: vi.fn() },
+  adminUsersApi: { getRevenueStats: vi.fn().mockResolvedValue({ data: { success: true, data: {} } }) },
 }));
 
 const pagedResponse = (items = [], totalCount = items.length, page = 1, pageSize = 10) => ({

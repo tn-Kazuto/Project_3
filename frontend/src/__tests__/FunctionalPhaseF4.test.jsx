@@ -60,6 +60,9 @@ vi.mock('../services/api', () => ({
   authApi: {
     getMe: vi.fn().mockResolvedValue({ data: { success: true, data: null } }),
   },
+  adminUsersApi: {
+    getRevenueStats: vi.fn().mockResolvedValue({ data: { success: true, data: {} } }),
+  },
 }));
 
 describe('Functional Phase F4 - Announcements & Feedback Moderation', () => {

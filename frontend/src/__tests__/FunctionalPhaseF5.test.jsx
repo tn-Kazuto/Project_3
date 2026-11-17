@@ -60,6 +60,9 @@ vi.mock('../services/api', () => ({
       },
     }),
   },
+  adminUsersApi: {
+    getRevenueStats: vi.fn().mockResolvedValue({ data: { success: true, data: {} } }),
+  },
 }));
 
 describe('Functional Phase F5 - Executive Admin Hub & Comprehensive Final Verification', () => {
