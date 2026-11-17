@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { recipeApi, tipApi, categoryApi, uploadApi } from '../../services/api';
 import { uploadMediaFile } from '../../services/mediaUpload';
+import { RecipeVideoField } from '../../components/common/RecipeVideoField';
+import { isSupportedRecipeVideoUrl } from '../../utils/recipeVideo';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
 
 export const MyRecipesPage = () => {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin, isChef } = useAuth();
 
   const [activeTab, setActiveTab] = useState('recipes'); // 'recipes' or 'tips'
   const [recipes, setRecipes] = useState([]);
@@ -25,6 +27,8 @@ export const MyRecipesPage = () => {
     ingredients: '',
     cookingProcedure: '',
     imageUrl: '',
+    videoUrl: '',
+    thumbnailUrl: '',
     content: '',
     isFree: false,
   });
@@ -35,6 +39,7 @@ export const MyRecipesPage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -111,6 +116,8 @@ export const MyRecipesPage = () => {
       ingredients: '',
       cookingProcedure: '',
       imageUrl: '',
+      videoUrl: '',
+      thumbnailUrl: '',
       content: '',
       isFree: false,
     });
@@ -129,6 +136,8 @@ export const MyRecipesPage = () => {
       ingredients: item.ingredients || '',
       cookingProcedure: item.cookingProcedure || '',
       imageUrl: item.imageUrl || '',
+      videoUrl: item.videoUrl || '',
+      thumbnailUrl: item.thumbnailUrl || '',
       content: item.content || '',
       isFree: item.isFree,
     });
@@ -158,6 +167,7 @@ export const MyRecipesPage = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
+    if (uploadingVideo) return;
 
     if (activeTab === 'recipes') {
       if (!formData.title.trim()) {
@@ -170,6 +180,10 @@ export const MyRecipesPage = () => {
       }
       if (!formData.cookingProcedure.trim()) {
         setFormError('Cooking procedure is required.');
+        return;
+      }
+      if (!isSupportedRecipeVideoUrl(formData.videoUrl)) {
+        setFormError('Add a secure YouTube or Vimeo link, or a direct HTTPS video file.');
         return;
       }
     } else {
@@ -195,6 +209,8 @@ export const MyRecipesPage = () => {
           imageUrl: imageFile
             ? await uploadMediaFile(imageFile, 'image')
             : formData.imageUrl?.trim(),
+          videoUrl: formData.videoUrl?.trim() || null,
+          thumbnailUrl: formData.thumbnailUrl?.trim() || null,
           isFree: isAdmin ? formData.isFree : false,
         };
 
@@ -233,12 +249,14 @@ export const MyRecipesPage = () => {
         <div>
           <div className="roman-numeral mb-1">IV &middot; REPERTOIRE MANAGEMENT</div>
           <h1 className="brand-font display-6 m-0 text-dark">
-            {isAdmin ? 'Master Recipe & Tip Manager' : 'My Recipes & Culinary Tips'}
+            {isAdmin ? 'Master Recipe & Tip Manager' : isChef ? 'Chef Recipe Studio' : 'My Recipes & Culinary Tips'}
           </h1>
           <p className="text-muted small m-0 mt-2">
             {isAdmin
               ? 'Upload, publish, mark as Free/Member-Only, and manage Chef James Thew creations'
-              : 'Manage, edit, or remove recipes and tips you have contributed to the community'}
+              : isChef
+                ? 'Publish and manage your own recipes and culinary tips'
+                : 'Manage, edit, or remove recipes and tips you have contributed to the community'}
           </p>
         </div>
 
@@ -580,6 +598,18 @@ export const MyRecipesPage = () => {
                     </div>
                   )}
 
+                  {activeTab === 'recipes' && (
+                    <div className="mb-3">
+                      <RecipeVideoField
+                        id="member-recipe-video"
+                        value={formData.videoUrl}
+                        onChange={(videoUrl) => setFormData((prev) => ({ ...prev, videoUrl }))}
+                        onUploadStateChange={setUploadingVideo}
+                        uploading={uploadingVideo}
+                      />
+                    </div>
+                  )}
+
                   {/* Image Upload & URL */}
                   <div className="mb-3">
                     <label className="form-label small fw-semibold">Hình ảnh món ăn (Dish Image)</label>
@@ -694,9 +724,9 @@ export const MyRecipesPage = () => {
                       letterSpacing: '0.14em',
                       borderRadius: 0,
                     }}
-                    disabled={submitting}
+                    disabled={submitting || uploadingVideo}
                   >
-                    {submitting ? 'Saving...' : modalMode === 'create' ? 'Publish Item' : 'Save Changes'}
+                    {uploadingVideo ? 'Uploading video…' : submitting ? 'Saving...' : modalMode === 'create' ? 'Publish Item' : 'Save Changes'}
                   </button>
                 </div>
               </form>

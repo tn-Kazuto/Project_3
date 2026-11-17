@@ -11,6 +11,9 @@
   <Folder Name="/services/billing/">
     <Project Path="services/billing/JamesThew.BillingService.csproj" />
   </Folder>
+  <Folder Name="/services/payment/">
+    <Project Path="services/payment/JamesThew.PaymentService.csproj" />
+  </Folder>
   <Folder Name="/services/contest/">
     <Project Path="services/contest/JamesThew.ContestService.csproj" />
   </Folder>

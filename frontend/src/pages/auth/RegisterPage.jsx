@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export const RegisterPage = () => {
@@ -21,6 +21,7 @@ export const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +62,11 @@ export const RegisterPage = () => {
     try {
       const res = await register(formData);
       if (res.success) {
-        navigate('/', { replace: true });
+        const from = location.state?.from;
+        const returnTo = typeof from?.pathname === 'string' && from.pathname.startsWith('/') && !from.pathname.startsWith('//')
+          ? `${from.pathname}${from.search || ''}${from.hash || ''}`
+          : '/';
+        navigate(returnTo, { replace: true });
       } else {
         setError(res.message || 'Registration failed.');
       }
@@ -390,7 +395,7 @@ export const RegisterPage = () => {
 
             <div className="text-center small">
               <span className="text-muted">Already have a membership? </span>
-              <Link to="/login" className="gold-underline fw-semibold" style={{ color: 'var(--dp-color-ink)' }}>
+              <Link to="/login" state={{ from: location.state?.from }} className="gold-underline fw-semibold" style={{ color: 'var(--dp-color-ink)' }}>
                 Sign in here
               </Link>
             </div>

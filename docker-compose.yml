@@ -20,6 +20,7 @@ services:
       - "Cors__AllowedOrigins__0=${FRONTEND_ORIGIN:?FRONTEND_ORIGIN_required}"
       - ReverseProxy__Clusters__backend-cluster__Destinations__primary__Address=http://backend:5000
       - ReverseProxy__Clusters__billing-cluster__Destinations__primary__Address=http://billing-service:5002
+      - ReverseProxy__Clusters__payment-cluster__Destinations__primary__Address=http://payment-service:5005
       - ReverseProxy__Clusters__contest-cluster__Destinations__primary__Address=http://contest-service:5004
       - ReverseProxy__Clusters__community-cluster__Destinations__primary__Address=http://community-service:5008
       - ReverseProxy__Clusters__catalog-cluster__Destinations__primary__Address=http://catalog-service:5003
@@ -33,6 +34,8 @@ services:
       media-service:
         condition: service_healthy
       billing-service:
+        condition: service_healthy
+      payment-service:
         condition: service_healthy
       contest-service:
         condition: service_healthy
@@ -211,6 +214,8 @@ services:
       - Jwt__Issuer=JamesThewApi
       - Jwt__Audience=JamesThewClient
       - "Billing__ServiceKey=${BILLING_SERVICE_KEY:?BILLING_SERVICE_KEY_required}"
+      - Payment__BaseUrl=http://payment-service:5005
+      - "Payment__ServiceKey=${BILLING_SERVICE_KEY:?BILLING_SERVICE_KEY_required}"
       - RabbitMQ__HostName=rabbitmq
       - RabbitMQ__Port=5672
       - "RabbitMQ__UserName=${RABBITMQ_USER:?RABBITMQ_USER_required}"
@@ -219,6 +224,8 @@ services:
       sqlserver:
         condition: service_healthy
       backend:
+        condition: service_healthy
+      payment-service:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -230,6 +237,40 @@ services:
       timeout: 5s
       retries: 3
       start_period: 25s
+    restart: unless-stopped
+
+  # =========================================================================
+  # 6B. PAYMENT MICROSERVICE (PCI-DSS MOCK GATEWAY & TRANSACTION LEDGER)
+  # =========================================================================
+  payment-service:
+    build:
+      context: .
+      dockerfile: services/payment/Dockerfile
+    container_name: jamesthew-payment-service
+    expose:
+      - "5005"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5005
+      - "ConnectionStrings__PaymentConnection=Server=sqlserver,1433;Database=JamesThewPaymentDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "ConnectionStrings__LegacyConnection=Server=sqlserver,1433;Database=JamesThewDb;User Id=sa;Password=${SQL_PASSWORD:?SQL_PASSWORD_required};TrustServerCertificate=True;"
+      - "Jwt__Key=${JWT_KEY:?JWT_KEY_required}"
+      - Jwt__Issuer=JamesThewApi
+      - Jwt__Audience=JamesThewClient
+      - "Payment__ServiceKey=${BILLING_SERVICE_KEY:?BILLING_SERVICE_KEY_required}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - jamesthew-internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5005/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
   # =========================================================================

@@ -20,6 +20,7 @@ export const AdminDashboardNav = ({
     { key: 'contests', label: `Contests (${totalCounts.contests})` },
     { key: 'announcements', label: `Announcements (${totalCounts.announcements})` },
     { key: 'feedback', label: `Feedbacks (${totalCounts.feedback})` },
+    { key: 'members', label: 'Members' },
   ];
 
   return (

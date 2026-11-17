@@ -17,6 +17,8 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
   const [tierFilter, setTierFilter] = useState('all'); // 'all', 'free', 'members'
   const [formatFilter, setFormatFilter] = useState('ALL'); // 'ALL', 'ARTICLE', 'VIDEO', 'TALKSHOW', 'LIVESHOW'
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
   const [selectedTip, setSelectedTip] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
@@ -48,6 +50,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
     let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
+      setLoadError('');
       try {
         const params = {
           page: currentPage,
@@ -135,6 +138,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
       } catch (err) {
         if (!isMounted) return;
         console.error('Error loading recipes/tips:', err);
+        setLoadError('The culinary library could not be loaded. Check your connection and try again.');
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -144,20 +148,20 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
     return () => {
       isMounted = false;
     };
-  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter, currentPage]);
+  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter, currentPage, retryKey]);
 
   const handleCardClick = (item, isRecipe = true) => {
+    if (isRecipe) {
+      navigate(`/recipes/${item.recipeId}`);
+      return;
+    }
     if (!item.isFree && !isAuthenticated) {
       navigate('/register', {
         state: { message: 'This culinary secret is exclusive to registered members. Please subscribe to unlock!' },
       });
       return;
     }
-    if (isRecipe) {
-      navigate(`/recipes/${item.recipeId}`);
-    } else {
-      setSelectedTip(item);
-    }
+    setSelectedTip(item);
   };
 
   const visualCategories = [
@@ -537,21 +541,33 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
       {/* Main Content Grid */}
       {loading ? (
         <CulinarySkeleton count={6} />
+      ) : loadError ? (
+        <div className="p-4 border text-center" role="alert" style={{ borderColor: 'var(--dp-color-rule)', backgroundColor: '#ffffff' }}>
+          <h2 className="brand-font h3">The recipes are temporarily unavailable</h2>
+          <p className="small text-muted">{loadError}</p>
+          <button type="button" className="btn btn-primary" onClick={() => setRetryKey((value) => value + 1)}>Try again</button>
+        </div>
       ) : activeTab === 'recipes' ? (
         /* Recipes Grid */
         <div className="row g-4">
           {recipes.length > 0 ? (
             recipes.map((r) => (
               <div key={r.recipeId} className="col-md-6 col-lg-4">
-                <div
-                  className="card h-100 p-4 cursor-pointer"
+                <Link
+                  to={!isAuthenticated && !r.isFree && r.accessLevel !== 'PREVIEW'
+                    ? '/register'
+                    : `/recipes/${r.recipeId}`}
+                  state={!isAuthenticated && !r.isFree && r.accessLevel !== 'PREVIEW'
+                    ? { message: 'This members-only recipe is available to registered subscribers.' }
+                    : undefined}
+                  aria-label={`View recipe ${r.title}`}
+                  className="card h-100 p-4 text-decoration-none"
                   style={{
                     backgroundColor: '#ffffff',
                     border: '1px solid var(--dp-color-rule)',
                     borderRadius: 0,
-                    cursor: 'pointer',
+                    color: 'inherit',
                   }}
-                  onClick={() => handleCardClick(r, true)}
                 >
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-1">
@@ -584,6 +600,11 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                     >
                       {r.isFree ? 'Free Access' : 'Members Only'}
                     </span>
+                    {r.accessLevel === 'PREVIEW' && (
+                      <span className="badge font-monospace" style={{ backgroundColor: 'var(--dp-color-ground-2)', color: 'var(--dp-color-ink)' }}>
+                        Preview available
+                      </span>
+                    )}
                   </div>
 
                   <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
@@ -605,7 +626,11 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                   </h4>
 
                   <p className="text-muted small mb-3 flex-grow-1" style={{ lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    <strong className="text-dark">Ingredients:</strong> {r.ingredients.substring(0, 100)}...
+                    {r.accessLevel === 'PREVIEW'
+                      ? 'Open to read the first part of this members-only recipe.'
+                      : r.ingredients
+                        ? <><strong className="text-dark">Ingredients:</strong> {r.ingredients.substring(0, 100)}...</>
+                        : 'Open the recipe to see its ingredients and cooking method.'}
                   </p>
 
                   <div
@@ -626,7 +651,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                       <span>View &rarr;</span>
                     </span>
                   </div>
-                </div>
+                </Link>
               </div>
             ))
           ) : (

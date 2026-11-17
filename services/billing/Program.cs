@@ -18,6 +18,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "JamesThewClient";
 
 builder.Services.AddDbContext<BillingDbContext>(options => options.UseSqlServer(billingConnection));
 builder.Services.AddDbContext<LegacyBillingDbContext>(options => options.UseSqlServer(legacyConnection));
+builder.Services.AddHttpClient<PaymentGatewayClient>();
 builder.Services.AddScoped<BillingApplicationService>();
 builder.Services.AddHostedService<BillingOutboxPublisher>();
 builder.Services.AddControllers();

@@ -8,6 +8,9 @@ import {
   feedbackApi,
 } from '../../services/api';
 import { uploadMediaFile } from '../../services/mediaUpload';
+import { RecipeVideoField } from '../../components/common/RecipeVideoField';
+import { isSupportedRecipeVideoUrl } from '../../utils/recipeVideo';
+import { AdminMembersPanel } from './components/AdminMembersPanel';
 import AdminPagination from './components/AdminPagination';
 import AdminTableState from './components/AdminTableState';
 import { AdminDashboardNav } from './components/AdminDashboardNav';
@@ -38,11 +41,22 @@ export const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
+  const [uploadingRecipeVideo, setUploadingRecipeVideo] = useState(false);
 
   // Data states
   const [categories, setCategories] = useState([]);
   const [recipes, setRecipes] = useState([]);
+  const [recipePage, setRecipePage] = useState(1);
+  const [recipePageSize, setRecipePageSize] = useState(INITIAL_PAGE_SIZE);
+  const [recipeTotalCount, setRecipeTotalCount] = useState(0);
+  const [recipeFreeCount, setRecipeFreeCount] = useState(0);
+  const [recipeMemberCount, setRecipeMemberCount] = useState(0);
   const [tips, setTips] = useState([]);
+  const [tipPage, setTipPage] = useState(1);
+  const [tipPageSize, setTipPageSize] = useState(INITIAL_PAGE_SIZE);
+  const [tipTotalCount, setTipTotalCount] = useState(0);
+  const [tipFreeCount, setTipFreeCount] = useState(0);
+  const [tipMemberCount, setTipMemberCount] = useState(0);
   const [contests, setContests] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
@@ -316,7 +330,6 @@ export const AdminDashboardPage = () => {
     const intervalId = window.setInterval(refreshEntries, 30000);
     return () => window.clearInterval(intervalId);
   }, [activeTab, selectedContestForEntries?.contestId, entryPage, pageSize]);
-
   // Recipe actions
   const handleToggleRecipeFree = async (recipe) => {
     try {
@@ -354,6 +367,11 @@ export const AdminDashboardPage = () => {
 
   const handleCreateRecipe = async (e) => {
     e.preventDefault();
+    if (uploadingRecipeVideo) return;
+    if (recipeForm.videoUrl && !isSupportedRecipeVideoUrl(recipeForm.videoUrl)) {
+      setStatusMessage({ type: 'danger', text: 'Use a secure YouTube or Vimeo link, or a direct HTTPS video file.' });
+      return;
+    }
     setSavingRecipe(true);
     try {
       const videoUrl = recipeForm.videoFile
@@ -670,11 +688,13 @@ export const AdminDashboardPage = () => {
         activeTab={activeTab}
         totalCounts={totalCounts}
         onTabChange={(key) => {
-          if (key !== 'overview') setListLoading(true);
+          if (key !== 'overview' && key !== 'members') setListLoading(true);
           setActiveTab(key);
           setSelectedContestForEntries(null);
         }}
       />
+
+      {activeTab === 'members' && <AdminMembersPanel />}
 
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
