@@ -69,15 +69,11 @@ export const AdminRecipesTab = ({
     <div className="card shadow-sm border-0" style={{ backgroundColor: '#ffffff', borderRadius: 0 }}>
       {/* ── CARD HEADER & ACTION ── */}
       <div className="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3" style={{ borderColor: 'var(--dp-color-rule)' }}>
-        <div>
-          <div className="d-flex align-items-center gap-2 mb-1">
-            <span className="roman-numeral" style={{ fontSize: '0.85rem' }}>ATELIER ARCHIVE</span>
-            <span className="badge font-monospace bg-light text-dark border">
-              {recipes.length} Loaded
-            </span>
-          </div>
+        <div className="d-flex align-items-center gap-2">
           <h2 className="brand-font h4 mb-0 text-dark">Recipes Catalog Management</h2>
-          <p className="small text-muted mb-0">Manage culinary repertoire, media formats, public accessibility, and publication statuses.</p>
+          <span className="badge font-monospace bg-light text-dark border">
+            {recipes.length} Recipes
+          </span>
         </div>
         <button
           className="btn btn-primary btn-sm px-3 fw-semibold d-inline-flex align-items-center gap-2"

@@ -64,9 +64,7 @@ export const AdminMembersPanel = () => {
   return (
     <section className="admin-members-panel" aria-labelledby="admin-members-title">
       <header className="mb-4">
-        <p className="roman-numeral mb-1">MEMBERSHIP DIRECTORY</p>
-        <h2 id="admin-members-title" className="brand-font h2 mb-2">Registered accounts</h2>
-        <p className="small text-muted mb-0">Review member roles and subscription dates. Payment details are not shown here.</p>
+        <h2 id="admin-members-title" className="brand-font h3 mb-1">Registered Accounts</h2>
       </header>
 
       <form className="row g-3 align-items-end mb-4" onSubmit={handleSearch}>

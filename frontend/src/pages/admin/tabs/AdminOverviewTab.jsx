@@ -205,7 +205,7 @@ export const AdminOverviewTab = ({
                   {overviewCounts.recipeMembers + overviewCounts.tipMembers} VIP Reserved
                 </div>
                 <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                  Protected by JWT & Access Filter
+                  Subscriber Access
                 </small>
               </div>
             </div>
@@ -217,7 +217,7 @@ export const AdminOverviewTab = ({
                   {overviewCounts.contestSubmissions} Submissions
                 </div>
                 <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                  Across {totalCounts.contests} Official Competitions
+                  In {totalCounts.contests} Competitions
                 </small>
               </div>
             </div>
@@ -227,7 +227,7 @@ export const AdminOverviewTab = ({
                 <div className="roman-numeral mb-1" style={{ fontSize: '0.75rem' }}>COMMUNITY FEEDBACK</div>
                 <div className="brand-font h4 mb-0 text-dark">{totalCounts.feedback} Reviews</div>
                 <small className="text-muted font-monospace" style={{ fontSize: '0.75rem' }}>
-                  Two-Way Atelier Communication
+                  Community Reviews
                 </small>
               </div>
             </div>

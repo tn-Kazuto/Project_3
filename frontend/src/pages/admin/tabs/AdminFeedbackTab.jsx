@@ -91,15 +91,11 @@ export const AdminFeedbackTab = ({
         className="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3"
         style={{ borderColor: 'var(--dp-color-rule)' }}
       >
-        <div>
-          <div className="d-flex align-items-center gap-2 mb-1">
-            <span className="roman-numeral" style={{ fontSize: '0.85rem' }}>COMMUNITY TASTINGS</span>
-            <span className="badge font-monospace bg-light text-dark border">
-              {totalCounts.feedback} Total
-            </span>
-          </div>
+        <div className="d-flex align-items-center gap-2">
           <h2 className="brand-font h4 mb-0 text-dark">User Reviews &amp; Feedback</h2>
-          <p className="small text-muted mb-0">Evaluate culinary member feedback, recipe star ratings, and practiced dish creations.</p>
+          <span className="badge font-monospace bg-light text-dark border">
+            {totalCounts.feedback} Total
+          </span>
         </div>
 
         {/* Scope Switcher Buttons */}

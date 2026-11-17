@@ -370,15 +370,11 @@ export const AdminContestsTab = ({
             className="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3"
             style={{ borderColor: 'var(--dp-color-rule)' }}
           >
-            <div>
-              <div className="d-flex align-items-center gap-2 mb-1">
-                <span className="roman-numeral" style={{ fontSize: '0.85rem' }}>COMPETITIVE ARENA</span>
-                <span className="badge font-monospace bg-light text-dark border">
-                  {contests.length} Arena Competitions
-                </span>
-              </div>
+            <div className="d-flex align-items-center gap-2">
               <h2 className="brand-font h4 mb-0 text-dark">Culinary Contests Management</h2>
-              <p className="small text-muted mb-0">Coordinate culinary challenges, inspect home cook submissions, and manage community voting laureates.</p>
+              <span className="badge font-monospace bg-light text-dark border">
+                {contests.length} Contests
+              </span>
             </div>
             <button
               className="btn btn-warning text-dark fw-semibold btn-sm px-3 d-inline-flex align-items-center gap-2"

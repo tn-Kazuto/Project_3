@@ -743,6 +743,7 @@ export const AdminDashboardPage = () => {
       {activeTab === 'tips' && (
         <AdminTipsTab
           tips={tips}
+          categories={categories}
           listError={listError}
           onOpenTipModal={() => setShowTipModal(true)}
           onToggleTipFree={handleToggleTipFree}

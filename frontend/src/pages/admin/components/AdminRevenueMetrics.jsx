@@ -125,7 +125,7 @@ export const AdminRevenueMetrics = () => {
               Membership Revenue & Subscription Analytics
             </h4>
             <p className="small text-muted mb-0 font-monospace">
-              Financial performance, real-time membership transactions, and tier distribution.
+              Subscription transactions and revenue breakdown.
             </p>
           </div>
           <div className="d-flex align-items-center gap-2 mt-2 mt-md-0">
@@ -209,7 +209,7 @@ export const AdminRevenueMetrics = () => {
             </div>
             <h5 className="brand-font text-dark mb-2">No Membership Purchases Recorded</h5>
             <p className="small text-muted font-monospace mb-3 max-w-md mx-auto">
-              Once culinary enthusiasts purchase a Monthly ($10/mo) or Annual ($100/yr) subscription pass, transaction receipts and revenue summaries will automatically appear here.
+              Completed member subscription purchases and receipts will appear here.
             </p>
             <button
               type="button"
