@@ -1516,11 +1516,47 @@ p {
 }
 
 .atelier-card-hover {
-  transition: border-color var(--dp-motion-interaction), transform var(--dp-motion-interaction);
+  transition: border-color var(--dp-motion-interaction), transform var(--dp-motion-interaction), box-shadow var(--dp-motion-interaction);
 }
 
 .atelier-card-hover:hover {
   border-color: var(--dp-color-accent) !important;
+}
+
+/* ── Smooth Image Zoom on Hover (Anti-slop Luxury Micro-interaction) ── */
+.overflow-hidden img,
+.atelier-card-hover img,
+.card img,
+.zoom-on-hover img,
+.home-recipe-card__image img {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease !important;
+  will-change: transform;
+}
+
+.overflow-hidden:hover img,
+.atelier-card-hover:hover img,
+.card:hover img,
+.zoom-on-hover:hover img,
+.home-recipe-card:hover .home-recipe-card__image img {
+  transform: scale(1.08) !important;
+}
+
+/* Disable on user avatars and small icons */
+.luxury-user-avatar img,
+.avatar img,
+.no-zoom img {
+  transform: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overflow-hidden img,
+  .atelier-card-hover img,
+  .card img,
+  .zoom-on-hover img {
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 /* ── Editorial Drop Cap & Gastronomy Typography (Impeccable & Hallmark) ── */
