@@ -204,23 +204,9 @@ export const AdminTipsTab = ({
 
                 return (
                   <tr key={t.tipId}>
-                    <td>
-                      <div>
-                        <div className="fw-bold text-dark font-sans" style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
-                          {t.title}
-                        </div>
-                        {t.content && (
-                          <div
-                            className="text-muted small mt-1 text-truncate"
-                            style={{
-                              maxWidth: '380px',
-                              fontFamily: 'system-ui, sans-serif',
-                              fontSize: '0.78rem',
-                            }}
-                          >
-                            {t.content}
-                          </div>
-                        )}
+                    <td style={{ maxWidth: '380px' }}>
+                      <div className="fw-bold text-dark font-sans text-truncate mb-0" style={{ fontSize: '0.92rem' }} title={t.title}>
+                        {t.title}
                       </div>
                     </td>
                     <td>

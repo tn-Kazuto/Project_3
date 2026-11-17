@@ -59,7 +59,13 @@ export const AdminFeedbackTab = ({
                 </td>
                 <td>
                   {f.recipeTitle ? (
-                    <span className="badge bg-light text-primary border">🍲 Recipe: {f.recipeTitle}</span>
+                    <span
+                      className="badge bg-light text-primary border text-truncate d-inline-block"
+                      style={{ maxWidth: '200px' }}
+                      title={f.recipeTitle}
+                    >
+                      🍲 Recipe: {f.recipeTitle}
+                    </span>
                   ) : (
                     <span className="badge bg-light text-dark border">🌐 General Website</span>
                   )}
@@ -73,7 +79,22 @@ export const AdminFeedbackTab = ({
                     <span className="text-muted small">-</span>
                   )}
                 </td>
-                <td style={{ maxWidth: '300px', whiteSpace: 'pre-line' }}>{f.comment}</td>
+                <td style={{ maxWidth: '280px' }}>
+                  <div
+                    className="small"
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      lineHeight: '1.45',
+                    }}
+                    title={f.comment}
+                  >
+                    {f.comment}
+                  </div>
+                </td>
                 <td>
                   {f.mediaUrl ? (
                     <a

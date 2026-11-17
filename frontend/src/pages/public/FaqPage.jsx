@@ -77,8 +77,8 @@ export const FaqPage = () => {
           <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
         </div>
         <h1 className="brand-font display-5 mb-3">Frequently Asked Questions</h1>
-        <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
-          Welcome to The Grand Palace Hotel Concierge Desk. Find prompt answers to common inquiries about culinary memberships, recipe access, cooking contests, and weekend masterclasses with Chef James Thew.
+        <p className="lead max-w-700 mx-auto mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
+          Find answers to common questions about memberships, recipes, contests, and masterclasses.
         </p>
 
         {/* Quick Topic Chips (Visual Filter Buttons to jump or filter without reading all text) */}

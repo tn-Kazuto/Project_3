@@ -33,7 +33,9 @@ export const AdminRecipesTab = ({
           <tbody>
             {recipes.map((r) => (
               <tr key={r.recipeId}>
-                <td className="fw-bold text-dark">{r.title}</td>
+                <td className="fw-bold text-dark" style={{ maxWidth: '360px' }}>
+                  <div className="text-truncate" title={r.title}>{r.title}</div>
+                </td>
                 <td>
                   <span className="badge bg-light text-dark border">{r.categoryName}</span>
                 </td>

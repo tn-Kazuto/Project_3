@@ -132,7 +132,9 @@ export const AdminContestsTab = ({
           <tbody>
             {contests.map((c) => (
               <tr key={c.contestId}>
-                <td className="fw-bold text-dark">{c.title}</td>
+                <td className="fw-bold text-dark" style={{ maxWidth: '340px' }}>
+                  <div className="text-truncate" title={c.title}>{c.title}</div>
+                </td>
                 <td>
                   <span className={`badge ${c.contestType === 'RECIPE' ? 'bg-primary' : 'bg-info text-dark'}`}>
                     {c.contestType}

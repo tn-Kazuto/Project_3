@@ -28,32 +28,9 @@ export const AnnouncementHeroBanner = () => {
         </span>
       </div>
       <h1 className="brand-font display-5 mb-3 text-dark">Winner Announcements & News</h1>
-      <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
-        The Grand Palace Hotel gazette celebrates culinary mastery, crowning our esteemed competition laureates and
-        announcing distinguished epicurean dispatches from Chef James Thew.
+      <p className="lead max-w-700 mx-auto mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
+        Competition laureates and winner announcements curated by Chef James Thew.
       </p>
-      <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-        <span
-          className="badge font-monospace px-3 py-2"
-          style={{
-            backgroundColor: 'var(--dp-color-field)',
-            color: 'var(--dp-color-on-field)',
-            borderRadius: 0,
-          }}
-        >
-          Permanent Culinary Honor Roll
-        </span>
-        <span
-          className="badge font-monospace px-3 py-2"
-          style={{
-            backgroundColor: 'var(--dp-color-accent)',
-            color: '#ffffff',
-            borderRadius: 0,
-          }}
-        >
-          &star; Certified by Chef James Thew
-        </span>
-      </div>
     </div>
   );
 };

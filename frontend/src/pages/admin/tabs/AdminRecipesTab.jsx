@@ -269,17 +269,12 @@ export const AdminRecipesTab = ({
                       <div className="overflow-hidden">
                         <Link
                           to={`/recipes/${r.recipeId}`}
-                          className="fw-bold text-dark text-decoration-none d-block line-clamp-1 gold-underline-hover"
-                          style={{ fontSize: '0.95rem' }}
-                          title={`Preview: ${r.title}`}
+                          className="fw-bold text-dark text-decoration-none d-block text-truncate gold-underline-hover"
+                          style={{ fontSize: '0.92rem', maxWidth: '320px' }}
+                          title={r.title}
                         >
                           {r.title}
                         </Link>
-                        {r.ingredients && (
-                          <div className="small text-muted text-truncate" style={{ maxWidth: '320px', fontSize: '0.78rem' }}>
-                            {r.ingredients.substring(0, 75)}...
-                          </div>
-                        )}
                       </div>
                     </div>
                   </td>

@@ -251,20 +251,9 @@ export const ContestsPage = () => {
       >
         <div className="roman-numeral mb-1">IV &middot; COMPETITIVE ARENA</div>
         <h1 className="brand-font display-5 mb-3 text-dark">Culinary Contests</h1>
-        <p className="lead mx-auto mb-3 text-muted" style={{ maxWidth: '750px', fontSize: '1.05rem', lineHeight: '1.7' }}>
-          Test your gastronomic prowess against passionate culinarians worldwide. Curated exclusively by Executive Chef James Thew.
+        <p className="lead mx-auto mb-0 text-muted" style={{ maxWidth: '750px', fontSize: '1.05rem', lineHeight: '1.6' }}>
+          Test your gastronomic skills in culinary contests curated by Chef James Thew.
         </p>
-        <div 
-          className="d-inline-flex align-items-center gap-2 px-3 py-1 font-monospace small"
-          style={{ 
-            backgroundColor: '#ffffff', 
-            border: '1px solid var(--dp-color-rule)',
-            letterSpacing: '0.08em'
-          }}
-        >
-          <span className="fw-bold" style={{ color: 'var(--dp-color-accent-text)' }}>OPEN INVITATION:</span>
-          <span className="text-muted">Both registered Members &amp; Guest culinarians are welcome to participate!</span>
-        </div>
       </div>
 
       {error && (

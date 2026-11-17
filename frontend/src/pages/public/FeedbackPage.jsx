@@ -80,31 +80,9 @@ export const FeedbackPage = () => {
               <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
             </div>
             <h1 className="brand-font display-5 mb-3 text-dark">Website Feedback & Suggestions</h1>
-            <p className="lead max-w-700 mx-auto" style={{ color: 'var(--dp-color-ink-2)' }}>
-              At The Grand Palace Hotel, excellence is our persistent craft. We strive to deliver the highest quality culinary inspiration and learning experience. Let Chef James Thew know how we can improve our recipes, classes, and platform!
+            <p className="lead max-w-700 mx-auto mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
+              Share your feedback or suggestions to help us improve the platform.
             </p>
-            <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-              <span
-                className="badge font-monospace px-3 py-2"
-                style={{
-                  backgroundColor: 'var(--dp-color-field)',
-                  color: 'var(--dp-color-on-field)',
-                  borderRadius: 0,
-                }}
-              >
-                Reviewed Personally by Executive Chef
-              </span>
-              <span
-                className="badge font-monospace px-3 py-2"
-                style={{
-                  backgroundColor: 'var(--dp-color-accent)',
-                  color: '#ffffff',
-                  borderRadius: 0,
-                }}
-              >
-                &star; Continuous Culinary Elevation
-              </span>
-            </div>
           </div>
 
           <div

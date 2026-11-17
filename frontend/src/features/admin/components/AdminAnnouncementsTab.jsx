@@ -30,8 +30,16 @@ export const AdminAnnouncementsTab = ({
           <tbody>
             {announcements.map((a) => (
               <tr key={a.announcementId}>
-                <td className="fw-bold text-dark">{a.title}</td>
-                <td>{a.contestTitle || <span className="text-muted">—</span>}</td>
+                <td className="fw-bold text-dark" style={{ maxWidth: '340px' }}>
+                  <div className="text-truncate" title={a.title}>{a.title}</div>
+                </td>
+                <td style={{ maxWidth: '220px' }}>
+                  {a.contestTitle ? (
+                    <div className="text-truncate" title={a.contestTitle}>{a.contestTitle}</div>
+                  ) : (
+                    <span className="text-muted">—</span>
+                  )}
+                </td>
                 <td>
                   {a.winnerName ? (
                     <span className="badge bg-warning text-dark fw-bold">{a.winnerName}</span>

@@ -355,10 +355,12 @@ export const AdminFeedbackTab = ({
                   <div
                     className="small"
                     style={{
-                      maxHeight: '4.8rem',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      lineHeight: '1.5',
+                      lineHeight: '1.45',
                       fontStyle: 'italic',
                       color: 'var(--dp-color-ink)',
                     }}

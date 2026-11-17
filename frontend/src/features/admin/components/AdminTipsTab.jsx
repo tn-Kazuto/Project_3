@@ -32,17 +32,21 @@ export const AdminTipsTab = ({
           <tbody>
             {tips.map((t) => (
               <tr key={t.tipId}>
-                <td className="fw-bold text-dark">{t.title}</td>
-                <td>
-                  <span className="badge bg-light text-dark border">{t.categoryName}</span>
+                <td className="fw-bold text-dark" style={{ maxWidth: '360px' }}>
+                  <div className="text-truncate" title={t.title}>{t.title}</div>
                 </td>
-                <td>{t.authorName}</td>
                 <td>
-                  <span className={`badge ${t.isFree ? 'bg-success' : 'bg-warning text-dark'}`}>
+                  <span className="badge bg-light text-dark border font-monospace text-uppercase" style={{ fontSize: '0.72rem' }}>
+                    {t.categoryName || 'TECHNIQUE'}
+                  </span>
+                </td>
+                <td>{t.authorName || 'James Thew'}</td>
+                <td>
+                  <span className={`badge ${t.isFree ? 'bg-success' : 'bg-warning text-dark'}`} style={{ fontSize: '0.72rem' }}>
                     {t.isFree ? 'Free Access' : 'Members Only'}
                   </span>
                 </td>
-                <td className="small text-muted">{new Date(t.createdAt).toLocaleDateString()}</td>
+                <td className="small text-muted font-monospace">{new Date(t.createdAt).toLocaleDateString()}</td>
                 <td className="text-end">
                   <button
                     className={`btn btn-sm me-2 ${t.isFree ? 'btn-outline-warning' : 'btn-outline-success'}`}

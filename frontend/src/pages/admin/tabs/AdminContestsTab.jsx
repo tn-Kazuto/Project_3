@@ -517,18 +517,10 @@ export const AdminContestsTab = ({
                 {!listError && filteredContests.map((c) => (
                   <tr key={c.contestId}>
                     {/* TITLE & DESCRIPTION */}
-                    <td>
-                      <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
+                    <td style={{ maxWidth: '380px' }}>
+                      <div className="fw-bold text-dark text-truncate mb-0" style={{ fontSize: '0.92rem' }} title={c.title}>
                         {c.title}
                       </div>
-                      {c.description && (
-                        <p
-                          className="small text-muted mb-0 line-clamp-2"
-                          style={{ fontSize: '0.8rem', lineHeight: '1.45', maxWidth: '380px' }}
-                        >
-                          {c.description.length > 90 ? `${c.description.substring(0, 90)}...` : c.description}
-                        </p>
-                      )}
                     </td>
 
                     {/* CONTEST TYPE */}

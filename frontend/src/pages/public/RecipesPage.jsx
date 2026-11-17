@@ -233,25 +233,14 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
         }}
       >
         <div className="row align-items-center g-4">
-          <div className="col-lg-8">
-            <div className="d-flex align-items-center gap-2 mb-2 font-monospace small" style={{ color: 'var(--dp-color-accent)', letterSpacing: '0.14em' }}>
-              <span>LE MENU GASTRONOMIQUE</span>
-            </div>
+          <div className="col-lg-12">
             <div className="roman-numeral mb-1" style={{ color: 'var(--dp-color-accent)' }}>
               III &middot; ARCHITECTURAL CATALOG
             </div>
             <h1 className="brand-font display-5 mb-2 text-white">Culinary Library</h1>
             <p className="small text-white-50 mb-0" style={{ maxWidth: '650px', lineHeight: '1.65' }}>
-              Exclusive gastronomy formulated in the 5-star kitchens of The Grand Palace by Executive Chef James Thew across Juices, Vegetarian, Non-Vegetarian, and Italian classics.
+              Culinary recipes and professional cooking tips across four core cuisines.
             </p>
-          </div>
-          <div className="col-lg-4 text-lg-end">
-            <div className="d-inline-block p-3 border text-start" style={{ borderColor: 'var(--dp-color-accent)', backgroundColor: 'rgba(0,0,0,0.45)', minWidth: '220px' }}>
-              <div className="font-monospace small fw-bold" style={{ color: 'var(--dp-color-accent)' }}>TABLESIDE ATELIER</div>
-              <div className="text-white-50 small mt-1">&star; 3-Michelin Techniques</div>
-              <div className="text-white-50 small">&star; Sommelier Pairings</div>
-              <div className="text-white-50 small">&star; 100% Chef Verified</div>
-            </div>
           </div>
         </div>
       </div>

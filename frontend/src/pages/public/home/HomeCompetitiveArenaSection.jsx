@@ -23,9 +23,7 @@ export const HomeCompetitiveArenaSection = ({ contests, announcements }) => {
             </div>
             <h2 className="brand-font display-6 mb-3 text-white">Culinary Contests</h2>
             <p style={{ color: 'var(--dp-color-on-field-2)', lineHeight: '1.75' }}>
-              Are you ready to test your skills? Chef James Thew frequently hosts competitive cooking contests.
-              <strong className="text-white"> Non-members and guests are welcome to participate!</strong> Winners are honored
-              on our global announcement board.
+              Competitive culinary challenges open to members and guests. Submit your original dishes to be judged by Chef James Thew.
             </p>
             <Link
               to="/contests"

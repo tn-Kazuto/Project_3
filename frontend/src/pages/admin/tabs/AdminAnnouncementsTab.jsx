@@ -178,18 +178,10 @@ export const AdminAnnouncementsTab = ({
             {!listError && filteredAnnouncements.map((a) => (
               <tr key={a.announcementId}>
                 {/* TITLE & EXCERPT */}
-                <td>
-                  <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
+                <td style={{ maxWidth: '380px' }}>
+                  <div className="fw-bold text-dark text-truncate mb-0" style={{ fontSize: '0.92rem' }} title={a.title}>
                     {a.title}
                   </div>
-                  {a.content && (
-                    <p
-                      className="small text-muted mb-0 line-clamp-2"
-                      style={{ fontSize: '0.8rem', lineHeight: '1.45', maxWidth: '420px' }}
-                    >
-                      {a.content.length > 95 ? `${a.content.substring(0, 95)}...` : a.content}
-                    </p>
-                  )}
                 </td>
 
                 {/* CONTEST LINKED */}
