@@ -75,6 +75,10 @@ export const authApi = {
   }),
 };
 
+export const adminUsersApi = {
+  getPaged: (params, signal) => api.get('/users/admin', { params, signal }),
+};
+
 export const recipeApi = {
   getAll: async (params) => withCommunityShareCounts(await api.get('/recipes', { params })),
   getPaged: async (params) => withCommunityShareCounts(await api.get('/recipes/paged', { params })),

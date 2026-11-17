@@ -41,6 +41,14 @@ export const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="chef"
+              element={
+                <ProtectedRoute requiredRole="CHEF">
+                  <MyRecipesPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Public Community routes (Phase 7) */}
             <Route path="contests" element={<ContestsPage />} />

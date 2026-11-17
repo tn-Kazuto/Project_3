@@ -12,7 +12,10 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/';
+  const returnLocation = location.state?.from;
+  const from = typeof returnLocation?.pathname === 'string' && returnLocation.pathname.startsWith('/') && !returnLocation.pathname.startsWith('//')
+    ? `${returnLocation.pathname}${returnLocation.search || ''}${returnLocation.hash || ''}`
+    : '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { recipeApi, feedbackApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { getVideoEmbed } from '../../utils/recipeVideo';
 
 const FALLBACK_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80';
 
@@ -10,33 +11,16 @@ const toRoman = (num) => {
   return map[num - 1] || num.toString();
 };
 
-const getVideoEmbed = (url) => {
-  if (!url) return null;
-  // YouTube watch format or short url
-  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
-  if (ytMatch && ytMatch[1]) {
-    return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}` };
-  }
-  // Vimeo
-  const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)/i);
-  if (vimeoMatch && vimeoMatch[3]) {
-    return { type: 'iframe', src: `https://player.vimeo.com/video/${vimeoMatch[3]}` };
-  }
-  // Direct mp4 / webm
-  if (url.match(/\.(mp4|webm|ogg)$/i)) {
-    return { type: 'video', src: url };
-  }
-  return { type: 'iframe', src: url };
-};
-
 export const RecipeDetailPage = () => {
   const { id } = useParams();
-  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   const [recipe, setRecipe] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [accessDenied, setAccessDenied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [preppedIngredients, setPreppedIngredients] = useState({});
 
@@ -68,12 +52,15 @@ export const RecipeDetailPage = () => {
 
         const resRecipe = recipeResult.value;
         if (resRecipe.data?.success) {
+          setError('');
+          setAccessDenied(false);
           const legacyCount = resRecipe.data.data.shareCount || 0;
           const communityCount = shareResult.status === 'fulfilled' && shareResult.value.data?.success
             ? shareResult.value.data.data
             : legacyCount;
           setRecipe({ ...resRecipe.data.data, shareCount: communityCount });
         } else {
+          setAccessDenied(false);
           setError(resRecipe.data?.message || 'Recipe not found');
         }
         if (feedbackResult.status === 'fulfilled' && feedbackResult.value.data?.success) {
@@ -82,8 +69,10 @@ export const RecipeDetailPage = () => {
       } catch (err) {
         if (!isMounted) return;
         if (err.response?.status === 403) {
+          setAccessDenied(true);
           setError(err.response?.data?.message || 'This recipe is exclusive to registered members. Please subscribe or log in to view.');
         } else {
+          setAccessDenied(false);
           setError('Failed to load recipe details.');
         }
       } finally {
@@ -100,6 +89,8 @@ export const RecipeDetailPage = () => {
   const fetchRecipe = async () => {
     try {
       setLoading(true);
+      setError('');
+      setAccessDenied(false);
       const res = await recipeApi.getById(id);
       if (res.data?.success) {
         setRecipe(res.data.data);
@@ -108,8 +99,10 @@ export const RecipeDetailPage = () => {
       }
     } catch (err) {
       if (err.response?.status === 403) {
+        setAccessDenied(true);
         setError(err.response?.data?.message || 'This recipe is exclusive to registered members. Please subscribe or log in to view.');
       } else {
+        setAccessDenied(false);
         setError('Failed to load recipe details.');
       }
     } finally {
@@ -240,6 +233,7 @@ export const RecipeDetailPage = () => {
   }
 
   if (error || !recipe) {
+    const returnTo = { pathname: location.pathname, search: location.search, hash: location.hash };
     return (
       <div className="container py-5 text-center">
         <div
@@ -252,38 +246,28 @@ export const RecipeDetailPage = () => {
           }}
         >
           <div className="roman-numeral mb-2" style={{ color: 'var(--dp-color-accent)', fontSize: '1.1rem' }}>
-            RESERVED ARCHIVE
+            {accessDenied ? 'RESERVED ARCHIVE' : 'RECIPE UNAVAILABLE'}
           </div>
           <h3 className="brand-font mb-2 text-white" style={{ fontSize: '1.75rem' }}>
-            Member Exclusive Content
+            {accessDenied ? 'Member Exclusive Content' : 'We could not load this recipe'}
           </h3>
           <p className="mb-4" style={{ color: 'var(--dp-color-on-field-2)', lineHeight: '1.65' }}>
-            {error}
+            {accessDenied ? 'Sign in or register to unlock the complete recipe.' : error || 'Please try again in a moment.'}
           </p>
-          <div className="d-flex justify-content-center gap-3">
-            <Link
-              to="/register"
-              className="btn btn-warning text-white fw-bold px-4 py-2"
-              style={{
-                backgroundColor: 'var(--dp-color-accent)',
-                borderColor: 'var(--dp-color-accent)',
-                letterSpacing: '0.14em',
-                borderRadius: 0,
-              }}
-            >
-              Subscribe & Unlock
-            </Link>
-            <Link
-              to="/recipes"
-              className="btn btn-outline-light px-4 py-2"
-              style={{
-                borderColor: 'var(--dp-color-field-line)',
-                letterSpacing: '0.14em',
-                borderRadius: 0,
-              }}
-            >
-              Back to Recipes
-            </Link>
+          <div className="d-flex flex-wrap justify-content-center gap-3">
+            {accessDenied ? (
+              isAuthenticated ? (
+                <Link to="/profile" className="btn btn-primary">Renew membership</Link>
+              ) : (
+                <>
+                  <Link to="/register" state={{ from: returnTo }} className="btn btn-primary">Subscribe &amp; Unlock</Link>
+                  <Link to="/login" state={{ from: returnTo }} className="btn btn-outline-light">Already a member? Sign in</Link>
+                </>
+              )
+            ) : (
+              <button type="button" onClick={fetchRecipe} className="btn btn-primary">Try again</button>
+            )}
+            <Link to="/recipes" className="btn btn-outline-light">Back to Recipes</Link>
           </div>
         </div>
       </div>
@@ -291,16 +275,18 @@ export const RecipeDetailPage = () => {
   }
 
   // Split ingredients by newline or commas for structured display
-  const ingredientList = recipe.ingredients
+  const ingredientList = String(recipe.ingredients || '')
     .split(/\r?\n|•/)
     .map((i) => i.trim())
     .filter((i) => i.length > 0);
 
   // Split steps by newline
-  const stepList = recipe.cookingProcedure
+  const stepList = String(recipe.cookingProcedure || '')
     .split(/\r?\n/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+  const isPreview = recipe.accessLevel === 'PREVIEW';
+  const returnTo = { pathname: location.pathname, search: location.search, hash: location.hash };
 
   return (
     <div className="container py-5 luxury-recipe-detail">
@@ -432,6 +418,13 @@ export const RecipeDetailPage = () => {
           {recipe.title}
         </h1>
 
+        {isPreview && (
+          <div className="p-3 mb-4" role="status" style={{ backgroundColor: 'var(--dp-color-ground-2)', borderLeft: '3px solid var(--dp-color-accent)' }}>
+            <strong className="d-block text-dark mb-1">Recipe preview</strong>
+            <span className="small">You are viewing the opening steps. Join the Culinary Circle to see the complete method and any member video.</span>
+          </div>
+        )}
+
         {/* Quick Culinary Specs Bar */}
         <div className="d-flex flex-wrap align-items-center gap-3 py-2 px-3 mb-4 small" style={{ backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
           <div>
@@ -458,7 +451,7 @@ export const RecipeDetailPage = () => {
         </div>
 
         {/* Recipe Hero Image if not video */}
-        {!recipe.videoUrl && (
+        {(!recipe.videoUrl || isPreview) && (
           <div className="mb-4 overflow-hidden" style={{ maxHeight: '440px', border: '1px solid var(--dp-color-panel-line)', backgroundColor: 'var(--dp-color-ground-2)' }}>
             <img
               src={recipe.imageUrl || FALLBACK_RECIPE_IMAGE}
@@ -474,7 +467,7 @@ export const RecipeDetailPage = () => {
         )}
 
         {/* Video Masterclass / Screening Player (SRS v2.0) */}
-        {recipe.videoUrl && (
+        {!isPreview && recipe.videoUrl && (
           <div className="mb-5">
             <div className="d-flex align-items-center justify-content-between mb-2">
               <div className="roman-numeral" style={{ fontSize: '0.85rem' }}>
@@ -497,10 +490,13 @@ export const RecipeDetailPage = () => {
             >
               {(() => {
                 const embed = getVideoEmbed(recipe.videoUrl);
+                if (!embed) {
+                  return <p className="m-0 p-3 text-white" role="alert">This video link is unavailable. Please contact the recipe author.</p>;
+                }
                 if (embed?.type === 'video') {
                   return (
-                    <video controls poster={recipe.thumbnailUrl || recipe.imageUrl} className="w-100 h-100">
-                      <source src={embed.src} type="video/mp4" />
+                    <video controls playsInline preload="metadata" poster={recipe.thumbnailUrl || recipe.imageUrl} className="w-100 h-100">
+                      <source src={embed.src} type={embed.mimeType} />
                       Your browser does not support the video tag.
                     </video>
                   );
@@ -509,6 +505,8 @@ export const RecipeDetailPage = () => {
                   <iframe
                     src={embed?.src}
                     title={recipe.title}
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   ></iframe>
@@ -635,6 +633,24 @@ export const RecipeDetailPage = () => {
                   </div>
                 ))}
               </div>
+              {isPreview && (
+                <div className="mt-4 p-3" style={{ backgroundColor: 'var(--dp-color-field)', color: 'var(--dp-color-on-field)', borderTop: '2px solid var(--dp-color-accent)' }}>
+                  <h3 className="brand-font h4 text-white mb-2">Continue with the full recipe</h3>
+                  <p className="small mb-3" style={{ color: 'var(--dp-color-on-field-2)' }}>
+                    The remaining method and member video are reserved for active members.
+                  </p>
+                  <div className="d-flex flex-wrap gap-2">
+                    {isAuthenticated ? (
+                      <Link to="/profile" className="btn btn-primary">Renew membership</Link>
+                    ) : (
+                      <>
+                        <Link to="/register" state={{ from: returnTo }} className="btn btn-primary">Register to unlock</Link>
+                        <Link to="/login" state={{ from: returnTo }} className="btn btn-outline-light">Sign in</Link>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -93,7 +93,7 @@ const formatNotificationTime = (dateStr) => {
  * - Streamlined Executive layout on Admin pages to prevent horizontal overflow and clutter
  */
 export const Navbar = () => {
-  const { user, isAuthenticated, isAdmin, isMember, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, isChef, logout } = useAuth();
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -274,11 +274,11 @@ export const Navbar = () => {
                 </NavLink>
               </li>
 
-              {/* 3. My Recipes & Tips (Member only; Admin manages recipes via Admin Dashboard) */}
+              {/* 3. Member and chef content workspace; Admin manages through the dashboard */}
               {isAuthenticated && !isAdmin && (
                 <li className="nav-item">
-                  <NavLink to="/my-recipes" className="nav-link">
-                    My Recipes & Tips
+                  <NavLink to={isChef ? '/chef' : '/my-recipes'} className="nav-link">
+                    {isChef ? 'Chef Studio' : 'My Recipes & Tips'}
                   </NavLink>
                 </li>
               )}
@@ -589,6 +589,8 @@ export const Navbar = () => {
                     <span className="badge badge-luxury-admin">
                       ADMIN
                     </span>
+                  ) : isChef ? (
+                    <span className="badge badge-luxury-gold">CHEF</span>
                   ) : (
                     <span className="badge badge-luxury-gold">
                       {user.subscriptionPlan || 'MEMBER'}

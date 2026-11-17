@@ -8,6 +8,9 @@ import {
   feedbackApi,
 } from '../../services/api';
 import { uploadMediaFile } from '../../services/mediaUpload';
+import { RecipeVideoField } from '../../components/common/RecipeVideoField';
+import { isSupportedRecipeVideoUrl } from '../../utils/recipeVideo';
+import { AdminMembersPanel } from './components/AdminMembersPanel';
 import AdminPagination from './components/AdminPagination';
 import AdminTableState from './components/AdminTableState';
 
@@ -27,11 +30,22 @@ export const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
+  const [uploadingRecipeVideo, setUploadingRecipeVideo] = useState(false);
 
   // Data states
   const [categories, setCategories] = useState([]);
   const [recipes, setRecipes] = useState([]);
+  const [recipePage, setRecipePage] = useState(1);
+  const [recipePageSize, setRecipePageSize] = useState(INITIAL_PAGE_SIZE);
+  const [recipeTotalCount, setRecipeTotalCount] = useState(0);
+  const [recipeFreeCount, setRecipeFreeCount] = useState(0);
+  const [recipeMemberCount, setRecipeMemberCount] = useState(0);
   const [tips, setTips] = useState([]);
+  const [tipPage, setTipPage] = useState(1);
+  const [tipPageSize, setTipPageSize] = useState(INITIAL_PAGE_SIZE);
+  const [tipTotalCount, setTipTotalCount] = useState(0);
+  const [tipFreeCount, setTipFreeCount] = useState(0);
+  const [tipMemberCount, setTipMemberCount] = useState(0);
   const [contests, setContests] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
@@ -305,7 +319,6 @@ export const AdminDashboardPage = () => {
     const intervalId = window.setInterval(refreshEntries, 30000);
     return () => window.clearInterval(intervalId);
   }, [activeTab, selectedContestForEntries?.contestId, entryPage, pageSize]);
-
   // Recipe actions
   const handleToggleRecipeFree = async (recipe) => {
     try {
@@ -343,6 +356,11 @@ export const AdminDashboardPage = () => {
 
   const handleCreateRecipe = async (e) => {
     e.preventDefault();
+    if (uploadingRecipeVideo) return;
+    if (recipeForm.videoUrl && !isSupportedRecipeVideoUrl(recipeForm.videoUrl)) {
+      setStatusMessage({ type: 'danger', text: 'Use a secure YouTube or Vimeo link, or a direct HTTPS video file.' });
+      return;
+    }
     setSavingRecipe(true);
     try {
       const videoUrl = recipeForm.videoFile
@@ -746,7 +764,26 @@ export const AdminDashboardPage = () => {
             Feedbacks ({totalCounts.feedback})
           </button>
         </li>
+        <li className="nav-item">
+          <button
+            type="button"
+            className={`nav-link ${activeTab === 'members' ? 'active' : ''}`}
+            aria-pressed={activeTab === 'members'}
+            style={{
+              backgroundColor: activeTab === 'members' ? 'var(--dp-color-field)' : 'transparent',
+              color: activeTab === 'members' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
+              border: activeTab === 'members' ? '1px solid var(--dp-color-accent)' : '1px solid var(--dp-color-rule)',
+              borderRadius: 0,
+              letterSpacing: '0.12em',
+            }}
+            onClick={() => { setActiveTab('members'); setSelectedContestForEntries(null); }}
+          >
+            Members
+          </button>
+        </li>
       </ul>
+
+      {activeTab === 'members' && <AdminMembersPanel />}
 
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
@@ -1507,14 +1544,13 @@ export const AdminDashboardPage = () => {
                       </select>
                     </div>
 
-                    <div className="col-md-8">
-                      <label className="form-label fw-semibold">Video Stream URL (YouTube, Vimeo, MP4)</label>
-                      <input
-                        type="url"
-                        className="form-control"
-                        placeholder="https://www.youtube.com/watch?v=... or direct mp4"
+                    <div className="col-12">
+                      <RecipeVideoField
+                        id="admin-recipe-video"
                         value={recipeForm.videoUrl}
-                        onChange={(e) => setRecipeForm({ ...recipeForm, videoUrl: e.target.value })}
+                        onChange={(videoUrl) => setRecipeForm((prev) => ({ ...prev, videoUrl }))}
+                        onUploadStateChange={setUploadingRecipeVideo}
+                        uploading={uploadingRecipeVideo}
                       />
                       <label className="form-label fw-semibold mt-3" htmlFor="admin-recipe-video-upload">Or upload a video (MP4, WebM, MOV; max 100 MB)</label>
                       <input
@@ -1586,8 +1622,8 @@ export const AdminDashboardPage = () => {
                   <button type="button" className="btn btn-outline-secondary" onClick={() => setShowRecipeModal(false)} disabled={savingRecipe}>
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary fw-semibold" disabled={savingRecipe}>
-                    {savingRecipe ? 'Uploading and saving...' : 'Save Recipe'}
+                  <button type="submit" className="btn btn-primary fw-semibold" disabled={savingRecipe || uploadingRecipeVideo}>
+                    {savingRecipe ? 'Uploading and saving...' : uploadingRecipeVideo ? 'Uploading video…' : 'Save Recipe'}
                   </button>
                 </div>
               </form>
