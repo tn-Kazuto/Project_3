@@ -8,7 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JamesThew.BillingService.Services;
 
-public sealed class BillingApplicationService(BillingDbContext dbContext)
+public sealed class BillingApplicationService(
+    BillingDbContext dbContext,
+    PaymentGatewayClient? paymentGatewayClient = null)
 {
     private const decimal MonthlyPrice = 10m;
     private const decimal AnnualPrice = 100m;
@@ -21,6 +23,21 @@ public sealed class BillingApplicationService(BillingDbContext dbContext)
         var plan = NormalizePlan(request.PlanType);
         ValidateMockPayment(request.CardHolderName, request.CardNumber, request.ExpiryDate, request.Cvv);
         ValidateIdempotencyKey(idempotencyKey);
+        var amount = plan == "MONTHLY" ? MonthlyPrice : AnnualPrice;
+        var subscriptionId = Guid.NewGuid();
+        var chargeResult = paymentGatewayClient is not null
+            ? await paymentGatewayClient.ChargeAsync(new PaymentChargeRequest
+            {
+                UserId = request.UserId,
+                SubscriptionId = subscriptionId,
+                PlanType = plan,
+                Amount = amount,
+                CardHolderName = request.CardHolderName,
+                CardNumber = request.CardNumber,
+                ExpiryDate = request.ExpiryDate,
+                Cvv = request.Cvv
+            }, idempotencyKey, cancellationToken)
+            : null;
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
@@ -47,12 +64,11 @@ public sealed class BillingApplicationService(BillingDbContext dbContext)
         var startsAt = existingSubscription is not null && existingSubscription.EndDateUtc > now
             ? existingSubscription.EndDateUtc
             : now;
-        var amount = plan == "MONTHLY" ? MonthlyPrice : AnnualPrice;
         var endsAt = plan == "MONTHLY" ? startsAt.AddDays(30) : startsAt.AddDays(365);
-        var paymentId = Guid.NewGuid();
+        var paymentId = chargeResult?.PaymentId ?? Guid.NewGuid();
         var subscription = new SubscriptionRecord
         {
-            SubscriptionId = Guid.NewGuid(),
+            SubscriptionId = subscriptionId,
             UserId = request.UserId,
             PlanType = plan,
             Amount = amount,
