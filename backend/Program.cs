@@ -216,25 +216,13 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseRouting();
 app.UseCors("JamesThewCors");
 app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseMiddleware<IdentityPropagationMiddleware>();
 app.UseAuthorization();
-
-app.MapGet("/health", async (ApplicationDbContext context, CancellationToken cancellationToken) =>
-{
-    try
-    {
-        await context.Users.AsNoTracking().Select(user => user.UserId).Take(1).ToListAsync(cancellationToken);
-        return Results.Ok(new { status = "healthy" });
-    }
-    catch (Exception)
-    {
-        return Results.Problem("Backend database is unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable);
-    }
-});
 
 app.MapControllers();
 app.MapHub<NotificationHub>("/hub/notifications");

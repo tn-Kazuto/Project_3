@@ -23,6 +23,8 @@ services:
       - ReverseProxy__Clusters__contest-cluster__Destinations__primary__Address=http://contest-service:5004
       - ReverseProxy__Clusters__community-cluster__Destinations__primary__Address=http://community-service:5008
       - ReverseProxy__Clusters__catalog-cluster__Destinations__primary__Address=http://catalog-service:5003
+      - ReverseProxy__Clusters__notification-cluster__Destinations__primary__Address=http://notification-service:5007
+      - ReverseProxy__Clusters__media-cluster__Destinations__primary__Address=http://media-service:5006
     depends_on:
       backend:
         condition: service_started
@@ -65,13 +67,13 @@ services:
     restart: unless-stopped
 
   # =========================================================================
-  # 3. CORE BACKEND SERVICE (ASP.NET CORE 10 WEB API)
+  # 3. IDENTITY & AUTHENTICATION SERVICE (ASP.NET CORE 10 WEB API)
   # =========================================================================
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: jamesthew-backend
+    container_name: jamesthew-identity-service
     expose:
       - "5000"
     environment:

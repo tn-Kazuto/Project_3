@@ -56,7 +56,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 app.MapGet("/health", async (CatalogDbContext dbContext, CancellationToken cancellationToken) =>
     await dbContext.Database.CanConnectAsync(cancellationToken)
         ? Results.Ok(new { status = "healthy" })
-        : Results.Problem("Catalog database is unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable));
+        : Results.Problem("Catalog database is unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable)).AllowAnonymous();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

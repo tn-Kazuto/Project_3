@@ -279,8 +279,13 @@ export const useAdminDashboard = () => {
     setLoadingEntries(true);
     try {
       const res = await contestApi.getEntries(contest.contestId);
-      if (res.data?.success) {
-        setContestEntries(res.data.data || []);
+      const rawData = res?.data;
+      if (Array.isArray(rawData)) {
+        setContestEntries(rawData);
+      } else if (Array.isArray(rawData?.data)) {
+        setContestEntries(rawData.data);
+      } else {
+        setContestEntries([]);
       }
     } catch (err) {
       console.error(err);

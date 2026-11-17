@@ -73,7 +73,7 @@ app.MapGet("/health", async (
     CancellationToken cancellationToken) =>
     workerStatus.IsReady && workerStatus.LegacyImportReady && await dbContext.Database.CanConnectAsync(cancellationToken)
         ? Results.Ok(new { status = "healthy" })
-        : Results.Problem("Notification service dependencies are unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable));
+        : Results.Problem("Notification service dependencies are unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable)).AllowAnonymous();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

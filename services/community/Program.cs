@@ -44,7 +44,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 app.MapGet("/health", async (CommunityDbContext dbContext, CancellationToken cancellationToken) =>
     await dbContext.Database.CanConnectAsync(cancellationToken)
         ? Results.Ok(new { status = "healthy" })
-        : Results.Problem("Community database is unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable));
+        : Results.Problem("Community database is unavailable.", statusCode: StatusCodes.Status503ServiceUnavailable)).AllowAnonymous();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
