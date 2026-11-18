@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   recipeApi,
   tipApi,
@@ -26,6 +27,7 @@ import { AdminContestModal } from './modals/AdminContestModal';
 import { AdminAnnouncementModal } from './modals/AdminAnnouncementModal';
 
 const INITIAL_PAGE_SIZE = 10;
+const VALID_TABS = ['overview', 'recipes', 'tips', 'contests', 'announcements', 'feedback', 'members'];
 
 const getPagedPayload = (response) => {
   const payload = response?.data?.data;
@@ -38,10 +40,35 @@ const getPagedPayload = (response) => {
 const getRequestError = (error, fallback) => error?.response?.data?.message || error?.message || fallback;
 
 export const AdminDashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromQuery = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(
+    VALID_TABS.includes(tabFromQuery) ? tabFromQuery : 'overview'
+  );
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
   const [uploadingRecipeVideo, setUploadingRecipeVideo] = useState(false);
+
+  // Sync active tab with URL query parameter
+  useEffect(() => {
+    const qTab = searchParams.get('tab');
+    if (qTab && VALID_TABS.includes(qTab) && qTab !== activeTab) {
+      setActiveTab(qTab);
+    }
+  }, [searchParams]);
+
+  // Scroll to top of tab whenever activeTab changes or on page reload
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   // Data states
   const [categories, setCategories] = useState([]);
@@ -645,6 +672,9 @@ export const AdminDashboardPage = () => {
   const changeManagementPage = (tab, nextPage) => {
     setListLoading(true);
     setPages((current) => ({ ...current, [tab]: nextPage }));
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const renderManagementPagination = (tab, label) => (
@@ -706,7 +736,12 @@ export const AdminDashboardPage = () => {
         onTabChange={(key) => {
           if (key !== 'overview' && key !== 'members') setListLoading(true);
           setActiveTab(key);
+          setPages((prev) => ({ ...prev, [key]: 1 }));
           setSelectedContestForEntries(null);
+          setSearchParams(key === 'overview' ? {} : { tab: key }, { replace: true });
+          if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         }}
       />
 

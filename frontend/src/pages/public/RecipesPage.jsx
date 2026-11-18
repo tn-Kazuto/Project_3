@@ -41,10 +41,20 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
     fetchCategories();
   }, []);
 
-  // Reset page when filters or tab change
+  // Reset page and scroll to top when filters or tab change
   useEffect(() => {
     setCurrentPage(1);
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter]);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentPage]);
 
   // Fetch recipes or tips based on filters & page
   useEffect(() => {

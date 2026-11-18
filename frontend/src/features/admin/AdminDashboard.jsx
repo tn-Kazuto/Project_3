@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAdminDashboard } from './hooks/useAdminDashboard';
 import { AdminHeader } from './components/AdminHeader';
 import { AdminNavTabs } from './components/AdminNavTabs';
@@ -63,6 +63,12 @@ export const AdminDashboard = () => {
     handleDeleteAnnouncement,
     handleDeleteFeedback,
   } = useAdminDashboard();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeTab]);
 
   return (
     <div className="container-fluid py-4 px-md-5 luxury-admin">
