@@ -5,10 +5,10 @@ export const UserMenu = ({ user, isAuthenticated, isAdmin, onLogout, onNavClick 
   if (!isAuthenticated) {
     return (
       <div className="d-flex align-items-center gap-2">
-        <Link to="/login" className="btn luxury-login-btn">
+        <Link to="/login" className="btn luxury-login-btn" onClick={onNavClick}>
           Log In
         </Link>
-        <Link to="/register" className="btn luxury-register-btn fw-semibold">
+        <Link to="/register" className="btn luxury-register-btn fw-semibold" onClick={onNavClick}>
           Subscribe & Register
         </Link>
       </div>

@@ -26,6 +26,19 @@ export const Navbar = () => {
 
   const handleNavClick = () => {
     setIsNavCollapsed(true);
+    const resetScroll = () => {
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    };
+    resetScroll();
+    requestAnimationFrame(resetScroll);
+    setTimeout(resetScroll, 10);
+    setTimeout(resetScroll, 50);
   };
 
   return (
