@@ -49,8 +49,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   # =========================================================================
@@ -111,8 +111,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 20s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
@@ -157,8 +157,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5007/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 15s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
@@ -191,8 +191,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5006/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 15s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
@@ -235,8 +235,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5002/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 25s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
@@ -269,8 +269,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5005/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 20s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
@@ -313,8 +313,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5004/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 25s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
@@ -361,8 +361,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5003/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 25s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
@@ -394,8 +394,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5008/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 25s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   # =========================================================================
