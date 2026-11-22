@@ -84,15 +84,34 @@ BEGIN
         CONSTRAINT FK_Notifications_Users FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
     );
 END;
+
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'RefreshTokens')
+BEGIN
+    CREATE TABLE RefreshTokens (
+        RefreshTokenId INT IDENTITY(1,1) PRIMARY KEY,
+        UserId INT NOT NULL,
+        Token NVARCHAR(256) NOT NULL,
+        ExpiresAt DATETIME2 NOT NULL,
+        CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+        CreatedByIp NVARCHAR(50) NULL,
+        RevokedAt DATETIME2 NULL,
+        RevokedByIp NVARCHAR(50) NULL,
+        ReplacedByToken NVARCHAR(256) NULL,
+        CONSTRAINT FK_RefreshTokens_Users FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+    );
+    CREATE UNIQUE INDEX IX_RefreshTokens_Token ON RefreshTokens(Token);
+    CREATE INDEX IX_RefreshTokens_UserId ON RefreshTokens(UserId);
+END;
 ";
                 await context.Database.ExecuteSqlRawAsync(migrationSql);
             }
 
             // 1. Seed Admin user (Mr. James Thew) & VIP Members
-            if (!await context.Users.AnyAsync(u => u.Role == "ADMIN"))
+            var seededAdmin = await context.Users.FirstOrDefaultAsync(u => u.Role == "ADMIN");
+            if (seededAdmin == null)
             {
                 ValidateSeedPassword(adminSeedPassword, "Seed:AdminPassword");
-                var admin = new User
+                seededAdmin = new User
                 {
                     Username = "james",
                     Email = "james@jamesthew.com",
@@ -107,11 +126,22 @@ END;
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await context.Users.AddAsync(admin);
+                await context.Users.AddAsync(seededAdmin);
+                await context.SaveChangesAsync();
+            }
+            else if (!string.IsNullOrWhiteSpace(adminSeedPassword) && !BCrypt.Net.BCrypt.Verify(adminSeedPassword, seededAdmin.PasswordHash))
+            {
+                ValidateSeedPassword(adminSeedPassword, "Seed:AdminPassword");
+                seededAdmin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminSeedPassword);
+                context.Users.Update(seededAdmin);
                 await context.SaveChangesAsync();
             }
 
-            if (!await context.Users.AnyAsync(u => u.Email == "sophia@culinaryart.com"))
+            var demoUsers = await context.Users
+                .Where(u => u.Email == "sophia@culinaryart.com" || u.Email == "marcus@greenkitchen.org" || u.Email == "elena@gourmetjourney.net")
+                .ToListAsync();
+
+            if (demoUsers.Count == 0)
             {
                 var password = string.IsNullOrWhiteSpace(demoMemberPassword)
                     ? Convert.ToBase64String(RandomNumberGenerator.GetBytes(48))
@@ -179,6 +209,25 @@ END;
                     new Payment { UserId = elena.UserId, PlanType = "ANNUAL", Amount = 100.00m, PaymentDate = DateTime.UtcNow.AddDays(-60), Status = "SUCCESS" }
                 );
                 await context.SaveChangesAsync();
+            }
+            else if (!string.IsNullOrWhiteSpace(demoMemberPassword))
+            {
+                ValidateSeedPassword(demoMemberPassword, "Seed:DemoMemberPassword");
+                var memberHash = BCrypt.Net.BCrypt.HashPassword(demoMemberPassword);
+                bool updated = false;
+                foreach (var demoUser in demoUsers)
+                {
+                    if (!BCrypt.Net.BCrypt.Verify(demoMemberPassword, demoUser.PasswordHash))
+                    {
+                        demoUser.PasswordHash = memberHash;
+                        context.Users.Update(demoUser);
+                        updated = true;
+                    }
+                }
+                if (updated)
+                {
+                    await context.SaveChangesAsync();
+                }
             }
 
             // 2. Seed culinary categories
