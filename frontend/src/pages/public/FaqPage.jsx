@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { faqApi } from '../../services/api';
+import { PageBanner } from '../../components/common/PageBanner';
 
 export const FaqPage = () => {
   const [faqs, setFaqs] = useState([]);
@@ -60,29 +61,16 @@ export const FaqPage = () => {
 
   return (
     <div className="container py-5 luxury-faq">
-      {/* Header Banner - Pale Taupe Architectural Panel with Culinary Scrim */}
-      <div 
-        className="field-taupe p-4 p-md-5 mb-5 text-center position-relative overflow-hidden"
-        style={{
-          backgroundColor: 'var(--dp-color-ground-2)',
-          border: '1px solid var(--dp-color-panel-line)',
-          backgroundImage: 'linear-gradient(rgba(244, 240, 234, 0.92), rgba(244, 240, 234, 0.96)), url("https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1600&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+      {/* 5-Star Hotel Haute Cuisine Header Banner */}
+      <PageBanner
+        tag="VII · INQUIRIES & GUIDANCE"
+        title="Frequently Asked Questions"
+        subtitle="Find answers to common questions about memberships, recipes, contests, and masterclasses."
+        imageUrl="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1600&q=80"
+        className="mb-5"
       >
-        <div className="d-inline-flex align-items-center gap-2 mb-2 px-3 py-1 bg-white border" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
-          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
-          <span className="roman-numeral mb-0" style={{ fontSize: '0.8rem' }}>VII &middot; INQUIRIES & GUIDANCE</span>
-          <span className="font-monospace fw-bold" style={{ color: 'var(--dp-color-accent)', fontSize: '0.8rem' }}>&diams;</span>
-        </div>
-        <h1 className="brand-font display-5 mb-3">Frequently Asked Questions</h1>
-        <p className="lead max-w-700 mx-auto mb-0" style={{ color: 'var(--dp-color-ink-2)' }}>
-          Find answers to common questions about memberships, recipes, contests, and masterclasses.
-        </p>
-
         {/* Quick Topic Chips (Visual Filter Buttons to jump or filter without reading all text) */}
-        <div className="d-flex justify-content-center gap-2 mt-4 flex-wrap">
+        <div className="d-flex gap-2 mt-4 flex-wrap">
           {['All Inquiries', 'Subscription', 'Contest', 'Recipe', 'Masterclass'].map((topic) => {
             const isAll = topic === 'All Inquiries';
             const isActive = isAll ? searchQuery === '' : searchQuery.toLowerCase() === topic.toLowerCase();
@@ -92,9 +80,9 @@ export const FaqPage = () => {
                 type="button"
                 className="btn btn-sm font-monospace text-uppercase"
                 style={{
-                  backgroundColor: isActive ? 'var(--dp-color-field)' : '#ffffff',
-                  color: isActive ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                  border: '1px solid var(--dp-color-rule)',
+                  backgroundColor: isActive ? 'var(--dp-color-accent)' : 'rgba(255, 255, 255, 0.12)',
+                  color: isActive ? '#000000' : '#ffffff',
+                  border: '1px solid var(--dp-color-accent)',
                   borderRadius: 0,
                   fontSize: '0.75rem',
                   letterSpacing: '0.1em',
@@ -108,17 +96,17 @@ export const FaqPage = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="max-w-600 mx-auto mt-3">
+        <div className="mt-3" style={{ maxWidth: '650px' }}>
           <input
             type="text"
-            className="form-control form-control-lg text-center"
+            className="form-control"
             placeholder="Search questions (e.g. subscription, contest, cancel)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)' }}
+            style={{ borderRadius: 0, borderColor: 'var(--dp-color-accent)' }}
           />
         </div>
-      </div>
+      </PageBanner>
 
       {error && (
         <div className="alert alert-danger mb-4">

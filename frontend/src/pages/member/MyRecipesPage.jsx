@@ -5,6 +5,7 @@ import { useDialogAccessibility } from '../../hooks/useDialogAccessibility';
 import { isSupportedRecipeVideoUrl } from '../../utils/recipeVideo';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
+import { PageBanner } from '../../components/common/PageBanner';
 
 export const MyRecipesPage = () => {
   const { isAdmin, isChef } = useAuth();
@@ -246,36 +247,37 @@ export const MyRecipesPage = () => {
 
   return (
     <div className="container py-5 luxury-my-recipes">
-      {/* Top Header */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-5 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
-        <div>
-          <div className="roman-numeral mb-1">IV &middot; REPERTOIRE MANAGEMENT</div>
-          <h1 className="brand-font display-6 m-0 text-dark">
-            {isAdmin ? 'Master Recipe & Tip Manager' : isChef ? 'Chef Recipe Studio' : 'My Recipes & Culinary Tips'}
-          </h1>
-          <p className="text-muted small m-0 mt-2">
-            {isAdmin
-              ? 'Upload, publish, mark as Free/Member-Only, and manage Chef James Thew creations'
-              : isChef
-                ? 'Publish and manage your own recipes and culinary tips'
-                : 'Manage, edit, or remove recipes and tips you have contributed to the community'}
-          </p>
+      {/* 5-Star Hotel Haute Cuisine Header Banner */}
+      <PageBanner
+        tag="IV · REPERTOIRE MANAGEMENT"
+        title={isAdmin ? 'Master Recipe & Tip Manager' : isChef ? 'Chef Recipe Studio' : 'My Recipes & Culinary Tips'}
+        subtitle={
+          isAdmin
+            ? 'Upload, publish, mark as Free/Member-Only, and manage Chef James Thew creations'
+            : isChef
+              ? 'Publish and manage your own recipes and culinary tips'
+              : 'Manage, edit, or remove recipes and tips you have contributed to the community'
+        }
+        imageUrl="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1600&q=80"
+        className="mb-4"
+      >
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="btn btn-primary px-4 py-2 fw-semibold"
+            style={{
+              backgroundColor: 'var(--dp-color-accent)',
+              color: '#000000',
+              borderColor: 'var(--dp-color-accent)',
+              letterSpacing: '0.14em',
+              borderRadius: 0,
+            }}
+          >
+            <span>+ Add New {activeTab === 'recipes' ? 'Recipe' : 'Cooking Tip'}</span>
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className="btn btn-primary px-4 py-2 fw-semibold"
-          style={{
-            backgroundColor: 'var(--dp-color-field)',
-            color: 'var(--dp-color-on-field)',
-            letterSpacing: '0.14em',
-            borderRadius: 0,
-          }}
-        >
-          <span>+ Add New {activeTab === 'recipes' ? 'Recipe' : 'Cooking Tip'}</span>
-        </button>
-      </div>
+      </PageBanner>
 
       {/* Tabs */}
       <div className="d-flex gap-2 mb-4 border-bottom pb-2" style={{ borderColor: 'var(--dp-color-rule)' }}>

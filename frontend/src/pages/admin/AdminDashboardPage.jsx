@@ -25,6 +25,7 @@ import { AdminRecipeModal } from './modals/AdminRecipeModal';
 import { AdminTipModal } from './modals/AdminTipModal';
 import { AdminContestModal } from './modals/AdminContestModal';
 import { AdminAnnouncementModal } from './modals/AdminAnnouncementModal';
+import { PageBanner } from '../../components/common/PageBanner';
 
 const INITIAL_PAGE_SIZE = 10;
 const VALID_TABS = ['overview', 'recipes', 'tips', 'contests', 'announcements', 'feedback', 'members'];
@@ -692,13 +693,18 @@ export const AdminDashboardPage = () => {
   return (
     <div className="container-fluid py-4 px-md-5 luxury-admin">
       {/* Admin Header */}
-      <div className="d-flex flex-wrap justify-content-between align-items-end mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
-        <div>
-          <div className="roman-numeral mb-1">EXECUTIVE &middot; ADMINISTRATIVE NEXUS</div>
+      <PageBanner
+        tag="EXECUTIVE · ADMINISTRATIVE NEXUS"
+        title="Chef James Thew Executive Dashboard"
+        subtitle="Complete platform management for recipes, contests, announcements, and feedbacks."
+        imageUrl="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1600&q=80"
+        className="mb-4"
+      >
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3 pt-3 border-top border-secondary">
           <span
-            className="badge font-monospace mb-2 px-3 py-1"
+            className="badge font-monospace text-uppercase px-2 py-1"
             style={{
-              backgroundColor: 'var(--dp-color-field)',
+              backgroundColor: 'transparent',
               color: 'var(--dp-color-accent)',
               borderRadius: 0,
               border: '1px solid var(--dp-color-accent)',
@@ -706,21 +712,19 @@ export const AdminDashboardPage = () => {
           >
             Master Chef Administration
           </span>
-          <h1 className="brand-font display-6 fw-bold mb-1 text-dark">Chef James Thew Executive Dashboard</h1>
-          <p className="text-muted mb-0 small">Complete platform management for recipes, contests, announcements, and feedbacks.</p>
+          <div className="d-flex gap-2 align-items-center">
+            <button
+              className="btn btn-outline-light btn-sm d-flex align-items-center gap-2"
+              style={{ borderRadius: 0, letterSpacing: '0.12em' }}
+              onClick={loadAllDashboardData}
+              disabled={loading || listLoading}
+            >
+              {loading || listLoading ? 'Refreshing…' : 'Refresh'}
+            </button>
+            {lastUpdated && <span className="small text-white-50">Updated {lastUpdated.toLocaleTimeString()}</span>}
+          </div>
         </div>
-        <div className="d-flex gap-2 mt-3 mt-md-0">
-          <button
-            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
-            style={{ borderRadius: 0, borderColor: 'var(--dp-color-rule)', letterSpacing: '0.12em' }}
-            onClick={loadAllDashboardData}
-            disabled={loading || listLoading}
-          >
-            {loading || listLoading ? 'Refreshing…' : 'Refresh'}
-          </button>
-          {lastUpdated && <span className="small text-muted align-self-center">Updated {lastUpdated.toLocaleTimeString()}</span>}
-        </div>
-      </div>
+      </PageBanner>
 
       {statusMessage.text && (
         <div className={`alert alert-${statusMessage.type} alert-dismissible fade show d-flex align-items-center gap-2`} role="alert" style={{ borderRadius: 0 }}>

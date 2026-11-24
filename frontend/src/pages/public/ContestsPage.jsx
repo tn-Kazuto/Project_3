@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { contestApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
+import { PageBanner } from '../../components/common/PageBanner';
 import { ContestCard } from './contests/ContestCard';
 import { ContestSubmitModal } from './contests/ContestSubmitModal';
 import { ContestVotingModal } from './contests/ContestVotingModal';
@@ -238,23 +239,13 @@ export const ContestsPage = () => {
 
   return (
     <div className="container py-5 luxury-contests">
-      {/* Header Banner - Architectural Pale Taupe Panel */}
-      <div 
-        className="field-taupe p-4 p-md-5 mb-5 text-center position-relative overflow-hidden" 
-        style={{ 
-          backgroundColor: 'var(--dp-color-ground-2)', 
-          border: '1px solid var(--dp-color-panel-line)',
-          backgroundImage: 'linear-gradient(rgba(244, 240, 234, 0.90), rgba(244, 240, 234, 0.95)), url("https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1600&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="roman-numeral mb-1">IV &middot; COMPETITIVE ARENA</div>
-        <h1 className="brand-font display-5 mb-3 text-dark">Culinary Contests</h1>
-        <p className="lead mx-auto mb-0 text-muted" style={{ maxWidth: '750px', fontSize: '1.05rem', lineHeight: '1.6' }}>
-          Test your gastronomic skills in culinary contests curated by Chef James Thew.
-        </p>
-      </div>
+      {/* 5-Star Hotel Haute Cuisine Header Banner */}
+      <PageBanner
+        tag="IV · COMPETITIVE ARENA"
+        title="Culinary Contests"
+        subtitle="Test your gastronomic skills in culinary contests curated by Chef James Thew."
+        imageUrl="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1600&q=80"
+      />
 
       {error && (
         <div className="alert alert-danger mb-4" role="alert" style={{ borderRadius: 0 }}>

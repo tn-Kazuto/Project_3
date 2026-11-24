@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { authApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { PageBanner } from '../../components/common/PageBanner';
 
 export const ProfilePage = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -230,25 +231,14 @@ export const ProfilePage = () => {
 
   return (
     <div className="container py-5 luxury-profile">
-      {/* Page Title & Header */}
-      <div className="d-flex align-items-center gap-3 mb-5 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
-        <div
-          className="p-3 d-flex align-items-center justify-content-center font-monospace fw-bold"
-          style={{
-            backgroundColor: 'var(--dp-color-field)',
-            color: 'var(--dp-color-accent)',
-            border: '1px solid var(--dp-color-accent)',
-            minWidth: '48px',
-          }}
-        >
-          [VIP]
-        </div>
-        <div>
-          <div className="roman-numeral mb-0" style={{ fontSize: '0.9rem' }}>III &middot; CULINARY DOSSIER</div>
-          <h1 className="brand-font display-6 m-0 text-dark">My Account Profile</h1>
-          <p className="text-muted small mb-0 mt-1">Manage your culinary profile, view subscription status, and update security.</p>
-        </div>
-      </div>
+      {/* 5-Star Hotel Haute Cuisine Header Banner */}
+      <PageBanner
+        tag="III · CULINARY DOSSIER"
+        title="My Account Profile"
+        subtitle="Manage your culinary profile, view subscription status, and update security."
+        imageUrl="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1600&q=80"
+        className="mb-4"
+      />
 
       {error && (
         <div className="alert alert-danger mb-4" style={{ borderRadius: 0 }}>

@@ -4,6 +4,7 @@ import { recipeApi, tipApi, categoryApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
 import { EmptyState } from '../../components/common/EmptyState';
+import { PageBanner } from '../../components/common/PageBanner';
 
 const FALLBACK_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80';
 const CULINARY_SVG_PLACEHOLDER = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" fill="none"><rect width="800" height="450" fill="%23242320"/><rect x="30" y="30" width="740" height="390" stroke="%23c5a880" stroke-width="1.5" stroke-dasharray="6 4" fill="none"/><circle cx="400" cy="180" r="44" stroke="%23c5a880" stroke-width="2" fill="%231a1918"/><path d="M380 185C380 170 390 160 400 160C410 160 420 170 420 185H380Z" fill="%23c5a880"/><rect x="375" y="187" width="50" height="4" rx="2" fill="%23c5a880"/><circle cx="400" cy="154" r="4" fill="%23c5a880"/><text x="400" y="270" text-anchor="middle" fill="%23fcfbf7" font-family="serif" font-size="20" letter-spacing="3">CHEF JAMES THEW</text><text x="400" y="300" text-anchor="middle" fill="%23c5a880" font-family="monospace" font-size="12" letter-spacing="4">5-STAR CULINARY ATELIER</text></svg>`;
@@ -250,29 +251,12 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
   return (
     <div className="container py-5 luxury-recipes">
       {/* 5-Star Hotel Haute Cuisine Header Banner */}
-      <div
-        className="p-4 p-md-5 mb-4 text-white position-relative overflow-hidden"
-        style={{
-          backgroundColor: 'var(--dp-color-field)',
-          borderTop: '2px solid var(--dp-color-accent)',
-          borderBottom: '1px solid var(--dp-color-accent)',
-          backgroundImage: 'linear-gradient(rgba(28, 26, 23, 0.86), rgba(28, 26, 23, 0.90)), url("https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1600&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="row align-items-center g-4">
-          <div className="col-lg-12">
-            <div className="roman-numeral mb-1" style={{ color: 'var(--dp-color-accent)' }}>
-              III &middot; ARCHITECTURAL CATALOG
-            </div>
-            <h1 className="brand-font display-5 mb-2 text-white">Culinary Library</h1>
-            <p className="small text-white-50 mb-0" style={{ maxWidth: '650px', lineHeight: '1.65' }}>
-              Culinary recipes and professional cooking tips across four core cuisines.
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        tag="III · ARCHITECTURAL CATALOG"
+        title="Culinary Library"
+        subtitle="Culinary recipes and professional cooking tips across four core cuisines."
+        imageUrl="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1600&q=80"
+      />
 
       {/* Catalog Subheader & Tab Switcher */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
