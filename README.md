@@ -3,10 +3,10 @@
 > **eProject Sem 3 - Modern Full-Stack Culinary Web & Microservices Platform**  
 > Built strictly according to the **[Project Topic Charter (topic.md)](./topic.md)**, **[Software Requirements Specification (srs.md)](./srs.md)**, and **[Spec-Driven Architecture Standards (rules.md)](./rules.md)**.
 
-[![Backend Tests](https://img.shields.io/badge/.NET%2010%20xUnit%20Tests-74%2F74%20PASS-brightgreen)](#)
-[![Frontend Tests](https://img.shields.io/badge/Vitest%20Component%20Tests-98%2F98%20PASS-brightgreen)](#)
+[![Backend Tests](https://img.shields.io/badge/.NET%2010%20Tests-94%2F94%20PASS-brightgreen)](#)
+[![Frontend Tests](https://img.shields.io/badge/Vitest%20Component%20Tests-107%2F107%20PASS-brightgreen)](#)
 [![Frontend CI](https://img.shields.io/badge/GitHub%20Actions%20CI-Passing-brightgreen?logo=github)](#)
-[![Total Test Coverage](https://img.shields.io/badge/Total%20Automated%20Tests-172%2F172%20PASS%20100%25-success)](#)
+[![Total Test Coverage](https://img.shields.io/badge/Total%20Automated%20Tests-201%2F201%20PASS%20100%25-success)](#)
 [![Architecture](https://img.shields.io/badge/Architecture-.NET%2010%20Microservices%20%7C%20Docker-blue)](#)
 [![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite%208-61dafb)](#)
 [![Design System](https://img.shields.io/badge/Design%20System-5--Star%20Luxury%20Architectural-gold)](#)
@@ -28,11 +28,11 @@ Nền tảng đáp ứng trọn vẹn 3 nhóm đối tượng theo SRS và Đề
 
 ### **Backend (.NET 10 Web APIs)**
 - **Framework:** ASP.NET Core Web API (.NET 10 LTS - `net10.0`, C# 14)
-- **Kiến trúc hiện tại:** API Gateway (YARP) đứng trước bảy API services: Core Identity/Users, Billing, Notification, Media, Contest, Community và Culinary Catalog. Catalog sở hữu Recipes, Tips, Categories và FAQs trong database riêng; Redis cache các truy vấn nội dung công khai `IsFree=true`.
+- **Kiến trúc hiện tại:** API Gateway (YARP) đứng trước tám API services: Core Identity/Users, Billing, Payment, Notification, Media, Contest, Community và Culinary Catalog. Catalog sở hữu Recipes, Tips, Categories và FAQs trong database riêng; Redis cache các truy vấn nội dung công khai `IsFree=true`.
 - **ORM & Database:** Entity Framework Core 10.0.14 (Code-First) + Microsoft SQL Server 2022 + Redis In-Memory Cache (tối ưu hóa tải đọc $P_{99} < 100\text{ ms}$).
 - **Messaging Backbone:** Billing và Contest ghi dữ liệu nghiệp vụ cùng Outbox trong giao dịch SQL rồi phát sự kiện qua RabbitMQ; Identity cập nhật bản chiếu thành viên và Notification xử lý email/thông báo.
 - **Security & Auth:** JWT Bearer Authentication, BCrypt Password Hashing, Claim-based Role Authorization.
-- **Automated Testing:** xUnit, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.EntityFrameworkCore.InMemory` (74/74 tests pass 100%).
+- **Automated Testing:** xUnit, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.EntityFrameworkCore.InMemory` (94/94 tests pass 100%).
 
 ### **Frontend (React 19 SPA)**
 - **Framework:** React 19 + Vite 8
@@ -40,7 +40,7 @@ Nền tảng đáp ứng trọn vẹn 3 nhóm đối tượng theo SRS và Đề
 - **UI Framework & Styling:** 5-Star Luxury Architectural Design System (EB Garamond, Warm Alabaster `#fdfbf7`, Deep Charcoal `#1a1a1a`, Fine Gold rules `#b69355`).
 - **Iconography:** Lucide React
 - **API Client:** Axios (với JWT Interceptor đính kèm Token tự động)
-- **Automated Testing:** Vitest 5, `@testing-library/react`, `@testing-library/dom`, `jsdom` (98/98 tests pass trên 23 test suites 100%).
+- **Automated Testing:** Vitest 5, `@testing-library/react`, `@testing-library/dom`, `jsdom` (107/107 tests pass trên 26 test suites 100%).
 
 ### **Containerization & Hạ tầng (Docker & Docker Compose)**
 - Multi-stage Dockerfile tối ưu hóa cho .NET 10 (`aspnet:10.0-alpine`) và React 19 (`nginx:alpine`).
@@ -88,7 +88,7 @@ Sao chép `.env.example` thành `.env`, rồi đặt các secret bắt buộc (`
 Copy-Item .env.example .env
 ```
 
-Chạy toàn bộ hệ sinh thái (YARP Gateway, Core Identity API, sáu domain services, Frontend, SQL Server, Redis và RabbitMQ):
+Chạy toàn bộ hệ sinh thái (YARP Gateway, Core Identity API, bảy domain services, Frontend, SQL Server, Redis và RabbitMQ):
 ```powershell
 docker compose up --build
 ```
@@ -245,9 +245,9 @@ npm run dev
 
 ## 🧪 6. Kiểm Thử Tự Động Toàn Diện (Automated Testing - 172 Tests 100% PASS)
 
-Dự án tuân thủ nghiêm ngặt phương pháp **Spec-Driven Development** và **10 Luật Vàng (`rules.md`)** với **172/172 Test Cases vượt qua thành công (100% Pass Rate)**:
+Dự án tuân thủ phương pháp **Spec-Driven Development** và **10 Luật Vàng (`rules.md`)** với **201/201 Test Cases vượt qua thành công (100% Pass Rate)**:
 
-### **Kiểm thử Backend (xUnit): 74/74 Tests PASS ✓**
+### **Kiểm thử Backend (xUnit): 94/94 Tests PASS ✓**
 ```powershell
 dotnet test tests/backend.tests/backend.tests.csproj
 ```
@@ -259,7 +259,7 @@ dotnet test tests/backend.tests/backend.tests.csproj
 - **Catalog Service:** Guest chỉ nhận nội dung miễn phí; membership active/expired/unavailable được xử lý đúng; kiểm tra quyền Member/Admin và Redis cache version invalidation.
 - **Upgrades & In-App Notification Center:** Kiểm thử chuông thông báo Header và dịch vụ Email tự động.
 
-### **Kiểm thử Frontend (Vitest): 98/98 Tests PASS trên 23 Test Suites ✓**
+### **Kiểm thử Frontend (Vitest): 107/107 Tests PASS trên 26 Test Suites ✓**
 ```powershell
 cd frontend
 npm test

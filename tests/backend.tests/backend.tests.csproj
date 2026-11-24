@@ -22,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\gateway\appsettings.json" Link="Gateway\appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\gateway\appsettings.Development.json" Link="Gateway\appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\backend\backend.csproj" />
     <ProjectReference Include="..\..\services\catalog\JamesThew.CatalogService.csproj" Aliases="Catalog" />
     <ProjectReference Include="..\..\services\contest\JamesThew.ContestService.csproj" Aliases="Contest" />
