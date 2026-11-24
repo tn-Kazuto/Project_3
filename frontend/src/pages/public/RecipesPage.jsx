@@ -41,20 +41,16 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
     fetchCategories();
   }, []);
 
-  // Reset page and scroll to top when filters or tab change
-  useEffect(() => {
-    setCurrentPage(1);
-    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Handle explicit pagination button clicks: smoothly scroll up to catalog section
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    if (typeof window !== 'undefined') {
+      const catalogEl = document.getElementById('catalog-content-section');
+      if (catalogEl && typeof catalogEl.scrollIntoView === 'function') {
+        catalogEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
-  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter]);
-
-  // Scroll to top when page changes
-  useEffect(() => {
-    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [currentPage]);
+  };
 
   // Fetch recipes or tips based on filters & page
   useEffect(() => {
@@ -78,20 +74,31 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
           if (!isMounted) return;
           if (res.data?.success) {
             let data = res.data.data;
+            let items = [];
+            let total = 0;
             if (Array.isArray(data)) {
               if (formatFilter !== 'ALL') {
                 data = data.filter((r) => (r.contentType || 'ARTICLE').toUpperCase() === formatFilter.toUpperCase());
               }
-              setRecipes(data);
-              setTotalItems(data.length);
+              items = data;
+              total = data.length;
             } else if (data && Array.isArray(data.items)) {
-              let items = data.items;
+              items = data.items;
               if (formatFilter !== 'ALL') {
                 items = items.filter((r) => (r.contentType || 'ARTICLE').toUpperCase() === formatFilter.toUpperCase());
               }
-              setRecipes(items);
-              setTotalItems(data.totalCount || items.length);
+              total = data.totalCount || items.length;
             }
+
+            // Keep current page if valid; only adjust if currentPage exceeds max available pages
+            const maxPage = Math.max(1, Math.ceil(total / pageSize));
+            if (currentPage > maxPage) {
+              setCurrentPage(maxPage);
+              return;
+            }
+
+            setRecipes(items);
+            setTotalItems(total);
           }
 
           // Concurrently ensure cooking tips count is available for the tab switcher
@@ -118,13 +125,25 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
           if (!isMounted) return;
           if (res.data?.success) {
             let data = res.data.data;
+            let items = [];
+            let total = 0;
             if (Array.isArray(data)) {
-              setTips(data);
-              setTotalItems(data.length);
+              items = data;
+              total = data.length;
             } else if (data && Array.isArray(data.items)) {
-              setTips(data.items);
-              setTotalItems(data.totalCount || data.items.length);
+              items = data.items;
+              total = data.totalCount || data.items.length;
             }
+
+            // Keep current page if valid; only adjust if currentPage exceeds max available pages
+            const maxPage = Math.max(1, Math.ceil(total / pageSize));
+            if (currentPage > maxPage) {
+              setCurrentPage(maxPage);
+              return;
+            }
+
+            setTips(items);
+            setTotalItems(total);
           }
 
           // Concurrently ensure recipes count is available for the tab switcher
@@ -356,6 +375,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
 
       {/* Search & Category Filter Bar */}
       <div
+        id="catalog-content-section"
         className="p-4 mb-5"
         style={{
           backgroundColor: '#ffffff',
@@ -754,7 +774,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
             className="btn btn-sm btn-outline-dark"
             style={{ borderRadius: 0, letterSpacing: '0.1em' }}
             disabled={currentPage <= 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
           >
             &larr; PREVIOUS
           </button>
@@ -765,7 +785,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
             className="btn btn-sm btn-outline-dark"
             style={{ borderRadius: 0, letterSpacing: '0.1em' }}
             disabled={currentPage >= Math.ceil(totalItems / pageSize)}
-            onClick={() => setCurrentPage((p) => Math.min(Math.ceil(totalItems / pageSize), p + 1))}
+            onClick={() => handlePageChange(Math.min(Math.ceil(totalItems / pageSize), currentPage + 1))}
           >
             NEXT &rarr;
           </button>
