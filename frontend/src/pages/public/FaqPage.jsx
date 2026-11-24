@@ -68,9 +68,10 @@ export const FaqPage = () => {
         subtitle="Find answers to common questions about memberships, recipes, contests, and masterclasses."
         imageUrl="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1600&q=80"
         className="mb-5"
+        centered
       >
         {/* Quick Topic Chips (Visual Filter Buttons to jump or filter without reading all text) */}
-        <div className="d-flex gap-2 mt-4 flex-wrap">
+        <div className="d-flex justify-content-center gap-2 mt-4 flex-wrap">
           {['All Inquiries', 'Subscription', 'Contest', 'Recipe', 'Masterclass'].map((topic) => {
             const isAll = topic === 'All Inquiries';
             const isActive = isAll ? searchQuery === '' : searchQuery.toLowerCase() === topic.toLowerCase();
@@ -96,10 +97,10 @@ export const FaqPage = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="mt-3" style={{ maxWidth: '650px' }}>
+        <div className="mt-3 w-100 mx-auto" style={{ maxWidth: '650px' }}>
           <input
             type="text"
-            className="form-control"
+            className="form-control text-center"
             placeholder="Search questions (e.g. subscription, contest, cancel)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
