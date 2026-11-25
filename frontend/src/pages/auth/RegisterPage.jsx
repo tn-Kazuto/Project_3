@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const RegisterPage = () => {
@@ -10,15 +11,18 @@ export const RegisterPage = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    planType: 'MONTHLY', // 'MONTHLY' or 'YEARLY'
+    planType: 'YEARLY',
     cardHolderName: '',
     cardNumber: '',
     expiryDate: '',
     cvv: '',
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const { register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,34 +32,18 @@ export const RegisterPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePlanSelect = (plan) => {
-    setFormData((prev) => ({ ...prev, planType: plan }));
-  };
+  const handlePlanSelect = (plan) => setFormData((prev) => ({ ...prev, planType: plan }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
-      setError('Please provide a valid email address.');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long.');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Password and confirmation password do not match.');
-      return;
-    }
-
+    if (!emailRegex.test(formData.email.trim())) { setError('Please provide a valid email address.'); return; }
+    if (formData.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (formData.password !== formData.confirmPassword) { setError('Passwords do not match.'); return; }
     if (!formData.cardHolderName || !formData.cardNumber || !formData.expiryDate || !formData.cvv) {
-      setError('Please provide complete payment simulation details.');
-      return;
+      setError('Please complete all payment details.'); return;
     }
 
     setLoading(true);
@@ -63,9 +51,10 @@ export const RegisterPage = () => {
       const res = await register(formData);
       if (res.success) {
         const from = location.state?.from;
-        const returnTo = typeof from?.pathname === 'string' && from.pathname.startsWith('/') && !from.pathname.startsWith('//')
-          ? `${from.pathname}${from.search || ''}${from.hash || ''}`
-          : '/';
+        const returnTo =
+          typeof from?.pathname === 'string' && from.pathname.startsWith('/') && !from.pathname.startsWith('//')
+            ? `${from.pathname}${from.search || ''}${from.hash || ''}`
+            : '/';
         navigate(returnTo, { replace: true });
       } else {
         setError(res.message || 'Registration failed.');
@@ -76,6 +65,29 @@ export const RegisterPage = () => {
       setLoading(false);
     }
   };
+
+  const passwordMatch = formData.confirmPassword && formData.confirmPassword === formData.password;
+  const passwordMismatch = formData.confirmPassword && formData.confirmPassword !== formData.password;
+
+  const INPUT_STYLE = { borderColor: 'var(--dp-color-rule)', borderRadius: 0, backgroundColor: 'var(--dp-color-ground-2)' };
+
+  const SectionHeader = ({ num, title }) => (
+    <div className="d-flex align-items-center gap-3 mb-4">
+      <span
+        className="d-flex align-items-center justify-content-center font-monospace fw-bold"
+        style={{
+          width: 32, height: 32, flexShrink: 0,
+          backgroundColor: 'var(--dp-color-field)',
+          color: 'var(--dp-color-accent)',
+          fontSize: '0.8rem',
+          borderRadius: 0,
+        }}
+      >
+        {num}
+      </span>
+      <h4 className="brand-font m-0 text-dark" style={{ fontSize: '1.15rem' }}>{title}</h4>
+    </div>
+  );
 
   return (
     <div className="container py-5 luxury-register">
@@ -97,327 +109,302 @@ export const RegisterPage = () => {
               </p>
             </div>
 
-            {location.state?.message && (
-              <div
-                className="p-3 mb-4 small"
-                role="status"
-                style={{
-                  backgroundColor: 'var(--dp-color-ground-2)',
-                  borderLeft: '3px solid var(--dp-color-accent)',
-                  color: 'var(--dp-color-ink)',
-                }}
-              >
-                {location.state.message}
-              </div>
-            )}
+            {/* Form card */}
+            <div
+              className="p-4 p-md-5"
+              style={{ backgroundColor: '#ffffff', border: '1px solid var(--dp-color-rule)' }}
+            >
+              {error && (
+                <div className="alert alert-danger small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
+                  {error}
+                </div>
+              )}
 
-            {error && (
-              <div className="alert alert-danger small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
-                <div>{error}</div>
-              </div>
-            )}
+              <form onSubmit={handleSubmit}>
 
-            <form onSubmit={handleSubmit}>
-              {/* 1. Account Details */}
-              <div className="d-flex align-items-center gap-2 mb-3">
-                <span className="roman-numeral" style={{ fontSize: '1.1rem' }}>I.</span>
-                <h4 className="brand-font m-0 text-dark">Account Information</h4>
-              </div>
+                {/* ── SECTION I: Account ───────────────────────────────── */}
+                <SectionHeader num="I" title="Account Information" />
+                <div className="row g-3 mb-4">
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold" htmlFor="reg-fullname">Full Name *</label>
+                    <input id="reg-fullname" type="text" className="form-control" style={INPUT_STYLE}
+                      name="fullName" placeholder="e.g. Eleanor Vance"
+                      value={formData.fullName} onChange={handleChange} required />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold" htmlFor="reg-username">Username *</label>
+                    <input id="reg-username" type="text" className="form-control" style={INPUT_STYLE}
+                      name="username" placeholder="e.g. chef_eleanor"
+                      value={formData.username} onChange={handleChange} required />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold" htmlFor="reg-email">Email Address *</label>
+                    <input id="reg-email" type="email" className="form-control" style={INPUT_STYLE}
+                      name="email" placeholder="you@example.com"
+                      value={formData.email} onChange={handleChange} required />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold" htmlFor="reg-phone">
+                      Phone <span className="fw-normal text-muted">· optional</span>
+                    </label>
+                    <input id="reg-phone" type="tel" className="form-control" style={INPUT_STYLE}
+                      name="phone" placeholder="+1 (555) 000-0000"
+                      value={formData.phone} onChange={handleChange} />
+                  </div>
 
-              <div className="row g-3 mb-4">
-                <div className="col-md-6">
-                  <label className="form-label small fw-semibold">Full Name *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="fullName"
-                    placeholder="e.g. Eleanor Vance"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    required
-                  />
+                  {/* Password */}
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold" htmlFor="reg-password">Password *</label>
+                    <div className="position-relative">
+                      <input id="reg-password" type={showPassword ? 'text' : 'password'}
+                        className="form-control pe-5" style={INPUT_STYLE}
+                        name="password" placeholder="Min 6 characters"
+                        value={formData.password} onChange={handleChange}
+                        autoComplete="new-password" required />
+                      <button type="button" onClick={() => setShowPassword((v) => !v)}
+                        className="btn p-0 position-absolute top-50 translate-middle-y d-flex align-items-center justify-content-center"
+                        style={{ right: 10, background: 'none', border: 'none', color: 'var(--dp-color-ink-2)' }}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold" htmlFor="reg-confirm">Confirm Password *</label>
+                    <div className="position-relative">
+                      <input id="reg-confirm" type={showConfirmPassword ? 'text' : 'password'}
+                        className="form-control pe-5"
+                        style={{
+                          ...INPUT_STYLE,
+                          borderColor: passwordMatch ? '#198754' : passwordMismatch ? '#dc3545' : 'var(--dp-color-rule)',
+                        }}
+                        name="confirmPassword" placeholder="Re-enter password"
+                        value={formData.confirmPassword} onChange={handleChange}
+                        autoComplete="new-password" required
+                        aria-describedby="confirm-hint" />
+                      <button type="button" onClick={() => setShowConfirmPassword((v) => !v)}
+                        className="btn p-0 position-absolute top-50 translate-middle-y d-flex align-items-center justify-content-center"
+                        style={{ right: 10, background: 'none', border: 'none', color: 'var(--dp-color-ink-2)' }}
+                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
+                        {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                    {formData.confirmPassword && (
+                      <div id="confirm-hint" className="form-text small mt-1"
+                        style={{ color: passwordMatch ? '#198754' : '#dc3545' }}>
+                        {passwordMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label small fw-semibold">Username *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="username"
-                    placeholder="e.g. chef_eleanor"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                  />
+                {/* Divider */}
+                <div style={{ height: 1, backgroundColor: 'var(--dp-color-rule)', margin: '2rem 0' }} />
+
+                {/* ── SECTION II: Plan ─────────────────────────────────── */}
+                <SectionHeader num="II" title="Choose Your Subscription Plan" />
+                <p className="small text-muted mb-4" style={{ marginTop: '-0.75rem' }}>
+                  Paid registration is required to unlock member privileges.
+                </p>
+
+                <div className="row g-3 mb-4">
+                  {[
+                    {
+                      key: 'MONTHLY', name: 'Monthly Pass', price: '$10', per: '/ month',
+                      badge: 'Flexible', badgeDark: false,
+                      desc: 'Billed monthly, renews every 30 days.',
+                      perks: ['All secret recipes & tips', 'Upload personal recipes'],
+                    },
+                    {
+                      key: 'YEARLY', name: 'Annual Pass', price: '$100', per: '/ year',
+                      badge: 'Best Value · Save $20', badgeDark: true,
+                      desc: 'Billed annually, full 365-day access.',
+                      perks: ['All member privileges', 'Priority contest judging'],
+                    },
+                  ].map(({ key, name, price, per, badge, badgeDark, desc, perks }) => {
+                    const active = formData.planType === key;
+                    return (
+                      <div key={key} className="col-md-6">
+                        <button
+                          type="button"
+                          onClick={() => handlePlanSelect(key)}
+                          aria-pressed={active}
+                          className="w-100 h-100 p-4 text-start position-relative"
+                          style={{
+                            backgroundColor: badgeDark ? 'var(--dp-color-field)' : 'var(--dp-color-ground-2)',
+                            border: active ? `2px solid var(--dp-color-accent)` : `1px solid ${badgeDark ? 'rgba(255,255,255,0.1)' : 'var(--dp-color-panel-line)'}`,
+                            borderRadius: 0,
+                            cursor: 'pointer',
+                            outline: 'none',
+                            transition: 'border-color 0.15s',
+                          }}
+                        >
+                          {/* Badge */}
+                          <span
+                            className="badge font-monospace mb-3 d-inline-block"
+                            style={{
+                              backgroundColor: badgeDark ? 'var(--dp-color-accent)' : 'rgba(0,0,0,0.07)',
+                              color: badgeDark ? 'var(--dp-color-field)' : 'var(--dp-color-ink)',
+                              borderRadius: 0,
+                              fontSize: '0.65rem',
+                              letterSpacing: '0.1em',
+                              padding: '3px 8px',
+                            }}
+                          >
+                            {badge}
+                          </span>
+
+                          {/* Price */}
+                          <div className="d-flex align-items-baseline gap-1 mb-2">
+                            <span
+                              className="brand-font fw-bold"
+                              style={{ fontSize: '2.2rem', color: badgeDark ? '#fff' : 'var(--dp-color-ink)' }}
+                            >
+                              {price}
+                            </span>
+                            <span
+                              className="small font-monospace"
+                              style={{ color: badgeDark ? 'var(--dp-color-on-field-2)' : 'var(--dp-color-ink-2)' }}
+                            >
+                              {per}
+                            </span>
+                          </div>
+
+                          <p
+                            className="small mb-3"
+                            style={{ color: badgeDark ? 'var(--dp-color-on-field-2)' : 'var(--dp-color-ink-2)' }}
+                          >
+                            {desc}
+                          </p>
+
+                          <ul className="list-unstyled small m-0 d-flex flex-column gap-2">
+                            {perks.map((p) => (
+                              <li key={p} className="d-flex align-items-center gap-2">
+                                <span style={{ color: 'var(--dp-color-accent)', fontWeight: 700, fontSize: '0.75rem' }}>✓</span>
+                                <span style={{ color: badgeDark ? '#fff' : 'var(--dp-color-ink)' }}>{p}</span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          {/* Active indicator */}
+                          {active && (
+                            <div
+                              className="position-absolute top-0 end-0 m-2 font-monospace"
+                              style={{
+                                width: 20, height: 20,
+                                backgroundColor: 'var(--dp-color-accent)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.65rem', color: 'var(--dp-color-field)',
+                              }}
+                            >
+                              ✓
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label small fw-semibold">Email Address *</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    name="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+                {/* Divider */}
+                <div style={{ height: 1, backgroundColor: 'var(--dp-color-rule)', margin: '2rem 0' }} />
 
-                <div className="col-md-6">
-                  <label className="form-label small fw-semibold">Phone Number (Optional)</label>
-                  <input
-                    type="tel"
-                    className="form-control"
-                    name="phone"
-                    placeholder="+1 (555) 000-0000"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                </div>
+                {/* ── SECTION III: Payment ─────────────────────────────── */}
+                <SectionHeader num="III" title="Payment Details (Mock Gateway)" />
 
-                <div className="col-md-6">
-                  <label className="form-label small fw-semibold">Password *</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    name="password"
-                    placeholder="Minimum 6 characters"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label small fw-semibold">Confirm Password *</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    name="confirmPassword"
-                    placeholder="Re-enter password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="ruled-row my-4"></div>
-
-              {/* 2. Choose Subscription Plan */}
-              <div className="d-flex align-items-center gap-2 mb-2">
-                <span className="roman-numeral" style={{ fontSize: '1.1rem' }}>II.</span>
-                <h4 className="brand-font m-0 text-dark">Choose Your Subscription Plan</h4>
-              </div>
-              <p className="small text-muted mb-4">
-                Per site requirements, paid registration is required to unlock member privileges.
-              </p>
-
-              <div className="row g-3 mb-4">
-                {/* Monthly Plan */}
-                <div className="col-md-6">
+                <div
+                  className="p-4 mb-4"
+                  style={{ backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}
+                >
+                  {/* Amount summary */}
                   <div
-                    className="p-4 h-100 cursor-pointer atelier-card-hover"
-                    style={{
-                      backgroundColor: 'var(--dp-color-ground-2)',
-                      border: formData.planType === 'MONTHLY' ? '2px solid var(--dp-color-accent)' : '1px solid var(--dp-color-panel-line)',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => handlePlanSelect('MONTHLY')}
+                    className="d-flex align-items-center justify-content-between mb-4 pb-3"
+                    style={{ borderBottom: '1px solid var(--dp-color-rule)' }}
                   >
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <span className="badge bg-light text-dark font-monospace border">Flexible</span>
-                      <input
-                        type="radio"
-                        name="planType"
-                        value="MONTHLY"
-                        checked={formData.planType === 'MONTHLY'}
-                        onChange={() => handlePlanSelect('MONTHLY')}
-                        className="form-check-input mt-1"
-                      />
+                    <span className="small fw-semibold text-uppercase font-monospace" style={{ letterSpacing: '0.1em', color: 'var(--dp-color-ink-2)' }}>
+                      Amount due now
+                    </span>
+                    <span className="brand-font fw-bold text-dark" style={{ fontSize: '1.5rem' }}>
+                      {formData.planType === 'MONTHLY' ? '$10.00' : '$100.00'} USD
+                    </span>
+                  </div>
+
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold" htmlFor="pay-name">Cardholder Name *</label>
+                      <input id="pay-name" type="text" className="form-control" style={INPUT_STYLE}
+                        name="cardHolderName" placeholder="Name as it appears on card"
+                        value={formData.cardHolderName} onChange={handleChange} required />
                     </div>
-                    <div className="d-flex align-items-baseline gap-1 my-2">
-                      <span className="brand-font display-6 fw-bold text-dark">$10</span>
-                      <span className="small text-muted font-monospace">/ month</span>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold" htmlFor="pay-number">Card Number *</label>
+                      <input id="pay-number" type="text" className="form-control" style={INPUT_STYLE}
+                        name="cardNumber" placeholder="4000 1234 5678 9010 (mock test card)"
+                        value={formData.cardNumber} onChange={handleChange} required />
                     </div>
-                    <p className="small text-muted mb-3">Billed monthly, renews every 30 days.</p>
-                    <ul className="list-unstyled small text-secondary m-0 d-flex flex-column gap-2">
-                      <li className="d-flex align-items-center gap-2">
-                        <span className="text-muted font-monospace">&bull;</span>
-                        <span>All secret recipes & tips</span>
-                      </li>
-                      <li className="d-flex align-items-center gap-2">
-                        <span className="text-muted font-monospace">&bull;</span>
-                        <span>Upload personal recipes</span>
-                      </li>
-                    </ul>
+                    <div className="col-6">
+                      <label className="form-label small fw-semibold" htmlFor="pay-expiry">Expiry (MM/YY) *</label>
+                      <input id="pay-expiry" type="text" className="form-control" style={INPUT_STYLE}
+                        name="expiryDate" placeholder="MM/YY"
+                        value={formData.expiryDate} onChange={handleChange} required />
+                    </div>
+                    <div className="col-6">
+                      <label className="form-label small fw-semibold" htmlFor="pay-cvv">CVV *</label>
+                      <input id="pay-cvv" type="password" className="form-control" style={INPUT_STYLE}
+                        name="cvv" placeholder="123" maxLength={4}
+                        value={formData.cvv} onChange={handleChange} required />
+                    </div>
                   </div>
                 </div>
 
-                {/* Yearly Plan (Featured Charcoal Column) */}
-                <div className="col-md-6">
-                  <div
-                    className="p-4 h-100 cursor-pointer atelier-card-hover"
-                    style={{
-                      backgroundColor: 'var(--dp-color-field)',
-                      color: 'var(--dp-color-on-field)',
-                      border: formData.planType === 'YEARLY' ? '2px solid var(--dp-color-accent)' : '1px solid var(--dp-color-field-line)',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => handlePlanSelect('YEARLY')}
-                  >
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <span
-                        className="badge text-white font-monospace d-flex align-items-center gap-1"
-                        style={{ backgroundColor: 'var(--dp-color-accent)' }}
-                      >
-                        Best Value (Save $20)
-                      </span>
-                      <input
-                        type="radio"
-                        name="planType"
-                        value="YEARLY"
-                        checked={formData.planType === 'YEARLY'}
-                        onChange={() => handlePlanSelect('YEARLY')}
-                        className="form-check-input mt-1"
-                      />
-                    </div>
-                    <div className="d-flex align-items-baseline gap-1 my-2">
-                      <span className="brand-font display-6 fw-bold text-white">$100</span>
-                      <span className="small font-monospace" style={{ color: 'var(--dp-color-on-field-2)' }}>/ year</span>
-                    </div>
-                    <p className="small mb-3" style={{ color: 'var(--dp-color-on-field-2)' }}>Billed annually, full 365-day access.</p>
-                    <ul className="list-unstyled small m-0 d-flex flex-column gap-2" style={{ color: 'var(--dp-color-on-field-2)' }}>
-                      <li className="d-flex align-items-center gap-2">
-                        <span className="text-muted font-monospace">&bull;</span>
-                        <span className="text-white">All member privileges</span>
-                      </li>
-                      <li className="d-flex align-items-center gap-2">
-                        <span className="text-muted font-monospace">&bull;</span>
-                        <span className="text-white">Priority contest judging</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn w-100 py-3 fw-semibold d-flex align-items-center justify-content-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--dp-color-accent)',
+                    color: 'var(--dp-color-field)',
+                    letterSpacing: '0.14em',
+                    borderRadius: 0,
+                    border: 'none',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                      <span>Processing Subscription…</span>
+                    </>
+                  ) : (
+                    <span>
+                      Complete Registration &amp; Pay {formData.planType === 'MONTHLY' ? '$10.00' : '$100.00'}
+                    </span>
+                  )}
+                </button>
+
+              </form>
+
+              {/* Sign in link */}
+              <div style={{ height: 1, backgroundColor: 'var(--dp-color-rule)', margin: '2rem 0' }} />
+              <div className="text-center small">
+                <span className="text-muted">Already have a membership? </span>
+                <Link
+                  to="/login"
+                  state={{ from: location.state?.from }}
+                  className="fw-semibold"
+                  style={{ color: 'var(--dp-color-ink)', textDecoration: 'none', borderBottom: '1px solid var(--dp-color-accent)' }}
+                >
+                  Sign in here
+                </Link>
               </div>
-
-              <div className="ruled-row my-4"></div>
-
-              {/* 3. Payment Simulation */}
-              <div className="d-flex align-items-center gap-2 mb-2">
-                <span className="roman-numeral" style={{ fontSize: '1.1rem' }}>III.</span>
-                <h4 className="brand-font m-0 text-dark">Payment Details (Mock Gateway)</h4>
-              </div>
-
-              <div
-                className="p-4 mb-4"
-                style={{
-                  backgroundColor: 'var(--dp-color-ground-2)',
-                  border: '1px solid var(--dp-color-panel-line)',
-                }}
-              >
-                <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
-                  <span className="small text-uppercase fw-semibold" style={{ letterSpacing: '0.12em' }}>Amount to pay now:</span>
-                  <span className="brand-font fs-4 fw-bold text-dark">
-                    {formData.planType === 'MONTHLY' ? '$10.00 USD' : '$100.00 USD'}
-                  </span>
-                </div>
-
-                <div className="row g-3">
-                  <div className="col-12">
-                    <label className="form-label small fw-semibold">Cardholder Name *</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="cardHolderName"
-                      placeholder="Name as it appears on card"
-                      value={formData.cardHolderName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label small fw-semibold">Card Number *</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      style={{ borderColor: 'var(--dp-color-rule)' }}
-                      name="cardNumber"
-                      placeholder="4000 1234 5678 9010 (Mock test card)"
-                      value={formData.cardNumber}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-6">
-                    <label className="form-label small fw-semibold">Expiry Date *</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="expiryDate"
-                      placeholder="MM/YY"
-                      value={formData.expiryDate}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-6">
-                    <label className="form-label small fw-semibold">CVV *</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      name="cvv"
-                      placeholder="123"
-                      maxLength={4}
-                      value={formData.cvv}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary w-100 py-3 fw-semibold d-flex align-items-center justify-content-center gap-2"
-                style={{
-                  backgroundColor: 'var(--dp-color-field)',
-                  color: 'var(--dp-color-on-field)',
-                  letterSpacing: '0.14em',
-                  borderRadius: 0,
-                }}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    Processing Subscription...
-                  </>
-                ) : (
-                  <span>
-                    Complete Registration &amp; Pay {formData.planType === 'MONTHLY' ? '$10.00' : '$100.00'}
-                  </span>
-                )}
-              </button>
-            </form>
-
-            <div className="ruled-row my-4"></div>
-
-            <div className="text-center small">
-              <span className="text-muted">Already have a membership? </span>
-              <Link to="/login" state={{ from: location.state?.from }} className="gold-underline fw-semibold" style={{ color: 'var(--dp-color-ink)' }}>
-                Sign in here
-              </Link>
             </div>
+
           </div>
         </div>
-      </div>
-    </div>
-  );
+        );
 };
 
-export default RegisterPage;
+        export default RegisterPage;
