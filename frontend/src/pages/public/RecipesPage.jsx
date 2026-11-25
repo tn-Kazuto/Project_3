@@ -297,249 +297,132 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
         </div>
       </div>
 
-      {/* Visual Category Pillars (4 Pillars of Gastronomy) */}
-      {activeTab === 'recipes' && (
-        <div className="mb-4">
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <span className="font-monospace small text-uppercase" style={{ letterSpacing: '0.14em', color: 'var(--dp-color-accent)' }}>
-              FOUR PILLARS OF CHEF JAMES THEW &middot; VISUAL DIRECTORY
-            </span>
-            {selectedCategory !== null && (
-              <button
-                type="button"
-                className="btn btn-link btn-sm p-0 text-decoration-none font-monospace small"
-                style={{ color: 'var(--dp-color-ink-2)' }}
-                onClick={() => setSelectedCategory(null)}
-              >
-                [Clear Filter]
-              </button>
-            )}
-          </div>
-          <div className="row g-3">
-            {visualCategories.map((vCat, idx) => {
-              const selected = isCategorySelected(vCat);
-              return (
-                <div key={idx} className="col-6 col-lg-3">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handleVisualCategoryClick(vCat)}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleVisualCategoryClick(vCat)}
-                    className="position-relative overflow-hidden text-white h-100 p-3 d-flex flex-column justify-content-end"
-                    style={{
-                      minHeight: '160px',
-                      backgroundImage: `linear-gradient(rgba(20, 18, 16, ${selected ? '0.65' : '0.78'}), rgba(20, 18, 16, ${selected ? '0.85' : '0.92'})), url("${vCat.imageUrl}")`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      border: selected ? '2px solid var(--dp-color-accent)' : '1px solid var(--dp-color-rule)',
-                      boxShadow: selected ? '0 0 15px rgba(182, 147, 85, 0.35)' : 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.25s ease',
-                    }}
-                  >
-                    <span className="font-monospace text-uppercase" style={{ fontSize: '0.65rem', color: selected ? 'var(--dp-color-accent)' : 'var(--dp-color-on-field-2)', letterSpacing: '0.12em' }}>
-                      {vCat.tag}
-                    </span>
-                    <h5 className="brand-font m-0 mt-1" style={{ fontSize: '1.05rem', color: '#ffffff' }}>
-                      {vCat.name}
-                    </h5>
-                    <p className="small mb-0 mt-1 d-none d-md-block" style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.75)', lineHeight: '1.3' }}>
-                      {vCat.desc}
-                    </p>
-                    <div className="mt-2 pt-2 border-top border-secondary font-monospace" style={{ fontSize: '0.65rem', color: selected ? 'var(--dp-color-accent)' : 'rgba(255, 255, 255, 0.6)' }}>
-                      {selected ? 'ACTIVE &bull; CLICK TO RESET' : 'SELECT CATEGORY &rarr;'}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Visual Category Pillars removed — replaced by inline category chips in filter bar */}
 
-      {/* Search & Category Filter Bar */}
+      {/* Search & Filter Bar */}
       <div
         id="catalog-content-section"
-        className="p-4 mb-5"
-        style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid var(--dp-color-rule)',
-        }}
+        className="mb-5"
+        style={{ borderTop: '2px solid var(--dp-color-accent)', borderBottom: '1px solid var(--dp-color-rule)' }}
       >
-        <div className="row g-4 align-items-center">
-          {/* Keyword Search */}
-          <div className="col-lg-6">
+        {/* Top row: Search + Dropdowns + Count */}
+        <div
+          className="d-flex align-items-center gap-0"
+          style={{ backgroundColor: '#ffffff', borderBottom: '1px solid var(--dp-color-rule)' }}
+        >
+          {/* Search */}
+          <div className="position-relative" style={{ flex: '1 1 240px' }}>
+            <span
+              className="position-absolute top-50 translate-middle-y font-monospace text-muted"
+              style={{ left: 16, fontSize: '0.75rem', pointerEvents: 'none' }}
+            >
+              ⌕
+            </span>
             <input
               type="text"
-              className="form-control"
-              style={{ borderColor: 'var(--dp-color-rule)' }}
-              placeholder={
-                activeTab === 'recipes'
-                  ? 'Search recipes by dish name, chicken, pasta, spices...'
-                  : 'Search tips by keyword...'
-              }
+              className="form-control border-0 ps-5"
+              style={{
+                borderRadius: 0,
+                backgroundColor: 'transparent',
+                height: 52,
+                fontSize: '0.9rem',
+                boxShadow: 'none',
+              }}
+              placeholder={activeTab === 'recipes' ? 'Search recipes by name, ingredient…' : 'Search tips by keyword…'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          {/* Category Filter for Recipes */}
-          {activeTab === 'recipes' && (
-            <div className="col-lg-6">
-              <div className="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <button
-                  type="button"
-                  className={`btn btn-sm ${selectedCategory === null ? 'btn-primary' : 'btn-outline-secondary'}`}
-                  style={{
-                    backgroundColor: selectedCategory === null ? 'var(--dp-color-field)' : 'transparent',
-                    color: selectedCategory === null ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: selectedCategory === null ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                  }}
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  All Categories
-                </button>
-                {categories.map((c) => (
-                  <button
-                    key={c.categoryId}
-                    type="button"
-                    className={`btn btn-sm ${selectedCategory === c.categoryId ? 'btn-primary' : 'btn-outline-secondary'}`}
-                    style={{
-                      backgroundColor: selectedCategory === c.categoryId ? 'var(--dp-color-field)' : 'transparent',
-                      color: selectedCategory === c.categoryId ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                      borderColor: selectedCategory === c.categoryId ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                      borderRadius: 0,
-                    }}
-                    onClick={() => setSelectedCategory(c.categoryId)}
-                  >
-                    {c.categoryName}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Divider */}
+          <div style={{ width: 1, height: 28, backgroundColor: 'var(--dp-color-rule)', flexShrink: 0 }} />
 
-          {/* Tier Filter: All vs Free vs Members-only */}
-          <div className="col-12 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2" style={{ borderColor: 'var(--dp-color-rule)' }}>
-            <div className="d-flex align-items-center gap-2">
-              <span className="small text-uppercase fw-semibold text-muted" style={{ letterSpacing: '0.12em' }}>
-                Access Tier:
-              </span>
-              <div className="btn-group btn-group-sm">
-                <button
-                  type="button"
-                  className={`btn ${tierFilter === 'all' ? 'btn-dark' : 'btn-outline-secondary'}`}
-                  style={{ borderRadius: 0 }}
-                  onClick={() => setTierFilter('all')}
-                >
-                  All Repertoire
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${tierFilter === 'free' ? 'btn-dark' : 'btn-outline-secondary'}`}
-                  style={{ borderRadius: 0 }}
-                  onClick={() => setTierFilter('free')}
-                >
-                  Free Access Only
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${tierFilter === 'members' ? 'btn-dark' : 'btn-outline-secondary'}`}
-                  style={{ borderRadius: 0 }}
-                  onClick={() => setTierFilter('members')}
-                >
-                  Member Reserved
-                </button>
-              </div>
-            </div>
-
-            <span className="small text-muted font-monospace">
-              Showing {activeTab === 'recipes' ? recipes.length : tips.length} items
-            </span>
+          {/* Access dropdown */}
+          <div className="position-relative d-flex align-items-center px-3" style={{ gap: 6, flexShrink: 0 }}>
+            <span className="font-monospace text-muted" style={{ fontSize: '0.68rem', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>ACCESS</span>
+            <select
+              className="border-0 bg-transparent fw-semibold"
+              style={{ fontSize: '0.82rem', outline: 'none', cursor: 'pointer', padding: '14px 4px', color: 'var(--dp-color-ink)', appearance: 'auto' }}
+              value={tierFilter}
+              onChange={(e) => setTierFilter(e.target.value)}
+              aria-label="Filter by access tier"
+            >
+              <option value="all">All</option>
+              <option value="free">Free</option>
+              <option value="members">Members</option>
+            </select>
           </div>
 
-          {/* Media Format Filter (SRS Phase U2) - Recipes Tab Only */}
+          {/* Divider */}
           {activeTab === 'recipes' && (
-            <div className="col-12 pt-3 border-top d-flex flex-wrap align-items-center gap-2" style={{ borderColor: 'var(--dp-color-rule)' }}>
-              <span className="small text-uppercase fw-semibold text-muted" style={{ letterSpacing: '0.12em' }}>
-                Format:
-              </span>
-              <div className="d-flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: formatFilter === 'ALL' ? 'var(--dp-color-field)' : 'transparent',
-                    color: formatFilter === 'ALL' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: formatFilter === 'ALL' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
-                  onClick={() => setFormatFilter('ALL')}
-                >
-                  <span>All Formats</span>
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: formatFilter === 'ARTICLE' ? 'var(--dp-color-field)' : 'transparent',
-                    color: formatFilter === 'ARTICLE' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: formatFilter === 'ARTICLE' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
-                  onClick={() => setFormatFilter('ARTICLE')}
-                >
-                  <span>Articles</span>
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: formatFilter === 'VIDEO' ? 'var(--dp-color-field)' : 'transparent',
-                    color: formatFilter === 'VIDEO' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: formatFilter === 'VIDEO' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
-                  onClick={() => setFormatFilter('VIDEO')}
-                >
-                  <span>Video Masterclass</span>
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: formatFilter === 'TALKSHOW' ? 'var(--dp-color-field)' : 'transparent',
-                    color: formatFilter === 'TALKSHOW' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: formatFilter === 'TALKSHOW' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
-                  onClick={() => setFormatFilter('TALKSHOW')}
-                >
-                  <span>Culinary Talkshows</span>
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm px-3"
-                  style={{
-                    backgroundColor: formatFilter === 'LIVESHOW' ? 'var(--dp-color-field)' : 'transparent',
-                    color: formatFilter === 'LIVESHOW' ? 'var(--dp-color-on-field)' : 'var(--dp-color-ink)',
-                    borderColor: formatFilter === 'LIVESHOW' ? 'var(--dp-color-accent)' : 'var(--dp-color-rule)',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                  }}
-                  onClick={() => setFormatFilter('LIVESHOW')}
-                >
-                  <span>Live Shows</span>
-                </button>
-              </div>
+            <div style={{ width: 1, height: 28, backgroundColor: 'var(--dp-color-rule)', flexShrink: 0 }} />
+          )}
+
+          {/* Format dropdown — recipes only */}
+          {activeTab === 'recipes' && (
+            <div className="d-flex align-items-center px-3" style={{ gap: 6, flexShrink: 0 }}>
+              <span className="font-monospace text-muted" style={{ fontSize: '0.68rem', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>FORMAT</span>
+              <select
+                className="border-0 bg-transparent fw-semibold"
+                style={{ fontSize: '0.82rem', outline: 'none', cursor: 'pointer', padding: '14px 4px', color: 'var(--dp-color-ink)', appearance: 'auto' }}
+                value={formatFilter}
+                onChange={(e) => setFormatFilter(e.target.value)}
+                aria-label="Filter by format"
+              >
+                <option value="ALL">All</option>
+                <option value="ARTICLE">Article</option>
+                <option value="VIDEO">Video</option>
+                <option value="TALKSHOW">Talkshow</option>
+                <option value="LIVESHOW">Live Show</option>
+              </select>
             </div>
           )}
+
+          {/* Count */}
+          <div
+            className="ms-auto d-flex align-items-center px-4 font-monospace"
+            style={{ fontSize: '0.75rem', color: 'var(--dp-color-ink-2)', borderLeft: '1px solid var(--dp-color-rule)', height: 52, flexShrink: 0, whiteSpace: 'nowrap' }}
+          >
+            {activeTab === 'recipes' ? recipes.length : tips.length} results
+          </div>
         </div>
+
+        {/* Bottom row: Category chips — recipes only */}
+        {activeTab === 'recipes' && (
+          <div
+            className="d-flex align-items-center gap-0 overflow-auto"
+            style={{ backgroundColor: 'var(--dp-color-ground-2)', scrollbarWidth: 'none' }}
+          >
+            {[{ categoryId: null, categoryName: 'All Categories' }, ...categories].map((c) => {
+              const active = c.categoryId === null ? selectedCategory === null : selectedCategory === c.categoryId;
+              return (
+                <button
+                  key={c.categoryId ?? 'all'}
+                  type="button"
+                  onClick={() => setSelectedCategory(c.categoryId)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '10px 20px',
+                    border: 'none',
+                    borderBottom: active ? '2px solid var(--dp-color-accent)' : '2px solid transparent',
+                    backgroundColor: 'transparent',
+                    color: active ? 'var(--dp-color-ink)' : 'var(--dp-color-ink-2)',
+                    fontFamily: 'monospace',
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    fontWeight: active ? 700 : 400,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {c.categoryName}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Main Content Grid */}
