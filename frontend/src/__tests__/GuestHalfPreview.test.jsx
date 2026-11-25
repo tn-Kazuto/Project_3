@@ -243,7 +243,7 @@ describe('Members 50% Preview & Free 100% Access Flow (Frontend)', () => {
     expect(within(membersDialog).getByRole('link', { name: /Want to Continue\? Register to Unlock \(\$10\/mo\)/i })).toHaveAttribute('href', '/register');
   });
 
-  it('HomePage displays Exclusive Member Recipes (50% Preview) with blurred image for unregistered guests', async () => {
+  it('HomePage displays Exclusive Member Recipes with blurred image and without 50% preview text', async () => {
     vi.spyOn(AuthContextModule, 'useOptionalAuth').mockReturnValue({ isAuthenticated: false });
     vi.spyOn(apiModule.recipeApi, 'getAll').mockImplementation(({ isFreeOnly } = {}) => {
       if (isFreeOnly === false) {
@@ -261,10 +261,13 @@ describe('Members 50% Preview & Free 100% Access Flow (Frontend)', () => {
     );
 
     expect(await screen.findByText('Sicilian Saffron Arancini')).toBeInTheDocument();
-    expect(await screen.findByText(/Exclusive Member Recipes \(50% Preview\)/i)).toBeInTheDocument();
+    expect(await screen.findByText('Exclusive Member Recipes')).toBeInTheDocument();
+    expect(screen.queryByText(/50% preview/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/50% SNEAK PEEK/i)).not.toBeInTheDocument();
     expect(screen.getByText('Porcini Tagliatelle Masterclass')).toBeInTheDocument();
     expect(screen.getByAltText('Porcini Tagliatelle Masterclass').style.filter).toContain('blur(');
-    expect(screen.getByRole('link', { name: /Preview 50%/i })).toHaveAttribute('href', '/recipes/302');
+    const links = screen.getAllByRole('link', { name: /View Recipe/i });
+    expect(links.some((link) => link.getAttribute('href') === '/recipes/302')).toBe(true);
   });
 
   it('RegisterPage displays contextual gate message when redirected from preview CTA', () => {

@@ -17,26 +17,16 @@ const HomeRecipeCard = ({ recipe, fallbackImage, isPreviewTeaser = false }) => (
         <span className="badge bg-light text-dark border font-monospace">
           {recipe.categoryName}
         </span>
-        <div className="d-flex align-items-center gap-1">
-          {isPreviewTeaser && (
-            <span
-              className="badge font-monospace"
-              style={{ backgroundColor: 'var(--dp-color-ground-2)', color: 'var(--dp-color-ink)', border: '1px solid var(--dp-color-accent)', borderRadius: 0 }}
-            >
-              Preview 50%
-            </span>
-          )}
-          <span
-            className="badge font-monospace"
-            style={{
-              backgroundColor: recipe.isFree ? '#1b4d3e' : 'var(--dp-color-field)',
-              color: '#ffffff',
-              borderRadius: 0,
-            }}
-          >
-            {recipe.isFree ? 'Free Access' : 'Members Only'}
-          </span>
-        </div>
+        <span
+          className="badge font-monospace"
+          style={{
+            backgroundColor: recipe.isFree ? '#1b4d3e' : 'var(--dp-color-field)',
+            color: '#ffffff',
+            borderRadius: 0,
+          }}
+        >
+          {recipe.isFree ? 'Free Access' : 'Members Only'}
+        </span>
       </div>
 
       <PreviewRecipeImage
@@ -44,6 +34,7 @@ const HomeRecipeCard = ({ recipe, fallbackImage, isPreviewTeaser = false }) => (
         alt={recipe.title}
         fallbackSrc={CULINARY_SVG_PLACEHOLDER}
         blurred={isPreviewTeaser}
+        overlayLabel="MEMBERS EXCLUSIVE"
         containerClassName="mb-3"
         containerStyle={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}
       />
@@ -54,7 +45,7 @@ const HomeRecipeCard = ({ recipe, fallbackImage, isPreviewTeaser = false }) => (
 
       <p className="small mb-4 line-clamp-2" style={{ color: 'var(--dp-color-ink-2)' }}>
         {isPreviewTeaser
-          ? 'Members-exclusive preview — open to read 50% of this recipe, then register to unlock the full dish.'
+          ? 'Members-exclusive recipe — open to read a preview, then register to unlock the full dish.'
           : `${(recipe.ingredients || '').substring(0, 100)}...`}
       </p>
 
@@ -68,7 +59,7 @@ const HomeRecipeCard = ({ recipe, fallbackImage, isPreviewTeaser = false }) => (
           className="text-uppercase fw-semibold gold-underline"
           style={{ fontSize: '0.75rem', letterSpacing: '0.12em' }}
         >
-          {isPreviewTeaser ? 'Preview 50% →' : 'View Recipe →'}
+          View Recipe &rarr;
         </Link>
       </div>
     </div>
@@ -110,10 +101,10 @@ export const HomeRepertoireSection = ({ recipes, memberPreviews = [], isAuthenti
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3 border-bottom pb-3" style={{ borderColor: 'var(--dp-color-rule)' }}>
               <div>
                 <div className="roman-numeral mb-1" style={{ color: 'var(--dp-color-accent)' }}>
-                  MEMBERS ATELIER &middot; {!isAuthenticated ? '50% SNEAK PEEK' : 'EXCLUSIVE VAULT'}
+                  MEMBERS ATELIER &middot; EXCLUSIVE VAULT
                 </div>
                 <h3 className="brand-font h2 m-0">
-                  {!isAuthenticated ? 'Exclusive Member Recipes (50% Preview)' : 'Exclusive Member Recipes'}
+                  Exclusive Member Recipes
                 </h3>
               </div>
               <Link
@@ -121,7 +112,7 @@ export const HomeRepertoireSection = ({ recipes, memberPreviews = [], isAuthenti
                 className="text-uppercase fw-semibold small gold-underline d-inline-flex align-items-center gap-2"
                 style={{ letterSpacing: '0.16em', color: 'var(--dp-color-ink)' }}
               >
-                <span>{!isAuthenticated ? 'Explore Member Previews' : 'View Member Catalog'}</span>
+                <span>Explore Member Recipes</span>
               </Link>
             </div>
 

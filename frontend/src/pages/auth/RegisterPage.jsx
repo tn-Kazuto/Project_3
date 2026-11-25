@@ -109,16 +109,25 @@ export const RegisterPage = () => {
               </p>
             </div>
 
-            {/* Form card */}
-            <div
-              className="p-4 p-md-5"
-              style={{ backgroundColor: '#ffffff', border: '1px solid var(--dp-color-rule)' }}
-            >
-              {error && (
-                <div className="alert alert-danger small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
-                  {error}
-                </div>
-              )}
+            {location.state?.message && (
+              <div
+                className="p-3 mb-4 small"
+                role="status"
+                style={{
+                  backgroundColor: 'var(--dp-color-ground-2)',
+                  borderLeft: '3px solid var(--dp-color-accent)',
+                  color: 'var(--dp-color-ink)',
+                }}
+              >
+                {location.state.message}
+              </div>
+            )}
+
+            {error && (
+              <div className="alert alert-danger small py-2 mb-4" role="alert" style={{ borderRadius: 0 }}>
+                {error}
+              </div>
+            )}
 
               <form onSubmit={handleSubmit}>
 
@@ -401,10 +410,10 @@ export const RegisterPage = () => {
                 </Link>
               </div>
             </div>
-
           </div>
         </div>
-        );
+      </div>
+  );
 };
 
-        export default RegisterPage;
+export default RegisterPage;
