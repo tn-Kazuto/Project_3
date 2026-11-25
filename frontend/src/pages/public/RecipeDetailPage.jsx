@@ -3,6 +3,9 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { recipeApi, feedbackApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { getVideoEmbed } from '../../utils/recipeVideo';
+import { buildHalfPreview, parseIngredientList } from '../../utils/contentPreview';
+import { PreviewGateCard } from '../../components/common/PreviewGateCard';
+import { PreviewRecipeImage } from '../../components/common/PreviewRecipeImage';
 
 const FALLBACK_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80';
 const CULINARY_SVG_PLACEHOLDER = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" fill="none"><rect width="800" height="450" fill="%23242320"/><rect x="30" y="30" width="740" height="390" stroke="%23c5a880" stroke-width="1.5" stroke-dasharray="6 4" fill="none"/><circle cx="400" cy="180" r="44" stroke="%23c5a880" stroke-width="2" fill="%231a1918"/><path d="M380 185C380 170 390 160 400 160C410 160 420 170 420 185H380Z" fill="%23c5a880"/><rect x="375" y="187" width="50" height="4" rx="2" fill="%23c5a880"/><circle cx="400" cy="154" r="4" fill="%23c5a880"/><text x="400" y="270" text-anchor="middle" fill="%23fcfbf7" font-family="serif" font-size="20" letter-spacing="3">CHEF JAMES THEW</text><text x="400" y="300" text-anchor="middle" fill="%23c5a880" font-family="monospace" font-size="12" letter-spacing="4">5-STAR CULINARY ATELIER</text></svg>`;
@@ -265,20 +268,20 @@ export const RecipeDetailPage = () => {
     );
   }
 
-  // Split ingredients by newline or commas for structured display
-  const ingredientList = String(recipe.ingredients || '')
-    .split(/\r?\n|•/)
-    .map((i) => i.trim())
-    .filter((i) => i.length > 0);
+  // Split ingredients and steps cleanly and enforce 50% preview for unregistered visitors
+  const ingredientList = parseIngredientList(recipe.ingredients);
 
-  // Split steps by newline
   const stepList = String(recipe.cookingProcedure || '')
     .split(/\r?\n/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
   const isPreview = recipe.accessLevel === 'PREVIEW' || (!recipe.isFree && !isAuthenticated);
-  const visibleStepCount = isPreview ? Math.max(1, Math.ceil(stepList.length * 0.5)) : stepList.length;
-  const visibleSteps = stepList.slice(0, visibleStepCount);
+  // Avoid double-slicing when the API already sanitized the content to 50%.
+  const shouldClientTruncate = isPreview && !recipe.isContentTruncated;
+  const ingredientPreview = buildHalfPreview(ingredientList, shouldClientTruncate);
+  const stepPreview = buildHalfPreview(stepList, shouldClientTruncate);
+  const visibleIngredients = ingredientPreview.visibleItems;
+  const visibleSteps = stepPreview.visibleItems;
   const returnTo = { pathname: location.pathname, search: location.search, hash: location.hash };
 
   return (
@@ -337,21 +340,38 @@ export const RecipeDetailPage = () => {
             <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
           </button>
 
-          {/* Print Button */}
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2 font-monospace text-uppercase"
-            style={{
-              borderColor: 'var(--dp-color-rule)',
-              color: 'var(--dp-color-ink)',
-              borderRadius: 0,
-              fontSize: '0.75rem',
-              letterSpacing: '0.12em',
-            }}
-          >
-            <span>Print Culinary Card</span>
-          </button>
+          {/* Print Button (full members) or Register CTA (preview guests) */}
+          {!isPreview ? (
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2 font-monospace text-uppercase"
+              style={{
+                borderColor: 'var(--dp-color-rule)',
+                color: 'var(--dp-color-ink)',
+                borderRadius: 0,
+                fontSize: '0.75rem',
+                letterSpacing: '0.12em',
+              }}
+            >
+              <span>Print Culinary Card</span>
+            </button>
+          ) : (
+            <Link
+              to="/register"
+              state={{ from: returnTo }}
+              className="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-2 font-monospace text-uppercase"
+              style={{
+                borderColor: 'var(--dp-color-accent)',
+                color: 'var(--dp-color-ink)',
+                borderRadius: 0,
+                fontSize: '0.75rem',
+                letterSpacing: '0.12em',
+              }}
+            >
+              <span>🔒 Register to Print Full Card</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -448,22 +468,21 @@ export const RecipeDetailPage = () => {
           </div>
         </div>
 
-        {/* Recipe Hero Image if not video */}
+        {/* Recipe Hero Image if not video or blurred preview */}
         {(!recipe.videoUrl || isPreview) && (
-          <div className="mb-4 overflow-hidden" style={{ maxHeight: '440px', border: '1px solid var(--dp-color-panel-line)', backgroundColor: 'var(--dp-color-ground-2)' }}>
-            <img
-              src={recipe.imageUrl || FALLBACK_RECIPE_IMAGE}
-              alt={recipe.title}
-              className="w-100"
-              style={{ objectFit: 'cover', maxHeight: '440px' }}
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = CULINARY_SVG_PLACEHOLDER;
-              }}
-            />
-          </div>
+          <PreviewRecipeImage
+            src={recipe.imageUrl || FALLBACK_RECIPE_IMAGE}
+            alt={recipe.title}
+            fallbackSrc={CULINARY_SVG_PLACEHOLDER}
+            blurred={isPreview}
+            actionHref={isPreview ? '/register' : null}
+            actionState={isPreview ? { from: returnTo, message: 'Register for a membership ($10/mo or $100/yr) to unlock complete recipes and masterclass videos.' } : undefined}
+            actionLabel="Want to Continue? Register to Unlock →"
+            containerClassName="mb-4"
+            containerStyle={{ maxHeight: '440px', border: '1px solid var(--dp-color-panel-line)', backgroundColor: 'var(--dp-color-ground-2)' }}
+            imgClassName="w-100"
+            imgStyle={{ maxHeight: '440px' }}
+          />
         )}
 
         {/* Video Masterclass / Screening Player (SRS v2.0) */}
@@ -537,9 +556,9 @@ export const RecipeDetailPage = () => {
               }}
             >
               <div className="mb-2" style={{ fontSize: '2rem' }}>🔒</div>
-              <h3 className="brand-font h4 text-white mb-2">Video Masterclass Độc Quyền Hội Viên VIP</h3>
+              <h3 className="brand-font h4 text-white mb-2">VIP Members-Only Masterclass Video</h3>
               <p className="small max-w-600 mb-3" style={{ color: 'var(--dp-color-on-field-2)', lineHeight: '1.65' }}>
-                Video chất lượng cao hướng dẫn kỹ thuật nấu ăn trực tiếp từ Chef James Thew dành riêng cho thành viên VIP. Đăng ký ngay để mở khóa toàn bộ video và công thức.
+                High-definition culinary masterclasses hosted directly by Chef James Thew are reserved for registered members. Register now to unlock the full video and recipe.
               </p>
               <Link
                 to="/register"
@@ -547,7 +566,7 @@ export const RecipeDetailPage = () => {
                 className="btn btn-primary text-uppercase font-monospace btn-sm"
                 style={{ letterSpacing: '0.12em', padding: '0.6rem 1.5rem' }}
               >
-                Mở Khóa Video ($10/tháng)
+                Want to Continue? Unlock Video ($10/mo)
               </Link>
             </div>
           </div>
@@ -565,7 +584,7 @@ export const RecipeDetailPage = () => {
             >
               <div className="roman-numeral mb-1" style={{ fontSize: '0.9rem' }}>COMPONENT LIST</div>
               <h2 className="brand-font h4 mb-3 pb-2 border-bottom" style={{ borderColor: 'var(--dp-color-panel-line)' }}>
-                Ingredients
+                Ingredients {isPreview && <span className="small text-muted font-monospace fw-normal">(50% Preview)</span>}
               </h2>
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="small text-muted font-monospace" style={{ fontSize: '0.72rem' }}>
@@ -583,7 +602,7 @@ export const RecipeDetailPage = () => {
                 )}
               </div>
               <ul className="list-unstyled d-flex flex-column gap-0 mb-0">
-                {ingredientList.map((item, idx) => {
+                {visibleIngredients.map((item, idx) => {
                   const isPrepped = Boolean(preppedIngredients[idx]);
                   return (
                     <li
@@ -612,7 +631,39 @@ export const RecipeDetailPage = () => {
                     </li>
                   );
                 })}
+
+                {isPreview && (
+                  <li
+                    className="d-flex align-items-start gap-2 py-2"
+                    style={{
+                      filter: 'blur(3.5px)',
+                      opacity: 0.35,
+                      userSelect: 'none',
+                      maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                      WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                    }}
+                    aria-hidden="true"
+                  >
+                    <span className="font-monospace mt-1" style={{ color: 'var(--dp-color-ink-2)' }}>•</span>
+                    <span>
+                      {ingredientPreview.hiddenTeaser || 'Remaining reserve ingredients and precise atelier measurements...'}
+                    </span>
+                  </li>
+                )}
               </ul>
+
+              {isPreview && (
+                <PreviewGateCard
+                  compact
+                  returnTo={returnTo}
+                  isAuthenticated={isAuthenticated}
+                  compactMessage={
+                    !recipe.isContentTruncated && ingredientPreview.totalCount > 1
+                      ? `Showing ${visibleIngredients.length} of ${ingredientPreview.totalCount} ingredients (50%). Want to see the rest?`
+                      : 'Showing 50% of ingredients. Want to see the rest?'
+                  }
+                />
+              )}
 
               {/* Sommelier & Cellar Recommendation */}
               <div className="sommelier-note-card mt-4">
@@ -690,61 +741,16 @@ export const RecipeDetailPage = () => {
                         color: 'var(--dp-color-accent)',
                       }}
                     >
-                      {toRoman(visibleSteps.length + 1)}.
+                      {stepList.length > 1 ? `${toRoman(visibleSteps.length + 1)}.` : '...'}
                     </span>
                     <p className="m-0 small pt-1" style={{ color: 'var(--dp-color-ink)', lineHeight: '1.75' }}>
-                      {stepList.length > visibleStepCount
-                        ? stepList[visibleStepCount]
-                        : 'Tinh chỉnh nhiệt độ lửa, hòa quyện nước xốt nhũ tương hóa và hoàn thiện nghệ thuật decor món ăn theo chuẩn 5 sao...'}
+                      {stepPreview.hiddenTeaser || 'Refine heat reduction, emulsify the finishing jus, and plate cleanly to 5-star atelier standards...'}
                     </p>
                   </div>
                 )}
               </div>
               {isPreview && (
-                <div
-                  className="mt-4 p-4 text-center"
-                  style={{
-                    backgroundColor: 'var(--dp-color-field)',
-                    color: 'var(--dp-color-on-field)',
-                    border: '1px solid var(--dp-color-accent)',
-                  }}
-                >
-                  <div className="roman-numeral mb-2" style={{ color: 'var(--dp-color-accent)', fontSize: '0.85rem' }}>
-                    50% COMPLIMENTARY PREVIEW REACHED
-                  </div>
-                  <h3 className="brand-font h3 text-white mb-2">
-                    Khám Phá Trọn Vẹn Công Thức &amp; Video Masterclass
-                  </h3>
-                  <p className="small mb-4 max-w-600 mx-auto" style={{ color: 'var(--dp-color-on-field-2)', lineHeight: '1.65' }}>
-                    Bạn đang xem 50% bản xem trước miễn phí. Hãy đăng ký tài khoản Hội viên VIP ($10/tháng) để mở khóa toàn bộ các bước thực hiện chi tiết, bí quyết định lượng từ Bếp trưởng James Thew và toàn bộ video Masterclass độ nét cao.
-                  </p>
-                  <div className="d-flex flex-wrap justify-content-center gap-3">
-                    {isAuthenticated ? (
-                      <Link to="/profile" className="btn btn-primary text-uppercase font-monospace px-4 py-2" style={{ letterSpacing: '0.1em' }}>
-                        Gia Hạn Gói Thành Viên
-                      </Link>
-                    ) : (
-                      <>
-                        <Link
-                          to="/register"
-                          state={{ from: returnTo }}
-                          className="btn btn-primary text-uppercase font-monospace px-4 py-2"
-                          style={{ letterSpacing: '0.1em', fontWeight: 600 }}
-                        >
-                          Đăng Ký Thành Viên VIP ($10/tháng)
-                        </Link>
-                        <Link
-                          to="/login"
-                          state={{ from: returnTo }}
-                          className="btn btn-outline-light text-uppercase font-monospace px-4 py-2"
-                          style={{ letterSpacing: '0.1em' }}
-                        >
-                          Đã Có Tài Khoản? Đăng Nhập
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <PreviewGateCard returnTo={returnTo} isAuthenticated={isAuthenticated} />
               )}
             </div>
           </div>

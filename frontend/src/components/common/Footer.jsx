@@ -54,7 +54,7 @@ export const Footer = () => {
           <div className="col-lg-3 col-md-6">
             <h6 className="fw-bold text-uppercase mb-3 small">eProject Aptech</h6>
             <p className="small footer-text mb-2">
-              Website Chia Sẻ Công Thức Nấu Ăn & Cuộc Thi Ẩm Thực - Chef James Thew.
+              Culinary Recipes, Cooking Tips &amp; Gastronomy Contests — Chef James Thew.
             </p>
             <div className="p-3 bg-dark border border-secondary border-opacity-25 small text-white-50">
               <span className="badge bg-warning text-dark me-2">Aptech</span>

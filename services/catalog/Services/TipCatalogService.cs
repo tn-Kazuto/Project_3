@@ -2,6 +2,7 @@ using JamesThew.CatalogService.Data;
 using JamesThew.CatalogService.DTOs;
 using JamesThew.CatalogService.Models;
 using JamesThew.Shared.Contracts.DTOs.Common;
+using JamesThew.Shared.Contracts.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace JamesThew.CatalogService.Services;
@@ -16,10 +17,16 @@ public sealed class TipCatalogService(
     public async Task<ApiResponse<IEnumerable<TipDto>>> GetAllAsync(
         string? search,
         CatalogActor actor,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool? isFreeOnly = null,
+        bool includePreviews = false)
     {
-        var limitToFree = await ShouldLimitToFreeAsync(actor, cancellationToken);
-        var cacheKey = limitToFree ? await BuildListCacheKeyAsync(search, cancellationToken) : null;
+        var hasFullAccess = await HasFullPremiumAccessAsync(actor, cancellationToken);
+        var limitToFree = isFreeOnly == true || (!hasFullAccess && !includePreviews);
+        var paidOnly = (hasFullAccess || includePreviews) && !limitToFree && isFreeOnly == false;
+        var cacheKey = !hasFullAccess && !includePreviews && !isFreeOnly.HasValue
+            ? await BuildListCacheKeyAsync(search, cancellationToken)
+            : null;
         if (cacheKey is not null)
         {
             var cached = await cache.ReadJsonAsync<List<TipDto>>(cacheKey, cancellationToken);
@@ -30,11 +37,11 @@ public sealed class TipCatalogService(
             }
         }
 
-        var tips = await BuildQuery(search, limitToFree)
+        var tips = await BuildQuery(search, limitToFree, paidOnly)
             .OrderByDescending(tip => tip.CreatedAt)
             .Take(50)
             .ToListAsync(cancellationToken);
-        var result = tips.Select(MapToDto).ToList();
+        var result = tips.Select(tip => MapForViewer(tip, hasFullAccess)).ToList();
         if (cacheKey is not null)
         {
             await cache.WriteJsonAsync(cacheKey, result, CacheTtlSeconds, cancellationToken);
@@ -49,12 +56,15 @@ public sealed class TipCatalogService(
         string? search,
         CatalogActor actor,
         CancellationToken cancellationToken,
-        bool? isFreeOnly = null)
+        bool? isFreeOnly = null,
+        bool includePreviews = false)
     {
-        var limitToFree = await ShouldLimitToFreeAsync(actor, cancellationToken);
+        var hasFullAccess = await HasFullPremiumAccessAsync(actor, cancellationToken);
+        var limitToFree = isFreeOnly == true || (!hasFullAccess && !includePreviews);
+        var paidOnly = (hasFullAccess || includePreviews) && !limitToFree && isFreeOnly == false;
         var safePage = Math.Max(1, page);
         var safePageSize = Math.Clamp(pageSize, 1, 50);
-        var cacheKey = limitToFree && !isFreeOnly.HasValue
+        var cacheKey = !hasFullAccess && !includePreviews && !isFreeOnly.HasValue
             ? await BuildPageCacheKeyAsync(search, safePage, safePageSize, cancellationToken)
             : null;
 
@@ -70,11 +80,7 @@ public sealed class TipCatalogService(
             }
         }
 
-        var query = BuildQuery(search, limitToFree);
-        if (isFreeOnly.HasValue)
-        {
-            query = query.Where(tip => tip.IsFree == isFreeOnly.Value);
-        }
+        var query = BuildQuery(search, limitToFree, paidOnly);
         var totalCount = await query.CountAsync(cancellationToken);
         var tips = await query.OrderByDescending(tip => tip.CreatedAt).ThenByDescending(tip => tip.TipId)
             .Skip((safePage - 1) * safePageSize)
@@ -82,7 +88,7 @@ public sealed class TipCatalogService(
             .ToListAsync(cancellationToken);
         var result = new PagedResult<TipDto>
         {
-            Items = tips.Select(MapToDto).ToList(),
+            Items = tips.Select(tip => MapForViewer(tip, hasFullAccess)).ToList(),
             TotalCount = totalCount,
             PageIndex = safePage,
             PageSize = safePageSize
@@ -107,13 +113,18 @@ public sealed class TipCatalogService(
 
         if (!tip.IsFree)
         {
+            if (actor.UserId is null)
+            {
+                return ApiResponse<TipDto>.Ok(
+                    MapToPreviewDto(tip),
+                    "PREVIEW: Viewing complimentary 50% preview of exclusive tip.");
+            }
+
             var access = await GetPremiumAccessAsync(actor, cancellationToken);
             if (access == SubscriptionAccess.Inactive)
             {
                 return ApiResponse<TipDto>.Fail(
-                    actor.UserId is null
-                        ? "MEMBERS_ONLY: This tip is exclusive to registered members. Please login or subscribe to access."
-                        : "SUBSCRIPTION_EXPIRED: Please renew your pass to view secret tips.");
+                    "SUBSCRIPTION_EXPIRED: Please renew your pass to view secret tips.");
             }
 
             if (access == SubscriptionAccess.Unavailable)
@@ -201,9 +212,9 @@ public sealed class TipCatalogService(
         return ApiResponse<bool>.Ok(true, "Tip deleted successfully.");
     }
 
-    private async Task<bool> ShouldLimitToFreeAsync(CatalogActor actor, CancellationToken cancellationToken) =>
-        !actor.IsAdmin && (!actor.IsMember ||
-            await GetPremiumAccessAsync(actor, cancellationToken) != SubscriptionAccess.Active);
+    private async Task<bool> HasFullPremiumAccessAsync(CatalogActor actor, CancellationToken cancellationToken) =>
+        actor.IsAdmin || (actor.IsMember &&
+            await GetPremiumAccessAsync(actor, cancellationToken) == SubscriptionAccess.Active);
 
     private Task<SubscriptionAccess> GetPremiumAccessAsync(CatalogActor actor, CancellationToken cancellationToken) =>
         actor.IsAdmin
@@ -212,10 +223,11 @@ public sealed class TipCatalogService(
                 ? entitlementClient.GetAccessAsync(actor.AuthorizationHeader, cancellationToken)
                 : Task.FromResult(SubscriptionAccess.Inactive);
 
-    private IQueryable<TipRecord> BuildQuery(string? search, bool limitToFree)
+    private IQueryable<TipRecord> BuildQuery(string? search, bool limitToFree, bool paidOnly)
     {
         var query = dbContext.Tips.AsNoTracking().AsQueryable();
         if (limitToFree) query = query.Where(tip => tip.IsFree);
+        else if (paidOnly) query = query.Where(tip => !tip.IsFree);
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim().ToLowerInvariant();
@@ -253,6 +265,24 @@ public sealed class TipCatalogService(
         return cachedTips.Where(tip => visibleIds.Contains(tip.TipId)).ToList();
     }
 
+    private static TipDto MapForViewer(TipRecord tip, bool hasFullAccess) =>
+        tip.IsFree || hasFullAccess ? MapToDto(tip) : MapToPreviewDto(tip);
+
+    private static TipDto MapToPreviewDto(TipRecord tip) => new()
+    {
+        TipId = tip.TipId,
+        AuthorId = tip.AuthorId,
+        AuthorName = tip.AuthorName,
+        Title = tip.Title,
+        Content = ContentPreviewSanitizer.TruncateTextToHalf(tip.Content),
+        IsFree = tip.IsFree,
+        VideoUrl = null,
+        CreatedAt = tip.CreatedAt,
+        UpdatedAt = tip.UpdatedAt,
+        AccessLevel = "PREVIEW",
+        IsContentTruncated = true
+    };
+
     private static TipDto MapToDto(TipRecord tip) => new()
     {
         TipId = tip.TipId,
@@ -263,7 +293,9 @@ public sealed class TipCatalogService(
         IsFree = tip.IsFree,
         VideoUrl = tip.VideoUrl,
         CreatedAt = tip.CreatedAt,
-        UpdatedAt = tip.UpdatedAt
+        UpdatedAt = tip.UpdatedAt,
+        AccessLevel = "FULL",
+        IsContentTruncated = false
     };
 
     private static string ResolveAuthorName(CatalogActor actor) =>

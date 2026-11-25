@@ -16,17 +16,19 @@ public sealed class TipsController(TipCatalogService catalog) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? search,
+        [FromQuery] bool? isFreeOnly = null,
         [FromQuery] int? page = null,
         [FromQuery] int? pageSize = null,
+        [FromQuery] bool includePreviews = false,
         CancellationToken cancellationToken = default)
     {
         if (page.HasValue)
         {
             return Ok(await catalog.GetPagedAsync(page.Value, pageSize ?? 12, search,
-                GetCurrentActor(), cancellationToken));
+                GetCurrentActor(), cancellationToken, isFreeOnly, includePreviews));
         }
 
-        return Ok(await catalog.GetAllAsync(search, GetCurrentActor(), cancellationToken));
+        return Ok(await catalog.GetAllAsync(search, GetCurrentActor(), cancellationToken, isFreeOnly, includePreviews));
     }
 
     [HttpGet("paged")]
@@ -36,8 +38,9 @@ public sealed class TipsController(TipCatalogService catalog) : ControllerBase
         [FromQuery] int pageSize = 12,
         [FromQuery] string? search = null,
         [FromQuery] bool? isFreeOnly = null,
+        [FromQuery] bool includePreviews = false,
         CancellationToken cancellationToken = default) =>
-        Ok(await catalog.GetPagedAsync(page, pageSize, search, GetCurrentActor(), cancellationToken, isFreeOnly));
+        Ok(await catalog.GetPagedAsync(page, pageSize, search, GetCurrentActor(), cancellationToken, isFreeOnly, includePreviews));
 
     [HttpGet("my-tips")]
     [Authorize(Roles = "MEMBER,ADMIN")]

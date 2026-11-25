@@ -21,6 +21,8 @@ public sealed class RecipeDto
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int FeedbackCount { get; set; }
+    public string AccessLevel { get; set; } = "FULL";
+    public bool IsContentTruncated { get; set; }
 }
 
 public sealed class CreateRecipeRequest
@@ -60,6 +62,8 @@ public sealed class TipDto
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public string AccessLevel { get; set; } = "FULL";
+    public bool IsContentTruncated { get; set; }
 }
 
 public sealed class CreateTipRequest

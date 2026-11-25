@@ -45,17 +45,18 @@ namespace backend.Controllers
             [FromQuery] bool? isFreeOnly,
             [FromQuery] string? contentType,
             [FromQuery] int? page = null,
-            [FromQuery] int? pageSize = null)
+            [FromQuery] int? pageSize = null,
+            [FromQuery] bool includePreviews = false)
         {
             var (userId, role) = GetCurrentUser();
             if (page.HasValue)
             {
                 var pagedResult = await _recipeService.GetPagedAsync(
-                    page.Value, pageSize ?? 12, search, categoryId, userId, role, isFreeOnly, contentType);
+                    page.Value, pageSize ?? 12, search, categoryId, userId, role, isFreeOnly, contentType, includePreviews);
                 return Ok(pagedResult);
             }
 
-            var result = await _recipeService.GetAllAsync(search, categoryId, userId, role, isFreeOnly, contentType);
+            var result = await _recipeService.GetAllAsync(search, categoryId, userId, role, isFreeOnly, contentType, includePreviews);
             return Ok(result);
         }
 
@@ -71,11 +72,12 @@ namespace backend.Controllers
             [FromQuery] string? search = null,
             [FromQuery] int? categoryId = null,
             [FromQuery] bool? isFreeOnly = null,
-            [FromQuery] string? contentType = null)
+            [FromQuery] string? contentType = null,
+            [FromQuery] bool includePreviews = false)
         {
             var (userId, role) = GetCurrentUser();
             var pagedResult = await _recipeService.GetPagedAsync(
-                page, pageSize, search, categoryId, userId, role, isFreeOnly, contentType);
+                page, pageSize, search, categoryId, userId, role, isFreeOnly, contentType, includePreviews);
             return Ok(pagedResult);
         }
 

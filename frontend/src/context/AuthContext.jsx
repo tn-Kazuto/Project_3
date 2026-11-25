@@ -92,6 +92,18 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+export const useOptionalAuth = () => {
+  return useContext(AuthContext) || {
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isAdmin: false,
+    isMember: false,
+    isChef: false,
+    loading: false,
+  };
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

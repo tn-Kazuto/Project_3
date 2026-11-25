@@ -21,16 +21,17 @@ public sealed class RecipesController(RecipeCatalogService catalog) : Controller
         [FromQuery] string? contentType,
         [FromQuery] int? page = null,
         [FromQuery] int? pageSize = null,
+        [FromQuery] bool includePreviews = false,
         CancellationToken cancellationToken = default)
     {
         var actor = GetCurrentActor();
         if (page.HasValue)
         {
             return Ok(await catalog.GetPagedAsync(page.Value, pageSize ?? 12, search, categoryId,
-                contentType, isFreeOnly, actor, cancellationToken));
+                contentType, isFreeOnly, actor, cancellationToken, includePreviews));
         }
 
-        return Ok(await catalog.GetAllAsync(search, categoryId, contentType, isFreeOnly, actor, cancellationToken));
+        return Ok(await catalog.GetAllAsync(search, categoryId, contentType, isFreeOnly, actor, cancellationToken, includePreviews));
     }
 
     [HttpGet("paged")]
@@ -42,9 +43,10 @@ public sealed class RecipesController(RecipeCatalogService catalog) : Controller
         [FromQuery] int? categoryId = null,
         [FromQuery] bool? isFreeOnly = null,
         [FromQuery] string? contentType = null,
+        [FromQuery] bool includePreviews = false,
         CancellationToken cancellationToken = default) =>
         Ok(await catalog.GetPagedAsync(page, pageSize, search, categoryId, contentType,
-            isFreeOnly, GetCurrentActor(), cancellationToken));
+            isFreeOnly, GetCurrentActor(), cancellationToken, includePreviews));
 
     [HttpGet("my-recipes")]
     [Authorize(Roles = "MEMBER,ADMIN")]

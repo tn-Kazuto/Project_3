@@ -39,8 +39,8 @@ export const AdminContestModal = ({
                     onChange={(e) => setContestForm({ ...contestForm, contestType: e.target.value })}
                     required
                   >
-                    <option value="RECIPE">Recipe Contest (Món ăn)</option>
-                    <option value="TIP">Tip Contest (Mẹo bếp)</option>
+                    <option value="RECIPE">Recipe Contest</option>
+                    <option value="TIP">Tip Contest</option>
                   </select>
                 </div>
 
