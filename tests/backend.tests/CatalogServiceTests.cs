@@ -132,4 +132,53 @@ public sealed class CatalogServiceTests
         Assert.True(tipPage.Success);
         Assert.Contains("Members tip", tipPage.Data!.Items.Select(item => item.Title));
     }
+
+    [Fact]
+    public async Task Guest_with_includePreviews_sees_sanitized_members_previews_and_full_free_items()
+    {
+        await using var fixture = await CatalogServiceTestFixture.CreateAsync();
+        var membersRecipe = fixture.Database.Recipes.Single(recipe => recipe.RecipeId == 2);
+        membersRecipe.Ingredients = "Item 1\nItem 2\nItem 3\nItem 4";
+        membersRecipe.CookingProcedure = "Step 1\nStep 2\nStep 3\nStep 4";
+        membersRecipe.VideoUrl = "https://www.youtube.com/watch?v=secret12345";
+
+        var membersTip = fixture.Database.Tips.Single(tip => tip.TipId == 2);
+        membersTip.Content = "Secret tip sentence one. Secret tip sentence two hidden.";
+        membersTip.VideoUrl = "https://www.youtube.com/watch?v=secrettip11";
+        await fixture.Database.SaveChangesAsync();
+
+        var guest = new CatalogActor(null, null, null, null);
+
+        var recipes = await fixture.Recipes.GetAllAsync(
+            null, null, null, null, guest, TestCancellationToken, includePreviews: true);
+        var recipeDetail = await fixture.Recipes.GetByIdAsync(2, guest, TestCancellationToken);
+        var tips = await fixture.Tips.GetAllAsync(
+            null, guest, TestCancellationToken, includePreviews: true);
+        var tipDetail = await fixture.Tips.GetByIdAsync(2, guest, TestCancellationToken);
+
+        Assert.True(recipes.Success);
+        var freeDto = recipes.Data!.Single(item => item.RecipeId == 1);
+        var previewDto = recipes.Data!.Single(item => item.RecipeId == 2);
+        Assert.Equal("FULL", freeDto.AccessLevel);
+        Assert.Equal("PREVIEW", previewDto.AccessLevel);
+        Assert.True(previewDto.IsContentTruncated);
+        Assert.Null(previewDto.VideoUrl);
+        Assert.DoesNotContain("Item 4", previewDto.Ingredients);
+        Assert.DoesNotContain("Step 4", previewDto.CookingProcedure);
+
+        Assert.True(recipeDetail.Success);
+        Assert.Equal("PREVIEW", recipeDetail.Data!.AccessLevel);
+        Assert.Contains("Step 1", recipeDetail.Data.CookingProcedure);
+        Assert.DoesNotContain("Step 4", recipeDetail.Data.CookingProcedure);
+
+        Assert.True(tips.Success);
+        var previewTipDto = tips.Data!.Single(item => item.TipId == 2);
+        Assert.Equal("PREVIEW", previewTipDto.AccessLevel);
+        Assert.Null(previewTipDto.VideoUrl);
+        Assert.DoesNotContain("hidden", previewTipDto.Content);
+
+        Assert.True(tipDetail.Success);
+        Assert.Equal("PREVIEW", tipDetail.Data!.AccessLevel);
+        Assert.DoesNotContain("hidden", tipDetail.Data.Content);
+    }
 }

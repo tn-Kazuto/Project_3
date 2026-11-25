@@ -4,6 +4,7 @@ using backend.Repositories;
 using backend.Services.EventBus;
 using JamesThew.Shared.Contracts.Constants;
 using JamesThew.Shared.Contracts.Events;
+using JamesThew.Shared.Contracts.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
@@ -30,113 +31,24 @@ namespace backend.Services
         }
 
         public async Task<ApiResponse<IEnumerable<RecipeDto>>> GetAllAsync(
-            string? search, int? categoryId, int? currentUserId, string? userRole, bool? isFreeOnly = null, string? contentType = null)
+            string? search, int? categoryId, int? currentUserId, string? userRole, bool? isFreeOnly = null, string? contentType = null, bool includePreviews = false)
         {
-            var query = _uow.Repository<Recipe>().QueryReadOnly()
-                .Include(r => r.Author)
-                .Include(r => r.Category)
-                .Include(r => r.Feedbacks)
-                .AsQueryable();
-
-            // 1. Content gatekeeping & Tier filtering
-            bool isExpiredMember = false;
-            if (currentUserId != null && userRole?.Trim().ToUpperInvariant() == AppConstants.Roles.Member)
-            {
-                var currentUser = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
-                if (currentUser?.SubscriptionEnd == null || currentUser.SubscriptionEnd < DateTime.UtcNow)
-                {
-                    isExpiredMember = true;
-                }
-            }
-
-            if (currentUserId == null || isExpiredMember || (isFreeOnly.HasValue && isFreeOnly.Value))
-            {
-                query = query.Where(r => r.IsFree);
-            }
-            else if (isFreeOnly.HasValue && !isFreeOnly.Value)
-            {
-                query = query.Where(r => !r.IsFree);
-            }
-
-            // 2. Filter by category if specified
-            if (categoryId.HasValue && categoryId.Value > 0)
-            {
-                query = query.Where(r => r.CategoryId == categoryId.Value);
-            }
-
-            // 3. Filter by contentType if specified (ARTICLE, VIDEO, TALKSHOW, LIVESHOW)
-            if (!string.IsNullOrWhiteSpace(contentType))
-            {
-                var typeTerm = contentType.Trim().ToUpper();
-                query = query.Where(r => r.ContentType == typeTerm);
-            }
-
-            // 4. Search by keyword across title and ingredients
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var term = search.Trim().ToLower();
-                query = query.Where(r => r.Title.ToLower().Contains(term) ||
-                                         r.Ingredients.ToLower().Contains(term));
-            }
+            var (query, hasFullAccess) = await BuildFilteredQueryAsync(
+                search, categoryId, currentUserId, userRole, isFreeOnly, contentType, includePreviews);
 
             var recipes = await query
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(50) // PERF-09: Max 50 items per unpaged query
-                .Select(r => MapToDto(r))
                 .ToListAsync();
 
-            return ApiResponse<IEnumerable<RecipeDto>>.Ok(recipes);
+            return ApiResponse<IEnumerable<RecipeDto>>.Ok(recipes.Select(r => MapForViewer(r, hasFullAccess)).ToList());
         }
 
         public async Task<ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>>> GetPagedAsync(
-            int page, int pageSize, string? search, int? categoryId, int? currentUserId, string? userRole, bool? isFreeOnly = null, string? contentType = null)
+            int page, int pageSize, string? search, int? categoryId, int? currentUserId, string? userRole, bool? isFreeOnly = null, string? contentType = null, bool includePreviews = false)
         {
-            var query = _uow.Repository<Recipe>().QueryReadOnly()
-                .Include(r => r.Author)
-                .Include(r => r.Category)
-                .Include(r => r.Feedbacks)
-                .AsQueryable();
-
-            // 1. Content gatekeeping & Tier filtering
-            bool isExpiredMember = false;
-            if (currentUserId != null && userRole?.Trim().ToUpperInvariant() == AppConstants.Roles.Member)
-            {
-                var currentUser = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
-                if (currentUser?.SubscriptionEnd == null || currentUser.SubscriptionEnd < DateTime.UtcNow)
-                {
-                    isExpiredMember = true;
-                }
-            }
-
-            if (currentUserId == null || isExpiredMember || (isFreeOnly.HasValue && isFreeOnly.Value))
-            {
-                query = query.Where(r => r.IsFree);
-            }
-            else if (isFreeOnly.HasValue && !isFreeOnly.Value)
-            {
-                query = query.Where(r => !r.IsFree);
-            }
-
-            // 2. Filter by category if specified
-            if (categoryId.HasValue && categoryId.Value > 0)
-            {
-                query = query.Where(r => r.CategoryId == categoryId.Value);
-            }
-
-            // 3. Filter by contentType if specified (ARTICLE, VIDEO, TALKSHOW, LIVESHOW)
-            if (!string.IsNullOrWhiteSpace(contentType))
-            {
-                var typeTerm = contentType.Trim().ToUpper();
-                query = query.Where(r => r.ContentType == typeTerm);
-            }
-
-            // 4. Search by keyword across title and ingredients
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var term = search.Trim().ToLower();
-                query = query.Where(r => r.Title.ToLower().Contains(term) ||
-                                         r.Ingredients.ToLower().Contains(term));
-            }
+            var (query, hasFullAccess) = await BuildFilteredQueryAsync(
+                search, categoryId, currentUserId, userRole, isFreeOnly, contentType, includePreviews);
 
             var totalCount = await query.CountAsync();
             var pageIndex = Math.Max(1, page);
@@ -146,18 +58,81 @@ namespace backend.Services
                 .OrderByDescending(r => r.CreatedAt)
                 .Skip((pageIndex - 1) * safePageSize)
                 .Take(safePageSize)
-                .Select(r => MapToDto(r))
                 .ToListAsync();
 
             var pagedResult = new JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>
             {
-                Items = items,
+                Items = items.Select(r => MapForViewer(r, hasFullAccess)).ToList(),
                 TotalCount = totalCount,
                 PageIndex = pageIndex,
                 PageSize = safePageSize
             };
 
             return ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<RecipeDto>>.Ok(pagedResult);
+        }
+
+        private async Task<(IQueryable<Recipe> Query, bool HasFullAccess)> BuildFilteredQueryAsync(
+            string? search,
+            int? categoryId,
+            int? currentUserId,
+            string? userRole,
+            bool? isFreeOnly,
+            string? contentType,
+            bool includePreviews)
+        {
+            var query = _uow.Repository<Recipe>().QueryReadOnly()
+                .Include(r => r.Author)
+                .Include(r => r.Category)
+                .Include(r => r.Feedbacks)
+                .AsQueryable();
+
+            bool hasFullAccess = await HasFullPremiumAccessAsync(currentUserId, userRole);
+
+            if (isFreeOnly.HasValue && isFreeOnly.Value)
+            {
+                query = query.Where(r => r.IsFree);
+            }
+            else if (!hasFullAccess && !includePreviews)
+            {
+                query = query.Where(r => r.IsFree);
+            }
+            else if (isFreeOnly.HasValue && !isFreeOnly.Value)
+            {
+                query = query.Where(r => !r.IsFree);
+            }
+
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(r => r.CategoryId == categoryId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(contentType))
+            {
+                var typeTerm = contentType.Trim().ToUpper();
+                query = query.Where(r => r.ContentType == typeTerm);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(r => r.Title.ToLower().Contains(term) ||
+                                         r.Ingredients.ToLower().Contains(term));
+            }
+
+            return (query, hasFullAccess);
+        }
+
+        private async Task<bool> HasFullPremiumAccessAsync(int? currentUserId, string? userRole)
+        {
+            if (currentUserId == null) return false;
+            var normalizedRole = userRole?.Trim().ToUpperInvariant();
+            if (normalizedRole == AppConstants.Roles.Admin) return true;
+            if (normalizedRole == AppConstants.Roles.Member)
+            {
+                var currentUser = await _uow.Repository<User>().GetByIdAsync(currentUserId.Value);
+                return currentUser?.SubscriptionEnd != null && currentUser.SubscriptionEnd >= DateTime.UtcNow;
+            }
+            return false;
         }
 
         public async Task<ApiResponse<RecipeDto>> GetByIdAsync(int id, int? currentUserId, string? userRole)
@@ -173,22 +148,12 @@ namespace backend.Services
                 return ApiResponse<RecipeDto>.Fail("Recipe not found.");
             }
 
-            // Content gatekeeping: If recipe is premium and user is not logged in, return a 50% preview
+            // Content gatekeeping: If recipe is premium and user is not logged in, return a sanitized 50% preview
             if (!recipe.IsFree && currentUserId == null)
             {
-                var previewDto = MapToDto(recipe);
-                previewDto.AccessLevel = "PREVIEW";
-                previewDto.VideoUrl = null; // Do not leak premium video URL to unauthenticated guests
-
-                // Truncate cooking procedure to 50% of steps
-                if (!string.IsNullOrWhiteSpace(previewDto.CookingProcedure))
-                {
-                    var steps = previewDto.CookingProcedure.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    var halfCount = Math.Max(1, (int)Math.Ceiling(steps.Length * 0.5));
-                    previewDto.CookingProcedure = string.Join("\n", steps.Take(halfCount));
-                }
-
-                return ApiResponse<RecipeDto>.Ok(previewDto, "PREVIEW: Viewing complimentary 50% preview of exclusive recipe.");
+                return ApiResponse<RecipeDto>.Ok(
+                    MapToPreviewDto(recipe),
+                    "PREVIEW: Viewing complimentary 50% preview of exclusive recipe.");
             }
 
             // Membership subscription validity check:
@@ -368,6 +333,20 @@ namespace backend.Services
             return ApiResponse<int>.Ok(recipe.ShareCount, "Share count incremented successfully.");
         }
 
+        private static RecipeDto MapForViewer(Recipe r, bool hasFullAccess) =>
+            r.IsFree || hasFullAccess ? MapToDto(r) : MapToPreviewDto(r);
+
+        private static RecipeDto MapToPreviewDto(Recipe r)
+        {
+            var dto = MapToDto(r);
+            dto.Ingredients = ContentPreviewSanitizer.TruncateDelimitedListToHalf(r.Ingredients, splitCommaWhenSingleLine: true);
+            dto.CookingProcedure = ContentPreviewSanitizer.TruncateDelimitedListToHalf(r.CookingProcedure);
+            dto.VideoUrl = null;
+            dto.AccessLevel = "PREVIEW";
+            dto.IsContentTruncated = true;
+            return dto;
+        }
+
         private static RecipeDto MapToDto(Recipe r)
         {
             return new RecipeDto
@@ -389,7 +368,8 @@ namespace backend.Services
                 CreatedAt = r.CreatedAt,
                 UpdatedAt = r.UpdatedAt,
                 FeedbackCount = r.Feedbacks?.Count ?? 0,
-                AccessLevel = "FULL"
+                AccessLevel = "FULL",
+                IsContentTruncated = false
             };
         }
     }

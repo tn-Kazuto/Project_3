@@ -16,6 +16,8 @@ namespace backend.DTOs
         public string? VideoUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string AccessLevel { get; set; } = "FULL";
+        public bool IsContentTruncated { get; set; }
     }
 
     /// <summary>

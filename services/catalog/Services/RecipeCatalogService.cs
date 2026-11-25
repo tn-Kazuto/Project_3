@@ -4,6 +4,7 @@ using JamesThew.CatalogService.Messaging;
 using JamesThew.CatalogService.Models;
 using JamesThew.Shared.Contracts.DTOs.Common;
 using JamesThew.Shared.Contracts.Events;
+using JamesThew.Shared.Contracts.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace JamesThew.CatalogService.Services;
@@ -22,11 +23,13 @@ public sealed class RecipeCatalogService(
         string? contentType,
         bool? isFreeOnly,
         CatalogActor actor,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool includePreviews = false)
     {
-        var limitToFree = await ShouldLimitToFreeAsync(actor, isFreeOnly, cancellationToken);
-        var paidOnly = !limitToFree && isFreeOnly == false;
-        var cacheKey = limitToFree
+        var hasFullAccess = await HasFullPremiumAccessAsync(actor, cancellationToken);
+        var limitToFree = isFreeOnly == true || (!hasFullAccess && !includePreviews);
+        var paidOnly = (hasFullAccess || includePreviews) && !limitToFree && isFreeOnly == false;
+        var cacheKey = !hasFullAccess && !includePreviews
             ? await BuildListCacheKeyAsync(search, categoryId, contentType, cancellationToken)
             : null;
 
@@ -44,7 +47,7 @@ public sealed class RecipeCatalogService(
             .OrderByDescending(recipe => recipe.CreatedAt)
             .Take(50)
             .ToListAsync(cancellationToken);
-        var result = recipes.Select(MapToDto).ToList();
+        var result = recipes.Select(recipe => MapForViewer(recipe, hasFullAccess)).ToList();
         if (cacheKey is not null)
         {
             await cache.WriteJsonAsync(cacheKey, result, CacheTtlSeconds, cancellationToken);
@@ -61,13 +64,15 @@ public sealed class RecipeCatalogService(
         string? contentType,
         bool? isFreeOnly,
         CatalogActor actor,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool includePreviews = false)
     {
-        var limitToFree = await ShouldLimitToFreeAsync(actor, isFreeOnly, cancellationToken);
-        var paidOnly = !limitToFree && isFreeOnly == false;
+        var hasFullAccess = await HasFullPremiumAccessAsync(actor, cancellationToken);
+        var limitToFree = isFreeOnly == true || (!hasFullAccess && !includePreviews);
+        var paidOnly = (hasFullAccess || includePreviews) && !limitToFree && isFreeOnly == false;
         var safePage = Math.Max(1, page);
         var safePageSize = Math.Clamp(pageSize, 1, 50);
-        var cacheKey = limitToFree
+        var cacheKey = !hasFullAccess && !includePreviews
             ? await BuildPageCacheKeyAsync(search, categoryId, contentType, safePage, safePageSize, cancellationToken)
             : null;
 
@@ -89,7 +94,7 @@ public sealed class RecipeCatalogService(
             .ToListAsync(cancellationToken);
         var result = new PagedResult<RecipeDto>
         {
-            Items = recipes.Select(MapToDto).ToList(),
+            Items = recipes.Select(recipe => MapForViewer(recipe, hasFullAccess)).ToList(),
             TotalCount = totalCount,
             PageIndex = safePage,
             PageSize = safePageSize
@@ -114,13 +119,18 @@ public sealed class RecipeCatalogService(
 
         if (!recipe.IsFree)
         {
+            if (actor.UserId is null)
+            {
+                return ApiResponse<RecipeDto>.Ok(
+                    MapToPreviewDto(recipe),
+                    "PREVIEW: Viewing complimentary 50% preview of exclusive recipe.");
+            }
+
             var access = await GetPremiumAccessAsync(actor, cancellationToken);
             if (access == SubscriptionAccess.Inactive)
             {
                 return ApiResponse<RecipeDto>.Fail(
-                    actor.UserId is null
-                        ? "MEMBERS_ONLY: This recipe is exclusive to registered members. Please login or subscribe to access."
-                        : "SUBSCRIPTION_EXPIRED: Please renew your pass to view secret recipes.");
+                    "SUBSCRIPTION_EXPIRED: Please renew your pass to view secret recipes.");
             }
 
             if (access == SubscriptionAccess.Unavailable)
@@ -238,19 +248,17 @@ public sealed class RecipeCatalogService(
         return ApiResponse<bool>.Ok(true, "Recipe deleted successfully.");
     }
 
-    private async Task<bool> ShouldLimitToFreeAsync(
+    private async Task<bool> HasFullPremiumAccessAsync(
         CatalogActor actor,
-        bool? isFreeOnly,
         CancellationToken cancellationToken)
     {
-        if (isFreeOnly == true) return true;
-        if (actor.IsAdmin) return false;
+        if (actor.IsAdmin) return true;
         if (actor.IsMember)
         {
-            return await GetPremiumAccessAsync(actor, cancellationToken) != SubscriptionAccess.Active;
+            return await GetPremiumAccessAsync(actor, cancellationToken) == SubscriptionAccess.Active;
         }
 
-        return true;
+        return false;
     }
 
     private Task<SubscriptionAccess> GetPremiumAccessAsync(CatalogActor actor, CancellationToken cancellationToken) =>
@@ -324,6 +332,32 @@ public sealed class RecipeCatalogService(
         return cachedRecipes.Where(recipe => visibleIds.Contains(recipe.RecipeId)).ToList();
     }
 
+    private static RecipeDto MapForViewer(RecipeRecord recipe, bool hasFullAccess) =>
+        recipe.IsFree || hasFullAccess ? MapToDto(recipe) : MapToPreviewDto(recipe);
+
+    private static RecipeDto MapToPreviewDto(RecipeRecord recipe) => new()
+    {
+        RecipeId = recipe.RecipeId,
+        AuthorId = recipe.AuthorId,
+        AuthorName = recipe.AuthorName,
+        CategoryId = recipe.CategoryId,
+        CategoryName = recipe.Category.CategoryName,
+        Title = recipe.Title,
+        Ingredients = ContentPreviewSanitizer.TruncateDelimitedListToHalf(recipe.Ingredients, splitCommaWhenSingleLine: true),
+        CookingProcedure = ContentPreviewSanitizer.TruncateDelimitedListToHalf(recipe.CookingProcedure),
+        ImageUrl = recipe.ImageUrl,
+        IsFree = recipe.IsFree,
+        ContentType = recipe.ContentType,
+        VideoUrl = null,
+        ThumbnailUrl = recipe.ThumbnailUrl,
+        ShareCount = recipe.ShareCount,
+        FeedbackCount = recipe.FeedbackCount,
+        CreatedAt = recipe.CreatedAt,
+        UpdatedAt = recipe.UpdatedAt,
+        AccessLevel = "PREVIEW",
+        IsContentTruncated = true
+    };
+
     private static RecipeDto MapToDto(RecipeRecord recipe) => new()
     {
         RecipeId = recipe.RecipeId,
@@ -342,7 +376,9 @@ public sealed class RecipeCatalogService(
         ShareCount = recipe.ShareCount,
         FeedbackCount = recipe.FeedbackCount,
         CreatedAt = recipe.CreatedAt,
-        UpdatedAt = recipe.UpdatedAt
+        UpdatedAt = recipe.UpdatedAt,
+        AccessLevel = "FULL",
+        IsContentTruncated = false
     };
 
     private static string ResolveAuthorName(CatalogActor actor) =>

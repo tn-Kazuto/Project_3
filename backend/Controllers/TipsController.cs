@@ -41,17 +41,19 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(ApiResponse<JamesThew.Shared.Contracts.DTOs.Common.PagedResult<TipDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll(
             [FromQuery] string? search,
+            [FromQuery] bool? isFreeOnly = null,
             [FromQuery] int? page = null,
-            [FromQuery] int? pageSize = null)
+            [FromQuery] int? pageSize = null,
+            [FromQuery] bool includePreviews = false)
         {
             var (userId, role) = GetCurrentUser();
             if (page.HasValue)
             {
-                var pagedResult = await _tipService.GetPagedAsync(page.Value, pageSize ?? 12, search, userId, role);
+                var pagedResult = await _tipService.GetPagedAsync(page.Value, pageSize ?? 12, search, userId, role, isFreeOnly, includePreviews);
                 return Ok(pagedResult);
             }
 
-            var result = await _tipService.GetAllAsync(search, userId, role);
+            var result = await _tipService.GetAllAsync(search, userId, role, isFreeOnly, includePreviews);
             return Ok(result);
         }
 
@@ -64,10 +66,12 @@ namespace backend.Controllers
         public async Task<IActionResult> GetPaged(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 12,
-            [FromQuery] string? search = null)
+            [FromQuery] string? search = null,
+            [FromQuery] bool? isFreeOnly = null,
+            [FromQuery] bool includePreviews = false)
         {
             var (userId, role) = GetCurrentUser();
-            var pagedResult = await _tipService.GetPagedAsync(page, pageSize, search, userId, role);
+            var pagedResult = await _tipService.GetPagedAsync(page, pageSize, search, userId, role, isFreeOnly, includePreviews);
             return Ok(pagedResult);
         }
 

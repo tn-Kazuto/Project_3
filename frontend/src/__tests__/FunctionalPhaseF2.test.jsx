@@ -176,9 +176,9 @@ describe('Functional Phase F2 Tests - Recipe Catalog, Print & Gatekeeping', () =
 
     // CTA Banner
     expect(screen.getByText(/50% COMPLIMENTARY PREVIEW REACHED/i)).toBeInTheDocument();
-    expect(screen.getByText(/Khám Phá Trọn Vẹn Công Thức & Video Masterclass/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Đăng Ký Thành Viên VIP/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Đã Có Tài Khoản\? Đăng Nhập/i })).toBeInTheDocument();
+    expect(screen.getByText(/Want to See the Rest\? Register to Continue/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Want to Continue\? Register to Unlock \(\$10\/mo\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Already a Member\? Sign In/i })).toBeInTheDocument();
   });
 
   it('TC_F2_FE_6 - RecipeDetailPage renders locked Masterclass broadcast frame for VIP video recipes in guest preview', async () => {
@@ -213,8 +213,8 @@ describe('Functional Phase F2 Tests - Recipe Catalog, Print & Gatekeeping', () =
 
     // Locked video stream broadcast poster
     expect(screen.getByText(/LOCKED STREAM/i)).toBeInTheDocument();
-    expect(screen.getByText(/Video Masterclass Độc Quyền Hội Viên VIP/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Mở Khóa Video/i })).toBeInTheDocument();
+    expect(screen.getByText(/VIP Members-Only Masterclass Video/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Want to Continue\? Unlock Video/i })).toBeInTheDocument();
   });
 });
 

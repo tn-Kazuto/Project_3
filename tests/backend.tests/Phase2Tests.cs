@@ -609,5 +609,47 @@ namespace backend.tests
             var adminGetRes = await _client.SendAsync(adminGetReq);
             Assert.Equal(HttpStatusCode.OK, adminGetRes.StatusCode);
         }
+
+        [Fact]
+        public async Task TC_2_16_Guest_WithIncludePreviews_ReceivesSanitized50PercentMembersRecipes()
+        {
+            var (adminToken, _) = await GetAdminTokenAsync();
+            var catId = await GetFirstCategoryIdAsync();
+            var uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
+
+            var createPaidReq = new HttpRequestMessage(HttpMethod.Post, "/api/recipes")
+            {
+                Content = JsonContent.Create(new CreateRecipeRequest
+                {
+                    CategoryId = catId,
+                    Title = $"Members Teaser Duck {uniqueId}",
+                    Ingredients = "Duck breast\nPort wine\nBlackberries\nUnsalted butter",
+                    CookingProcedure = "Score duck skin.\nSear skin side down.\nPrepare port reduction.\nCarve and plate.",
+                    IsFree = false,
+                    ContentType = "VIDEO",
+                    VideoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                })
+            };
+            createPaidReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            var createRes = await _client.SendAsync(createPaidReq);
+            Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+
+            // Guest requesting with includePreviews=true & isFreeOnly=false sees preview without full content/video
+            var previewRes = await _client.GetAsync("/api/recipes?isFreeOnly=false&includePreviews=true");
+            Assert.Equal(HttpStatusCode.OK, previewRes.StatusCode);
+
+            var previewBody = await previewRes.Content.ReadFromJsonAsync<ApiResponse<List<RecipeDto>>>();
+            Assert.NotNull(previewBody);
+            Assert.True(previewBody.Success);
+
+            var teaser = Assert.Single(previewBody.Data!, r => r.Title == $"Members Teaser Duck {uniqueId}");
+            Assert.False(teaser.IsFree);
+            Assert.Equal("PREVIEW", teaser.AccessLevel);
+            Assert.True(teaser.IsContentTruncated);
+            Assert.Null(teaser.VideoUrl);
+            Assert.Contains("Score duck skin.", teaser.CookingProcedure);
+            Assert.DoesNotContain("Carve and plate.", teaser.CookingProcedure);
+            Assert.DoesNotContain("Unsalted butter", teaser.Ingredients);
+        }
     }
 }

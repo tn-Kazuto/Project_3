@@ -25,6 +25,7 @@ namespace backend.DTOs
         public DateTime? UpdatedAt { get; set; }
         public int FeedbackCount { get; set; }
         public string AccessLevel { get; set; } = "FULL";
+        public bool IsContentTruncated { get; set; }
     }
 
     /// <summary>

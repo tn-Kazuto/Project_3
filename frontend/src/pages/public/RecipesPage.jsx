@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { recipeApi, tipApi, categoryApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { CulinarySkeleton } from '../../components/common/CulinarySkeleton';
 import { EmptyState } from '../../components/common/EmptyState';
 import { PageBanner } from '../../components/common/PageBanner';
+import { PreviewGateCard } from '../../components/common/PreviewGateCard';
+import { PreviewRecipeImage } from '../../components/common/PreviewRecipeImage';
+import { splitHalfText } from '../../utils/contentPreview';
 
 const FALLBACK_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80';
 const CULINARY_SVG_PLACEHOLDER = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" fill="none"><rect width="800" height="450" fill="%23242320"/><rect x="30" y="30" width="740" height="390" stroke="%23c5a880" stroke-width="1.5" stroke-dasharray="6 4" fill="none"/><circle cx="400" cy="180" r="44" stroke="%23c5a880" stroke-width="2" fill="%231a1918"/><path d="M380 185C380 170 390 160 400 160C410 160 420 170 420 185H380Z" fill="%23c5a880"/><rect x="375" y="187" width="50" height="4" rx="2" fill="%23c5a880"/><circle cx="400" cy="154" r="4" fill="%23c5a880"/><text x="400" y="270" text-anchor="middle" fill="%23fcfbf7" font-family="serif" font-size="20" letter-spacing="3">CHEF JAMES THEW</text><text x="400" y="300" text-anchor="middle" fill="%23c5a880" font-family="monospace" font-size="12" letter-spacing="4">5-STAR CULINARY ATELIER</text></svg>`;
@@ -28,6 +31,8 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
 
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = { pathname: location.pathname, search: location.search, hash: location.hash };
 
   // Load categories
   useEffect(() => {
@@ -68,6 +73,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
         if (tierFilter === 'free') params.isFreeOnly = true;
         else if (tierFilter === 'members') params.isFreeOnly = false;
         if (formatFilter !== 'ALL') params.contentType = formatFilter;
+        if (!isAuthenticated) params.includePreviews = true;
 
         if (activeTab === 'recipes') {
           if (searchTerm.trim()) params.search = searchTerm.trim();
@@ -106,6 +112,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
           if (tips.length === 0 || searchTerm.trim()) {
             const tipParams = {};
             if (searchTerm.trim()) tipParams.search = searchTerm.trim();
+            if (!isAuthenticated) tipParams.includePreviews = true;
             tipApi.getAll(tipParams)
               .then((tipRes) => {
                 if (!isMounted || !tipRes.data?.success) return;
@@ -151,6 +158,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
           if (recipes.length === 0 || searchTerm.trim()) {
             const recipeParams = {};
             if (searchTerm.trim()) recipeParams.search = searchTerm.trim();
+            if (!isAuthenticated) recipeParams.includePreviews = true;
             recipeApi.getAll(recipeParams)
               .then((recipeRes) => {
                 if (!isMounted || !recipeRes.data?.success) return;
@@ -179,17 +187,11 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
     return () => {
       isMounted = false;
     };
-  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter, currentPage, retryKey]);
+  }, [activeTab, selectedCategory, searchTerm, tierFilter, formatFilter, currentPage, retryKey, isAuthenticated]);
 
   const handleCardClick = (item, isRecipe = true) => {
     if (isRecipe) {
       navigate(`/recipes/${item.recipeId}`);
-      return;
-    }
-    if (!item.isFree && !isAuthenticated) {
-      navigate('/register', {
-        state: { message: 'This culinary secret is exclusive to registered members. Please subscribe to unlock!' },
-      });
       return;
     }
     setSelectedTip(item);
@@ -438,7 +440,9 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
         /* Recipes Grid */
         <div className="row g-4">
           {recipes.length > 0 ? (
-            recipes.map((r) => (
+            recipes.map((r) => {
+              const isMembersPreview = (!isAuthenticated && !r.isFree) || r.accessLevel === 'PREVIEW';
+              return (
               <div key={r.recipeId} className="col-md-6 col-lg-4">
                 <Link
                   to={!isAuthenticated && !r.isFree && r.accessLevel !== 'PREVIEW'
@@ -488,34 +492,28 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                       {r.isFree ? 'Free Access' : 'Members Only'}
                     </span>
                     {r.accessLevel === 'PREVIEW' && (
-                      <span className="badge font-monospace" style={{ backgroundColor: 'var(--dp-color-ground-2)', color: 'var(--dp-color-ink)' }}>
-                        Preview available
+                      <span className="badge font-monospace" style={{ backgroundColor: 'var(--dp-color-ground-2)', color: 'var(--dp-color-ink)', border: '1px solid var(--dp-color-accent)', borderRadius: 0 }}>
+                        Preview 50%
                       </span>
                     )}
                   </div>
 
-                  <div className="mb-3 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}>
-                    <img
-                      src={r.imageUrl || FALLBACK_RECIPE_IMAGE}
-                      alt={r.title}
-                      className="w-100 h-100"
-                      style={{ objectFit: 'cover' }}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = CULINARY_SVG_PLACEHOLDER;
-                      }}
-                    />
-                  </div>
+                  <PreviewRecipeImage
+                    src={r.imageUrl || FALLBACK_RECIPE_IMAGE}
+                    alt={r.title}
+                    fallbackSrc={CULINARY_SVG_PLACEHOLDER}
+                    blurred={isMembersPreview}
+                    containerClassName="mb-3"
+                    containerStyle={{ aspectRatio: '16/9', backgroundColor: 'var(--dp-color-ground-2)', border: '1px solid var(--dp-color-panel-line)' }}
+                  />
 
                   <h4 className="brand-font mb-2 text-dark" style={{ fontSize: '1.35rem' }}>
                     {r.title}
                   </h4>
 
                   <p className="text-muted small mb-3 flex-grow-1" style={{ lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {r.accessLevel === 'PREVIEW'
-                      ? 'Open to read the first part of this members-only recipe.'
+                    {isMembersPreview
+                      ? 'Members-exclusive preview — open to read 50% of this recipe, then register to unlock the full dish.'
                       : r.ingredients
                         ? <><strong className="text-dark">Ingredients:</strong> {r.ingredients.substring(0, 100)}...</>
                         : 'Open the recipe to see its ingredients and cooking method.'}
@@ -536,12 +534,13 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                       )}
                     </div>
                     <span className="text-uppercase fw-semibold gold-underline" style={{ fontSize: '0.75rem', letterSpacing: '0.12em' }}>
-                      <span>View &rarr;</span>
+                      <span>{isMembersPreview ? 'Preview 50% →' : 'View →'}</span>
                     </span>
                   </div>
                 </Link>
               </div>
-            ))
+              );
+            })
           ) : (
             <EmptyState
               title="No Repertoire Found"
@@ -577,29 +576,44 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                   onClick={() => handleCardClick(t, false)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCardClick(t, false); } }}
                 >
-                  <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div className="d-flex justify-content-between align-items-center mb-3 gap-1 flex-wrap">
                     <div>
                       <span className="text-uppercase small fw-bold font-monospace" style={{ letterSpacing: '0.14em', color: 'var(--dp-color-accent-text)' }}>
                         Kitchen Tip
                       </span>
                     </div>
-                    <span
-                      className="badge font-monospace"
-                      style={{
-                        backgroundColor: t.isFree ? '#1b4d3e' : 'var(--dp-color-field)',
-                        color: '#ffffff',
-                        borderRadius: 0,
-                      }}
-                    >
-                      {t.isFree ? 'Free Access' : 'Members Only'}
-                    </span>
+                    <div className="d-flex align-items-center gap-1">
+                      {(!t.isFree && (!isAuthenticated || t.accessLevel === 'PREVIEW')) && (
+                        <span
+                          className="badge font-monospace"
+                          style={{ backgroundColor: 'var(--dp-color-ground-2)', color: 'var(--dp-color-ink)', border: '1px solid var(--dp-color-accent)', borderRadius: 0 }}
+                        >
+                          Preview 50%
+                        </span>
+                      )}
+                      <span
+                        className="badge font-monospace"
+                        style={{
+                          backgroundColor: t.isFree ? '#1b4d3e' : 'var(--dp-color-field)',
+                          color: '#ffffff',
+                          borderRadius: 0,
+                        }}
+                      >
+                        {t.isFree ? 'Free Access' : 'Members Only'}
+                      </span>
+                    </div>
                   </div>
 
                   <h4 className="brand-font mb-2 text-dark" style={{ fontSize: '1.35rem' }}>
                     {t.title}
                   </h4>
                   <p className="text-muted small mb-3" style={{ lineHeight: '1.7' }}>
-                    {t.content}
+                    {!t.isFree && (!isAuthenticated || t.accessLevel === 'PREVIEW') ? (() => {
+                      const halfTeaser = t.isContentTruncated ? t.content : splitHalfText(t.content).visibleText;
+                      return halfTeaser.length > 90
+                        ? `${halfTeaser.slice(0, 90).trimEnd()}...`
+                        : halfTeaser;
+                    })() : t.content}
                   </p>
 
                   {t.videoUrl && (
@@ -616,7 +630,7 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
                   >
                     <span>By {t.authorName}</span>
                     <span className="gold-underline text-uppercase fw-semibold" style={{ fontSize: '0.72rem' }}>
-                      Read Technique &rarr;
+                      {!t.isFree && (!isAuthenticated || t.accessLevel === 'PREVIEW') ? 'Preview 50% →' : 'Read Technique →'}
                     </span>
                   </div>
                 </div>
@@ -660,74 +674,119 @@ export const RecipesPage = ({ initialTab = 'recipes' }) => {
       )}
 
       {/* Culinary Technique & Tip Modal */}
-      {selectedTip && (
-        <div
-          className="modal show fade d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: 'rgba(38, 35, 33, 0.75)', zIndex: 1050 }}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content" style={{ borderRadius: 0, border: '1px solid var(--dp-color-rule)' }}>
-              <div className="modal-header py-3 px-4" style={{ backgroundColor: 'var(--dp-color-field)', color: '#ffffff' }}>
-                <div className="d-flex align-items-center gap-2">
-                  <span className="font-monospace small" style={{ color: 'var(--dp-color-accent)' }}>KITCHEN TECHNIQUE</span>
-                  <span
-                    className="badge font-monospace"
-                    style={{ backgroundColor: selectedTip.isFree ? '#1b4d3e' : 'var(--dp-color-accent)', borderRadius: 0 }}
-                  >
-                    {selectedTip.isFree ? 'Free Access' : 'Members Only'}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setSelectedTip(null)}
-                  aria-label="Close"
-                />
-              </div>
-              <div className="modal-body p-4" style={{ backgroundColor: 'var(--dp-color-ground-1)' }}>
-                <h3 className="brand-font mb-3 text-dark" style={{ fontSize: '1.6rem' }}>
-                  {selectedTip.title}
-                </h3>
-                <div className="d-flex gap-3 small text-muted font-monospace mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                  <span>By {selectedTip.authorName || 'Chef James Thew'}</span>
-                  <span>&bull;</span>
-                  <span>Published {new Date(selectedTip.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div className="lead mb-4" style={{ fontSize: '1.05rem', lineHeight: '1.8', whiteSpace: 'pre-line', color: 'var(--dp-color-ink-1)' }}>
-                  {selectedTip.content}
-                </div>
-                {selectedTip.videoUrl && (
-                  <div className="p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                    <div className="font-monospace small fw-semibold mb-2">Masterclass Video Demonstration</div>
-                    <a
-                      href={selectedTip.videoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-sm btn-outline-dark font-monospace"
-                      style={{ borderRadius: 0 }}
+      {selectedTip && (() => {
+        const isTipPreview = selectedTip.accessLevel === 'PREVIEW' || (!selectedTip.isFree && !isAuthenticated);
+        const tipPreview = isTipPreview && !selectedTip.isContentTruncated
+          ? splitHalfText(selectedTip.content)
+          : { visibleText: selectedTip.content, hiddenTeaser: '', hasMore: isTipPreview };
+
+        return (
+          <div
+            className="modal show fade d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: 'rgba(38, 35, 33, 0.75)', zIndex: 1050 }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content" style={{ borderRadius: 0, border: '1px solid var(--dp-color-rule)' }}>
+                <div className="modal-header py-3 px-4" style={{ backgroundColor: 'var(--dp-color-field)', color: '#ffffff' }}>
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    <span className="font-monospace small" style={{ color: 'var(--dp-color-accent)' }}>KITCHEN TECHNIQUE</span>
+                    <span
+                      className="badge font-monospace"
+                      style={{ backgroundColor: selectedTip.isFree ? '#1b4d3e' : 'var(--dp-color-accent)', borderRadius: 0 }}
                     >
-                      ▶ Open Video Demonstration
-                    </a>
+                      {selectedTip.isFree ? 'Free Access' : 'Members Only'}
+                    </span>
+                    {isTipPreview && (
+                      <span className="badge font-monospace bg-secondary" style={{ borderRadius: 0 }}>
+                        50% PREVIEW
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="modal-footer px-4 py-3 bg-white border-top" style={{ borderColor: 'var(--dp-color-rule)' }}>
-                <button
-                  type="button"
-                  className="btn btn-outline-dark font-monospace"
-                  style={{ borderRadius: 0 }}
-                  onClick={() => setSelectedTip(null)}
-                >
-                  Close
-                </button>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setSelectedTip(null)}
+                    aria-label="Close"
+                  />
+                </div>
+                <div className="modal-body p-4" style={{ backgroundColor: 'var(--dp-color-ground-1)' }}>
+                  <h3 className="brand-font mb-3 text-dark" style={{ fontSize: '1.6rem' }}>
+                    {selectedTip.title}
+                  </h3>
+                  <div className="d-flex gap-3 small text-muted font-monospace mb-4 pb-3 border-bottom" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                    <span>By {selectedTip.authorName || 'Chef James Thew'}</span>
+                    <span>&bull;</span>
+                    <span>Published {new Date(selectedTip.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="lead mb-3" style={{ fontSize: '1.05rem', lineHeight: '1.8', whiteSpace: 'pre-line', color: 'var(--dp-color-ink-1)' }}>
+                    {tipPreview.visibleText}
+                  </div>
+                  {isTipPreview && (
+                    <div
+                      className="lead mb-4"
+                      style={{
+                        fontSize: '1.05rem',
+                        lineHeight: '1.8',
+                        whiteSpace: 'pre-line',
+                        color: 'var(--dp-color-ink-1)',
+                        filter: 'blur(3.5px)',
+                        opacity: 0.35,
+                        userSelect: 'none',
+                        maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                        WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                      }}
+                      aria-hidden="true"
+                    >
+                      {tipPreview.hiddenTeaser || 'Precision temperature control and culinary finishing techniques reserved for James Thew members...'}
+                    </div>
+                  )}
+                  {!isTipPreview && selectedTip.videoUrl && (
+                    <div className="p-3 bg-white border" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                      <div className="font-monospace small fw-semibold mb-2">Masterclass Video Demonstration</div>
+                      <a
+                        href={selectedTip.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-outline-dark font-monospace"
+                        style={{ borderRadius: 0 }}
+                      >
+                        ▶ Open Video Demonstration
+                      </a>
+                    </div>
+                  )}
+                  {isTipPreview && selectedTip.videoUrl && (
+                    <div className="p-3 mb-3 bg-white border d-flex align-items-center justify-content-between" style={{ borderColor: 'var(--dp-color-accent)' }}>
+                      <span className="font-monospace small text-dark">🔒 Masterclass Video Demonstration (Members Exclusive)</span>
+                    </div>
+                  )}
+                  {isTipPreview && (
+                    <PreviewGateCard
+                      returnTo={returnTo}
+                      isAuthenticated={isAuthenticated}
+                      title="Want to See the Full Technique? Register to Unlock"
+                      description="You are viewing a 50% complimentary preview of this culinary tip. Register as a member ($10/month or $100/year) to unlock the complete guide and video demonstration."
+                      onNavigateAway={() => setSelectedTip(null)}
+                    />
+                  )}
+                </div>
+                <div className="modal-footer px-4 py-3 bg-white border-top" style={{ borderColor: 'var(--dp-color-rule)' }}>
+                  <button
+                    type="button"
+                    className="btn btn-outline-dark font-monospace"
+                    style={{ borderRadius: 0 }}
+                    onClick={() => setSelectedTip(null)}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
